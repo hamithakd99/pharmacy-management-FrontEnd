@@ -2,10 +2,12 @@ import { Box, Button, HStack, Input, VStack} from "@chakra-ui/react";
 import axios from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const navigate = useNavigate();
 
     async function handleLogin() {
         try {
@@ -15,10 +17,12 @@ const Login = () => {
             })
             toast.success("Login successful");
             localStorage.setItem("token", response.data.token);
-            if(response.data.role === "admin") {
-                window.location.href = "/admin";
+            console.log(response.data);
+            console.log(response.data.role);
+            if(response.data.role === "ADMIN") {
+                navigate("/admin");
             } else {
-                window.location.href = "/";
+                navigate("/");
             }
 
             

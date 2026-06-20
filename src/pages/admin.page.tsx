@@ -1,5 +1,6 @@
 import { Flex, HStack, VStack } from "@chakra-ui/react";
 import { Link, Route, Routes } from "react-router-dom";
+import UserRegister from "./Admin/admin.user.register.page";
 
 export default function AdminPage () {
     return (
@@ -11,6 +12,7 @@ export default function AdminPage () {
                     <Link to="/admin/orders">Orders</Link>
                     <Link to="/admin/reports">Reports</Link>
                     <Link to="/admin/reviews">Reviews</Link>
+                    <Link to="/admin/register/newuser">Register</Link>
                 
                 </Flex>
                 <VStack>
@@ -20,6 +22,7 @@ export default function AdminPage () {
                         <Route path="/orders" element={<h1>Orders Management</h1>} />
                         <Route path="/reports" element={<h1>Reports Management</h1>} />
                         <Route path="/reviews" element={<h1>Reviews Management</h1>} />
+                        <Route path="/register/newuser" element={<UserRegister />} />
                     </Routes>
                 </VStack>
                 
