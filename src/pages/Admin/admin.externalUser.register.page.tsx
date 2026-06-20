@@ -4,7 +4,6 @@ import {
   HStack,
   Input,
   VStack,
-  Text,
   Select,
   Portal,
   createListCollection,
@@ -71,7 +70,7 @@ const ExternalUserRegister = () => {
     async function handleRegister() {
         try {
             const response = await axios.post(
-                import.meta.env.VITE_BACKEND_URL + "/external-user/register",
+                import.meta.env.VITE_BACKEND_URL + "/external/register",
                 formData
             );
             
