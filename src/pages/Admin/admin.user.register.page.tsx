@@ -115,7 +115,7 @@ const UserRegister = () => {
                 flexDirection="column"
             >
                 <Box textAlign="center" fontSize="3xl" fontWeight="bold" mb={1}>
-                    Register
+                    System User Register
                 </Box>
                 
                 <VStack gap="3" flex="1" overflow="hidden">
