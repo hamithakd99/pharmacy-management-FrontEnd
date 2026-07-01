@@ -1,23 +1,19 @@
-import { Box } from "@chakra-ui/react";
-import { useState } from "react";
+import Sidebar from "@/components/Slidebar/sidebar";
+import { Flex, Box } from "@chakra-ui/react";
+import { Outlet } from "react-router-dom";
 
-export default function TestPage () {
+export default function TestPage() {
+  return (
+    <Flex bg="gray.50">
+      <Sidebar />
 
-    const [count, setCount] = useState(0);
-    
-    return (
-        <>
-        <Box width="auto" gap="5" height="100vh" bg="red.500" display="flex" justifyContent="center" alignItems="center" shadow="lg, yellow.500">
-            <Box width="100px" fontWeight="semibold" textStyle="2xl" height="50px" bg="blue.500" color="white" display="flex" justifyContent="center" alignItems="center" shadow="lg, yellow.500" onClick={() => setCount(count - 1)}>
-                -
-            </Box>
-            <Box width="100px" fontWeight="semibold" textStyle="2xl" height="50px" bg="blue.500" color="white" display="flex" justifyContent="center" alignItems="center" shadow="lg, yellow.500">
-                {count}
-            </Box>
-            <Box width="100px" borderRadius={""} fontWeight="semibold" textStyle="2xl" height="50px" bg="blue.500" color="white" display="flex" justifyContent="center" alignItems="center" shadow="lg, yellow.500" onClick={() => setCount(count + 1)}>
-                +
-            </Box>
-        </Box>
-        </>
-    )
+      <Box
+        flex="1"
+        p={6}
+        overflow="auto"
+      >
+        <Outlet />
+      </Box>
+    </Flex>
+  );
 }
