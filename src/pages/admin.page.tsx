@@ -12,6 +12,7 @@ import UserManagement from "./Admin/userManagement";
 import UserRegister from "./Admin/user registation/admin.user.register.page";
 import ExternalUserRegister from "./Admin/user registation/admin.externalUser.register.page";
 import Dashboard from "./Admin/dashBoard";
+import CategoriesManagement from "./Admin/categoriesManagement";
 
 export default function AdminPage() {
   return (
@@ -77,6 +78,17 @@ export default function AdminPage() {
               Products
             </Box>
           </Link>
+          <Link to="/admin/categories">
+            <Box
+              p={3}
+              rounded="md"
+              _hover={{
+                bg: "teal.600",
+              }}
+            >
+              Category
+            </Box>
+          </Link>
 
           <Link to="/admin/orders">
             <Box
@@ -130,6 +142,7 @@ export default function AdminPage() {
           <Route index path="/dashboard" element={<Dashboard />} />
           <Route path="/users" element={<UserManagement />} />
           <Route path="/products" element={<ProductManagement />} />
+          <Route path="/categories" element={<CategoriesManagement />} />
           <Route path="/register/newuser" element={<UserRegister />} />
           <Route
             path="/register/external/newuser"

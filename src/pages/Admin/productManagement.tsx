@@ -1,8 +1,11 @@
+
 import ProductSearchBar from "@/components/productSearchBar";
-import { Box, Button, HStack, SimpleGrid, Text } from "@chakra-ui/react";
+import { Box, Button, CloseButton, Dialog, Flex, HStack, Portal, SimpleGrid, Text } from "@chakra-ui/react";
 import { Table } from "@chakra-ui/react/table";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { MdAddBox } from "react-icons/md";
+import AddProduct from "./Product Management/addNewProduct";
 
 const cards = [
   {
@@ -48,9 +51,36 @@ export default function ProductManagement() {
         p={4} rounded="md" textAlign="center" fontWeight="bold">
         Product Management
       </Box>
-      <Text mt="4" fontSize="xl" fontWeight="bold">
-        <ProductSearchBar />
-      </Text>
+      <Flex mt="4" justifyContent="space-between" alignItems="center">
+        <Box flex="1" mr="4">
+          <ProductSearchBar onSelect={(product) => {
+            console.log(product);
+          }} />
+        </Box>
+
+
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
+            <Button variant="outline"><MdAddBox />Add Product</Button>
+          </Dialog.Trigger>
+          <Portal>
+            <Dialog.Backdrop />
+            <Dialog.Positioner >
+              <Dialog.Content maxW="1000px"
+                maxH="90vh">
+                <Dialog.CloseTrigger asChild>
+                  <CloseButton />
+                </Dialog.CloseTrigger>
+                <Dialog.Body>
+                  <AddProduct />
+                </Dialog.Body>
+                <Dialog.Footer />
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Portal>
+        </Dialog.Root>
+
+      </Flex>
 
       <SimpleGrid
         minChildWidth="150px"
@@ -92,7 +122,7 @@ export default function ProductManagement() {
       <Box>
         <HStack>
           <Box
-            w="75%"
+            w="100%"
             justifyContent="center"
             alignItems="center"
             display="flex">
@@ -104,14 +134,13 @@ export default function ProductManagement() {
                   <Table.ColumnHeader>Brand</Table.ColumnHeader>
                   <Table.ColumnHeader>Current Stock</Table.ColumnHeader>
                   <Table.ColumnHeader>Selling Price</Table.ColumnHeader>
-                  <Table.ColumnHeader>Buying Price</Table.ColumnHeader>
                   <Table.ColumnHeader>Actions</Table.ColumnHeader>
                 </Table.Row>
               </Table.Header>
               <Table.Body>
                 {products.map((product: any, index: number) => (
                   <Table.Row key={index}>
-                    <Table.Cell>{product.productId}</Table.Cell>
+                    <Table.Cell textStyle="sm" textAlign="start">{product.productId}</Table.Cell>
 
                     <Table.Cell>{product.name}</Table.Cell>
 
@@ -122,12 +151,12 @@ export default function ProductManagement() {
                     </Table.Cell>
 
                     <Table.Cell>
-                      Rs. {product.sellingPrice.toFixed(2)}
+                      <Text textStyle="sm" fontWeight="bold">
+                        Rs. {product.sellingPrice.toFixed(2)}
+                      </Text>
+                      <Text textStyle="xs">Buy Price Rs. {product.buyingPrice.toFixed(2)}</Text>
                     </Table.Cell>
 
-                    <Table.Cell>
-                      Rs. {product.buyingPrice.toFixed(2)}
-                    </Table.Cell>
                     <Table.Cell>
                       <HStack>
                         <Button colorScheme="blue">Edit</Button>
@@ -139,13 +168,7 @@ export default function ProductManagement() {
               </Table.Body>
             </Table.Root>
           </Box>
-          <Box
-            w="25%"
-            justifyContent="center"
-            alignItems="center"
-            display="flex">
-            details
-          </Box>
+
         </HStack>
       </Box>
     </>
