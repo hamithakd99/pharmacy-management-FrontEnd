@@ -1,11 +1,12 @@
 
 import ProductSearchBar from "@/components/productSearchBar";
-import { Box, Button, CloseButton, Dialog, Flex, HStack, Portal, SimpleGrid, Text } from "@chakra-ui/react";
+import { Box, Button, CloseButton, Dialog, Flex, HStack, Portal, SimpleGrid, Text, VStack } from "@chakra-ui/react";
 import { Table } from "@chakra-ui/react/table";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { MdAddBox } from "react-icons/md";
-import AddProduct from "./Product Management/addNewProduct";
+import { Link, useNavigate } from "react-router-dom";
 
 const cards = [
   {
@@ -33,17 +34,89 @@ const cards = [
 export default function ProductManagement() {
 
   const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
 
-  useEffect(
-    () => {
-      axios.get(import.meta.env.VITE_BACKEND_URL + '/product/all')
-        .then((response) => {
-          setProducts(response.data);
-          console.log(response.data);
-        });
+  const [deleteDialogOpen, setDeleteDialogOpen] =
+    useState(false);
 
-    }, []
-  )
+  const [selectedProduct, setSelectedProduct] =
+    useState<any>(null);
+
+  function getAllProducts() {
+
+    axios
+      .get(
+        import.meta.env.VITE_BACKEND_URL +
+        "/product/all"
+      )
+
+      .then((response) => {
+
+        setProducts(response.data);
+
+      });
+
+  }
+
+  useEffect(() => {
+    getAllProducts();
+  }, [])
+
+  async function deleteProduct() {
+
+    if (!selectedProduct) return;
+
+    try {
+
+        await axios.delete(
+
+            import.meta.env.VITE_BACKEND_URL +
+
+            "/product/delete/" +
+
+            selectedProduct.id,
+
+            {
+
+                headers: {
+
+                    Authorization:
+
+                        "Bearer " +
+
+                        localStorage.getItem("token")
+
+                }
+
+            }
+
+        );
+
+        toast.success(
+
+            "Product deleted successfully"
+
+        );
+
+        setDeleteDialogOpen(false);
+
+        getAllProducts();
+
+    }
+
+    catch (error: any) {
+
+        toast.error(
+
+            error.response?.data?.error ||
+
+            "Failed to delete product"
+
+        );
+
+    }
+
+}
 
   return (
     <>
@@ -58,8 +131,15 @@ export default function ProductManagement() {
           }} />
         </Box>
 
+        <Link to="/admin/products/add">
+          <Button colorScheme="blue">
+            <MdAddBox />
+            Add Product
+          </Button>
+        </Link>
 
-        <Dialog.Root>
+
+        {/* <Dialog.Root>
           <Dialog.Trigger asChild>
             <Button variant="outline"><MdAddBox />Add Product</Button>
           </Dialog.Trigger>
@@ -78,7 +158,7 @@ export default function ProductManagement() {
               </Dialog.Content>
             </Dialog.Positioner>
           </Portal>
-        </Dialog.Root>
+        </Dialog.Root> */}
 
       </Flex>
 
@@ -159,8 +239,11 @@ export default function ProductManagement() {
 
                     <Table.Cell>
                       <HStack>
-                        <Button colorScheme="blue">Edit</Button>
-                        <Button colorScheme="red">Delete</Button>
+                        <Button colorScheme="blue" onClick={() => navigate(`/admin/products/edit/${product.id}`, { state: { item: product } })}>Edit</Button>
+                        <Button colorScheme="red" onClick={() => {
+                          setSelectedProduct(product);
+                          setDeleteDialogOpen(true);
+                        }}>Delete</Button>
                       </HStack>
                     </Table.Cell>
                   </Table.Row>
@@ -171,6 +254,66 @@ export default function ProductManagement() {
 
         </HStack>
       </Box>
+      <Dialog.Root
+  open={deleteDialogOpen}
+  onOpenChange={(e) => setDeleteDialogOpen(e.open)}
+>
+  <Portal>
+    <Dialog.Backdrop />
+
+    <Dialog.Positioner>
+      <Dialog.Content maxW="450px">
+        <Dialog.CloseTrigger asChild>
+          <CloseButton />
+        </Dialog.CloseTrigger>
+
+        <Dialog.Header>
+          <Dialog.Title color="red.500">
+            Delete Product
+          </Dialog.Title>
+        </Dialog.Header>
+
+        <Dialog.Body>
+          <VStack align="start" gap={3}>
+            <Text>
+              Are you sure you want to delete this product?
+            </Text>
+
+            <Text
+              fontWeight="bold"
+              fontSize="lg"
+            >
+              {selectedProduct?.name}
+            </Text>
+
+            <Text
+              color="red.500"
+              fontSize="sm"
+            >
+              This action cannot be undone.
+            </Text>
+          </VStack>
+        </Dialog.Body>
+
+        <Dialog.Footer>
+          <Button
+            variant="outline"
+            onClick={() => setDeleteDialogOpen(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            colorPalette="red"
+            onClick={deleteProduct}
+          >
+            Delete
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog.Positioner>
+  </Portal>
+</Dialog.Root>
     </>
   )
 

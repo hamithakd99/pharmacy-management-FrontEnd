@@ -251,6 +251,7 @@ export default function CategoryManagement() {
     // CREATE CATEGORY
     // ================================
 
+    const token = localStorage.getItem("token");
 
     async function createCategory() {
 
@@ -282,6 +283,11 @@ export default function CategoryManagement() {
                         name:
                             categoryName.trim()
 
+                    },
+                    {
+                        headers: {
+                            Authorization: "Bearer " + token
+                        }
                     }
 
                 );
@@ -402,6 +408,11 @@ export default function CategoryManagement() {
                         name:
                             editCategoryName.trim()
 
+                    },
+                    {
+                        headers: {
+                            Authorization: "Bearer " + token
+                        }
                     }
 
                 );
@@ -500,7 +511,12 @@ export default function CategoryManagement() {
 
                     import.meta.env.VITE_BACKEND_URL
                     + "/category/delete/"
-                    + selectedCategory.id
+                    + selectedCategory.id,
+                    {
+                        headers: {
+                            Authorization: "Bearer " + token
+                        }
+                    }
 
                 );
 
@@ -690,7 +706,7 @@ export default function CategoryManagement() {
             <Flex
 
                 justifyContent=
-                    "space-between"
+                "space-between"
 
                 alignItems={{
                     base: "start",
@@ -725,10 +741,10 @@ export default function CategoryManagement() {
                         rounded="xl"
 
                         justifyContent=
-                            "center"
+                        "center"
 
                         alignItems=
-                            "center"
+                        "center"
 
                         fontSize="2xl"
 
@@ -807,7 +823,7 @@ export default function CategoryManagement() {
                         <Button
 
                             colorPalette=
-                                "teal"
+                            "teal"
 
                         >
 
@@ -872,7 +888,7 @@ export default function CategoryManagement() {
                                         fontSize="sm"
 
                                         fontWeight=
-                                            "medium"
+                                        "medium"
 
                                         mb="2"
 
@@ -886,7 +902,7 @@ export default function CategoryManagement() {
                                     <Input
 
                                         placeholder=
-                                            "e.g. Pain Relief"
+                                        "e.g. Pain Relief"
 
                                         value={
                                             categoryName
@@ -926,7 +942,7 @@ export default function CategoryManagement() {
                                     <Button
 
                                         variant=
-                                            "outline"
+                                        "outline"
 
                                         onClick={() =>
 
@@ -946,7 +962,7 @@ export default function CategoryManagement() {
                                     <Button
 
                                         colorPalette=
-                                            "teal"
+                                        "teal"
 
                                         onClick={
                                             createCategory
@@ -990,7 +1006,7 @@ export default function CategoryManagement() {
                 border="1px solid"
 
                 borderColor=
-                    "gray.200"
+                "gray.200"
 
                 rounded="xl"
 
@@ -1008,7 +1024,7 @@ export default function CategoryManagement() {
                 <HStack
 
                     justifyContent=
-                        "space-between"
+                    "space-between"
 
                 >
 
@@ -1060,10 +1076,10 @@ export default function CategoryManagement() {
                         rounded="xl"
 
                         justifyContent=
-                            "center"
+                        "center"
 
                         alignItems=
-                            "center"
+                        "center"
 
                         fontSize="2xl"
 
@@ -1093,7 +1109,7 @@ export default function CategoryManagement() {
                 border="1px solid"
 
                 borderColor=
-                    "gray.200"
+                "gray.200"
 
                 rounded="xl"
 
@@ -1112,7 +1128,7 @@ export default function CategoryManagement() {
                     p="5"
 
                     justifyContent=
-                        "space-between"
+                    "space-between"
 
                     alignItems={{
                         base: "stretch",
@@ -1127,10 +1143,10 @@ export default function CategoryManagement() {
                     gap="4"
 
                     borderBottom=
-                        "1px solid"
+                    "1px solid"
 
                     borderColor=
-                        "gray.200"
+                    "gray.200"
 
                 >
 
@@ -1138,7 +1154,7 @@ export default function CategoryManagement() {
                     <Box
 
                         position=
-                            "relative"
+                        "relative"
 
                         maxW="400px"
 
@@ -1150,17 +1166,17 @@ export default function CategoryManagement() {
                         <Box
 
                             position=
-                                "absolute"
+                            "absolute"
 
                             left="3"
 
                             top="50%"
 
                             transform=
-                                "translateY(-50%)"
+                            "translateY(-50%)"
 
                             color=
-                                "gray.400"
+                            "gray.400"
 
                             zIndex="1"
 
@@ -1176,7 +1192,7 @@ export default function CategoryManagement() {
                             pl="10"
 
                             placeholder=
-                                "Search categories..."
+                            "Search categories..."
 
                             value={
                                 searchText
@@ -1229,10 +1245,10 @@ export default function CategoryManagement() {
                         minH="300px"
 
                         justifyContent=
-                            "center"
+                        "center"
 
                         alignItems=
-                            "center"
+                        "center"
 
                     >
 
@@ -1245,7 +1261,7 @@ export default function CategoryManagement() {
                                 size="lg"
 
                                 color=
-                                    "teal.500"
+                                "teal.500"
 
                             />
 
@@ -1253,7 +1269,7 @@ export default function CategoryManagement() {
                             <Text
 
                                 color=
-                                    "gray.500"
+                                "gray.500"
 
                             >
 
@@ -1315,7 +1331,7 @@ export default function CategoryManagement() {
                                     <Table.ColumnHeader
 
                                         textAlign=
-                                            "right"
+                                        "right"
 
                                     >
 
@@ -1359,7 +1375,7 @@ export default function CategoryManagement() {
                                                 <Text
 
                                                     color=
-                                                        "gray.500"
+                                                    "gray.500"
 
                                                 >
 
@@ -1387,19 +1403,19 @@ export default function CategoryManagement() {
                                                         h="38px"
 
                                                         bg=
-                                                            "teal.50"
+                                                        "teal.50"
 
                                                         color=
-                                                            "teal.600"
+                                                        "teal.600"
 
                                                         rounded=
-                                                            "lg"
+                                                        "lg"
 
                                                         justifyContent=
-                                                            "center"
+                                                        "center"
 
                                                         alignItems=
-                                                            "center"
+                                                        "center"
 
                                                     >
 
@@ -1411,10 +1427,10 @@ export default function CategoryManagement() {
                                                     <Text
 
                                                         fontWeight=
-                                                            "semibold"
+                                                        "semibold"
 
                                                         color=
-                                                            "gray.800"
+                                                        "gray.800"
 
                                                     >
 
@@ -1438,10 +1454,10 @@ export default function CategoryManagement() {
                                                 <Badge
 
                                                     colorPalette=
-                                                        "blue"
+                                                    "blue"
 
                                                     variant=
-                                                        "subtle"
+                                                    "subtle"
 
                                                 >
 
@@ -1468,7 +1484,7 @@ export default function CategoryManagement() {
                                                 <HStack
 
                                                     justifyContent=
-                                                        "flex-end"
+                                                    "flex-end"
 
                                                     gap="2"
 
@@ -1480,10 +1496,10 @@ export default function CategoryManagement() {
                                                         size="sm"
 
                                                         variant=
-                                                            "outline"
+                                                        "outline"
 
                                                         colorPalette=
-                                                            "teal"
+                                                        "teal"
 
                                                         onClick={() =>
 
@@ -1508,7 +1524,7 @@ export default function CategoryManagement() {
                                                         size="sm"
 
                                                         variant=
-                                                            "outline"
+                                                        "outline"
 
                                                         onClick={() =>
 
@@ -1533,10 +1549,10 @@ export default function CategoryManagement() {
                                                         size="sm"
 
                                                         variant=
-                                                            "outline"
+                                                        "outline"
 
                                                         colorPalette=
-                                                            "red"
+                                                        "red"
 
                                                         onClick={() =>
 
@@ -1690,10 +1706,10 @@ export default function CategoryManagement() {
                                         minH="250px"
 
                                         justifyContent=
-                                            "center"
+                                        "center"
 
                                         alignItems=
-                                            "center"
+                                        "center"
 
                                     >
 
@@ -1703,7 +1719,7 @@ export default function CategoryManagement() {
                                             size="lg"
 
                                             color=
-                                                "teal.500"
+                                            "teal.500"
 
                                         />
 
@@ -1724,10 +1740,10 @@ export default function CategoryManagement() {
                                             minH="250px"
 
                                             justifyContent=
-                                                "center"
+                                            "center"
 
                                             alignItems=
-                                                "center"
+                                            "center"
 
                                         >
 
@@ -1745,7 +1761,7 @@ export default function CategoryManagement() {
                                                 <Text
 
                                                     fontWeight=
-                                                        "semibold"
+                                                    "semibold"
 
                                                 >
 
@@ -1757,7 +1773,7 @@ export default function CategoryManagement() {
                                                 <Text
 
                                                     color=
-                                                        "gray.500"
+                                                    "gray.500"
 
                                                 >
 
@@ -1873,7 +1889,7 @@ export default function CategoryManagement() {
                                                                             <Text
 
                                                                                 fontWeight=
-                                                                                    "semibold"
+                                                                                "semibold"
 
                                                                             >
 
@@ -2096,7 +2112,7 @@ export default function CategoryManagement() {
                                     mb="2"
 
                                     fontWeight=
-                                        "medium"
+                                    "medium"
 
                                 >
 
@@ -2151,7 +2167,7 @@ export default function CategoryManagement() {
                                 <Button
 
                                     colorPalette=
-                                        "teal"
+                                    "teal"
 
                                     onClick={
                                         updateCategory
@@ -2258,7 +2274,7 @@ export default function CategoryManagement() {
                                         as="span"
 
                                         fontWeight=
-                                            "bold"
+                                        "bold"
 
                                     >
 

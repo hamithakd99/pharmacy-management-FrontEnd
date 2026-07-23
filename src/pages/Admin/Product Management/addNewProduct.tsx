@@ -8,12 +8,12 @@ import {
     NativeSelect,
     SimpleGrid,
     Text,
-    Textarea,
 } from "@chakra-ui/react";
 
 import axios from "axios";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 
 // ================================
@@ -59,6 +59,13 @@ const initialProductState: ProductForm = {
 
 
 export default function AddProduct() {
+    
+    const navigate = useNavigate();
+    const token = localStorage.getItem("token");
+    if (!token) {
+        toast.error("You are not logged in. Please log in to continue.");
+        window.location.href = "/login";
+    }
 
 
     // ================================
@@ -269,120 +276,120 @@ export default function AddProduct() {
         // ============================
 
 
-        try {
+        setSaving(true);
 
-            setSaving(true);
+        await axios.post(
 
+                import.meta.env.VITE_BACKEND_URL +
+                "/product/create",
 
-            const response =
-                await axios.post(
+                {
 
-                    import.meta.env.VITE_BACKEND_URL +
-                    "/product/create",
+                    // Product ID is NOT sent.
+                    // Backend generates productId.
 
-                    {
-
-                        // Product ID is NOT sent.
-                        // Backend generates productId.
-
-                        name:
-                            product.name.trim(),
+                    name:
+                        product.name.trim(),
 
 
-                        brand:
-                            product.brand.trim() !== ""
-                                ? product.brand.trim()
-                                : null,
+                    brand:
+                        product.brand.trim() !== ""
+                            ? product.brand.trim()
+                            : null,
 
 
-                        categoryId:
-                            Number(
-                                product.categoryId
-                            ),
+                    categoryId:
+                        Number(
+                            product.categoryId
+                        ),
 
 
-                        description:
-                            product.description.trim() !== ""
-                                ? product.description.trim()
-                                : null,
+                    description:
+                        product.description.trim() !== ""
+                            ? product.description.trim()
+                            : null,
 
 
-                        dosageForm:
-                            product.dosageForm,
+                    dosageForm:
+                        product.dosageForm,
 
 
-                        strengthValue:
-                            Number(
-                                product.strengthValue
-                            ),
+                    strengthValue:
+                        Number(
+                            product.strengthValue
+                        ),
 
 
-                        strengthUnit:
-                            product.strengthUnit,
+                    strengthUnit:
+                        product.strengthUnit,
 
 
-                        packSize:
-                            product.packSize !== ""
-                                ? Number(
-                                    product.packSize
-                                )
-                                : null
+                    packSize:
+                        product.packSize !== ""
+                            ? Number(
+                                product.packSize
+                            )
+                            : null
 
+                },
+                {
+                    headers: {
+                        Authorization: "Bearer " + token
                     }
+                }
 
+            ).then((response) => {
+
+
+                console.log(
+                    "Created Product:",
+                    response.data
                 );
 
 
-            console.log(
-                "Created Product:",
-                response.data
-            );
+                toast.success(
+                    "Product created successfully"
+                );
+                navigate("/admin/products");
 
 
-            toast.success(
-                "Product created successfully"
-            );
+
+                // Clear form
+                setProduct(
+                    initialProductState
+                );
 
 
-            // Clear form
-            setProduct(
-                initialProductState
-            );
+            }).catch((error: any) => {
 
 
-        } catch (error: any) {
+                console.log(
+                    "Create Product Error:",
+                    error
+                );
 
 
-            console.log(
-                "Create Product Error:",
-                error
-            );
+                console.log(
+                    "Backend Error:",
+                    error.response?.data
+                );
 
 
-            console.log(
-                "Backend Error:",
-                error.response?.data
-            );
+                toast.error(
 
+                    error.response?.data?.error
+                    ||
+                    error.response?.data?.message
+                    ||
+                    "Failed to create product"
 
-            toast.error(
+                );
 
-                error.response?.data?.error
-                ||
-                error.response?.data?.message
-                ||
-                "Failed to create product"
+            }).finally(() => {
 
-            );
+                setSaving(false);
 
-
-        } finally {
-
-
-            setSaving(false);
-
-
-        }
+            });
 
     }
 
@@ -394,829 +401,829 @@ export default function AddProduct() {
 
     return (
 
-        <Box
+            <Box
 
-            bg="white"
+                bg="white"
 
-            border="1px solid"
+                border="1px solid"
 
-            borderColor="gray.200"
+                borderColor="gray.200"
 
-            rounded="xl"
+                rounded="xl"
 
-            p={{
-                base: "4",
-                md: "6"
-            }}
-
-            boxShadow="sm"
-
-        >
-
-
-            {/* ======================== */}
-            {/* HEADER */}
-            {/* ======================== */}
-
-
-            <Flex
-
-                justifyContent=
-                "space-between"
-
-                alignItems={{
-                    base: "start",
-                    md: "center"
+                p={{
+                    base: "4",
+                    md: "6"
                 }}
 
-                direction={{
-                    base: "column",
-                    md: "row"
-                }}
-
-                gap="4"
-
-                mb="8"
+                boxShadow="sm"
 
             >
 
 
-                <Box>
-
-
-                    <Heading
-
-                        size="lg"
-
-                        color="gray.800"
-
-                    >
-
-                        Add New Product
-
-                    </Heading>
-
-
-                    <Text
-
-                        color="gray.500"
-
-                        fontSize="sm"
-
-                        mt="1"
-
-                    >
-
-                        Add a new product to the pharmacy inventory.
-                        Product ID will be generated automatically.
-
-                    </Text>
-
-
-                </Box>
-
+                {/* ======================== */}
+                {/* HEADER */}
+                {/* ======================== */}
 
 
                 <Flex
-                    gap="3"
-                >
 
+                    justifyContent=
+                    "space-between"
 
-                    <Button
-
-                        variant="outline"
-
-                        onClick={
-                            handleDiscard
-                        }
-
-                        disabled={
-                            saving
-                        }
-
-                    >
-
-                        Discard
-
-                    </Button>
-
-
-
-                    <Button
-
-                        colorPalette="teal"
-
-                        onClick={
-                            handleSubmit
-                        }
-
-                        loading={
-                            saving
-                        }
-
-                    >
-
-                        Save Product
-
-                    </Button>
-
-
-                </Flex>
-
-
-            </Flex>
-
-
-
-            {/* ======================== */}
-            {/* BASIC INFORMATION */}
-            {/* ======================== */}
-
-
-            <Box
-                mb="8"
-            >
-
-
-                <Box
-                    mb="4"
-                >
-
-
-                    <Text
-
-                        fontSize="md"
-
-                        fontWeight=
-                        "semibold"
-
-                        color="gray.800"
-
-                    >
-
-                        Basic Information
-
-                    </Text>
-
-
-                    <Text
-
-                        fontSize="sm"
-
-                        color="gray.500"
-
-                    >
-
-                        Enter the basic details of the product
-
-                    </Text>
-
-
-                </Box>
-
-
-
-                <SimpleGrid
-
-                    columns={{
-                        base: 1,
-                        md: 2
+                    alignItems={{
+                        base: "start",
+                        md: "center"
                     }}
 
-                    gap="5"
+                    direction={{
+                        base: "column",
+                        md: "row"
+                    }}
+
+                    gap="4"
+
+                    mb="8"
 
                 >
 
 
-
-                    {/* PRODUCT NAME */}
-
-
-                    <GridItem>
+                    <Box>
 
 
-                        <Text
+                        <Heading
 
-                            fontSize="sm"
+                            size="lg"
 
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
+                            color="gray.800"
 
                         >
 
-                            Product Name
+                            Add New Product
 
-                            <Text
-
-                                as="span"
-
-                                color="red.500"
-
-                                ml="1"
-
-                            >
-
-                                *
-
-                            </Text>
-
-                        </Text>
-
-
-                        <Input
-
-                            name="name"
-
-                            placeholder=
-                            "e.g. Panadol"
-
-                            value={
-                                product.name
-                            }
-
-                            onChange={
-                                handleChange
-                            }
-
-                        />
-
-
-                    </GridItem>
-
-
-
-                    {/* BRAND */}
-
-
-                    <GridItem>
+                        </Heading>
 
 
                         <Text
-
-                            fontSize="sm"
-
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
-
-                        >
-
-                            Brand
-
-                        </Text>
-
-
-                        <Input
-
-                            name="brand"
-
-                            placeholder=
-                            "e.g. GSK"
-
-                            value={
-                                product.brand
-                            }
-
-                            onChange={
-                                handleChange
-                            }
-
-                        />
-
-
-                    </GridItem>
-
-
-
-                    {/* CATEGORY */}
-
-
-                    <GridItem>
-                        <Text
-                            fontSize="sm"
-                            fontWeight="medium"
-                            mb="2"
-                        >
-                            Category
-
-                            <Text
-                                as="span"
-                                color="red.500"
-                                ml="1"
-                            >
-                                *
-                            </Text>
-                        </Text>
-
-                        <NativeSelect.Root
-                            disabled={categoriesLoading}
-                        >
-                            <NativeSelect.Field
-                                name="categoryId"
-                                value={product.categoryId}
-                                onChange={handleChange}
-                            >
-                                <option value="">
-                                    {categoriesLoading
-                                        ? "Loading categories..."
-                                        : "Select Category"}
-                                </option>
-
-                                {categories.map((category) => (
-                                    <option
-                                        key={category.id}
-                                        value={category.id}
-                                    >
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </NativeSelect.Field>
-
-                            <NativeSelect.Indicator />
-                        </NativeSelect.Root>
-
-                        {!categoriesLoading &&
-                            categories.length === 0 && (
-                                <Text
-                                    fontSize="xs"
-                                    color="orange.600"
-                                    mt="2"
-                                >
-                                    No categories available. Create a category before adding a product.
-                                </Text>
-                            )}
-                    </GridItem>
-
-
-
-                    {/* PACK SIZE */}
-
-
-                    <GridItem>
-
-
-                        <Text
-
-                            fontSize="sm"
-
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
-
-                        >
-
-                            Pack Size
-
-                        </Text>
-
-
-                        <Input
-
-                            name="packSize"
-
-                            type="number"
-
-                            min="1"
-
-                            placeholder=
-                            "e.g. 20"
-
-                            value={
-                                product.packSize
-                            }
-
-                            onChange={
-                                handleChange
-                            }
-
-                        />
-
-
-                        <Text
-
-                            fontSize="xs"
 
                             color="gray.500"
+
+                            fontSize="sm"
 
                             mt="1"
 
                         >
 
-                            Number of units in one pack
+                            Add a new product to the pharmacy inventory.
+                            Product ID will be generated automatically.
 
                         </Text>
 
 
-                    </GridItem>
-
-
-                </SimpleGrid>
-
-
-            </Box>
+                    </Box>
 
 
 
-            {/* ======================== */}
-            {/* DIVIDER */}
-            {/* ======================== */}
+                    <Flex
+                        gap="3"
+                    >
 
 
-            <Box
+                        <Button
 
-                borderTop=
-                "1px solid"
+                            variant="outline"
 
-                borderColor=
-                "gray.200"
+                            onClick={
+                                handleDiscard
+                            }
 
-                mb="8"
+                            disabled={
+                                saving
+                            }
 
-            />
+                        >
+
+                            Discard
+
+                        </Button>
 
 
 
-            {/* ======================== */}
-            {/* MEDICINE INFORMATION */}
-            {/* ======================== */}
+                        <Button
+
+                            colorPalette="teal"
+
+                            onClick={
+                                handleSubmit
+                            }
+
+                            loading={
+                                saving
+                            }
+
+                        >
+
+                            Save Product
+
+                        </Button>
 
 
-            <Box>
+                    </Flex>
+
+
+                </Flex>
+
+
+
+                {/* ======================== */}
+                {/* BASIC INFORMATION */}
+                {/* ======================== */}
 
 
                 <Box
-                    mb="4"
+                    mb="8"
                 >
 
 
-                    <Text
+                    <Box
+                        mb="4"
+                    >
 
-                        fontSize="md"
 
-                        fontWeight=
-                        "semibold"
+                        <Text
 
-                        color="gray.800"
+                            fontSize="md"
+
+                            fontWeight=
+                            "semibold"
+
+                            color="gray.800"
+
+                        >
+
+                            Basic Information
+
+                        </Text>
+
+
+                        <Text
+
+                            fontSize="sm"
+
+                            color="gray.500"
+
+                        >
+
+                            Enter the basic details of the product
+
+                        </Text>
+
+
+                    </Box>
+
+
+
+                    <SimpleGrid
+
+                        columns={{
+                            base: 1,
+                            md: 2
+                        }}
+
+                        gap="5"
 
                     >
 
-                        Medicine Information
-
-                    </Text>
 
 
-                    <Text
+                        {/* PRODUCT NAME */}
 
-                        fontSize="sm"
 
-                        color="gray.500"
+                        <GridItem>
 
-                    >
 
-                        Enter dosage form and strength information
+                            <Text
 
-                    </Text>
+                                fontSize="sm"
+
+                                fontWeight=
+                                "medium"
+
+                                mb="2"
+
+                            >
+
+                                Product Name
+
+                                <Text
+
+                                    as="span"
+
+                                    color="red.500"
+
+                                    ml="1"
+
+                                >
+
+                                    *
+
+                                </Text>
+
+                            </Text>
+
+
+                            <Input
+
+                                name="name"
+
+                                placeholder=
+                                "e.g. Panadol"
+
+                                value={
+                                    product.name
+                                }
+
+                                onChange={
+                                    handleChange
+                                }
+
+                            />
+
+
+                        </GridItem>
+
+
+
+                        {/* BRAND */}
+
+
+                        <GridItem>
+
+
+                            <Text
+
+                                fontSize="sm"
+
+                                fontWeight=
+                                "medium"
+
+                                mb="2"
+
+                            >
+
+                                Brand
+
+                            </Text>
+
+
+                            <Input
+
+                                name="brand"
+
+                                placeholder=
+                                "e.g. GSK"
+
+                                value={
+                                    product.brand
+                                }
+
+                                onChange={
+                                    handleChange
+                                }
+
+                            />
+
+
+                        </GridItem>
+
+
+
+                        {/* CATEGORY */}
+
+
+                        <GridItem>
+                            <Text
+                                fontSize="sm"
+                                fontWeight="medium"
+                                mb="2"
+                            >
+                                Category
+
+                                <Text
+                                    as="span"
+                                    color="red.500"
+                                    ml="1"
+                                >
+                                    *
+                                </Text>
+                            </Text>
+
+                            <NativeSelect.Root
+                                disabled={categoriesLoading}
+                            >
+                                <NativeSelect.Field
+                                    name="categoryId"
+                                    value={product.categoryId}
+                                    onChange={handleChange}
+                                >
+                                    <option value="">
+                                        {categoriesLoading
+                                            ? "Loading categories..."
+                                            : "Select Category"}
+                                    </option>
+
+                                    {categories.map((category) => (
+                                        <option
+                                            key={category.id}
+                                            value={category.id}
+                                        >
+                                            {category.name}
+                                        </option>
+                                    ))}
+                                </NativeSelect.Field>
+
+                                <NativeSelect.Indicator />
+                            </NativeSelect.Root>
+
+                            {!categoriesLoading &&
+                                categories.length === 0 && (
+                                    <Text
+                                        fontSize="xs"
+                                        color="orange.600"
+                                        mt="2"
+                                    >
+                                        No categories available. Create a category before adding a product.
+                                    </Text>
+                                )}
+                        </GridItem>
+
+
+
+                        {/* PACK SIZE */}
+
+
+                        <GridItem>
+
+
+                            <Text
+
+                                fontSize="sm"
+
+                                fontWeight=
+                                "medium"
+
+                                mb="2"
+
+                            >
+
+                                Pack Size
+
+                            </Text>
+
+
+                            <Input
+
+                                name="packSize"
+
+                                type="number"
+
+                                min="1"
+
+                                placeholder=
+                                "e.g. 20"
+
+                                value={
+                                    product.packSize
+                                }
+
+                                onChange={
+                                    handleChange
+                                }
+
+                            />
+
+
+                            <Text
+
+                                fontSize="xs"
+
+                                color="gray.500"
+
+                                mt="1"
+
+                            >
+
+                                Number of units in one pack
+
+                            </Text>
+
+
+                        </GridItem>
+
+
+                    </SimpleGrid>
 
 
                 </Box>
 
 
 
-                <SimpleGrid
-
-                    columns={{
-                        base: 1,
-                        md: 3
-                    }}
-
-                    gap="5"
-
-                >
+                {/* ======================== */}
+                {/* DIVIDER */}
+                {/* ======================== */}
 
 
+                <Box
 
-                    {/* DOSAGE FORM */}
+                    borderTop=
+                    "1px solid"
+
+                    borderColor=
+                    "gray.200"
+
+                    mb="8"
+
+                />
 
 
-                    <GridItem>
+
+                {/* ======================== */}
+                {/* MEDICINE INFORMATION */}
+                {/* ======================== */}
+
+
+                <Box>
+
+
+                    <Box
+                        mb="4"
+                    >
+
+
+                        <Text
+
+                            fontSize="md"
+
+                            fontWeight=
+                            "semibold"
+
+                            color="gray.800"
+
+                        >
+
+                            Medicine Information
+
+                        </Text>
 
 
                         <Text
 
                             fontSize="sm"
 
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
+                            color="gray.500"
 
                         >
 
-                            Dosage Form
-
-                            <Text
-
-                                as="span"
-
-                                color="red.500"
-
-                                ml="1"
-
-                            >
-
-                                *
-
-                            </Text>
+                            Enter dosage form and strength information
 
                         </Text>
 
 
+                    </Box>
 
-                        <NativeSelect.Root>
 
 
-                            <NativeSelect.Field
+                    <SimpleGrid
+
+                        columns={{
+                            base: 1,
+                            md: 3
+                        }}
+
+                        gap="5"
+
+                    >
+
+
+
+                        {/* DOSAGE FORM */}
+
+
+                        <GridItem>
+
+
+                            <Text
+
+                                fontSize="sm"
+
+                                fontWeight=
+                                "medium"
+
+                                mb="2"
+
+                            >
+
+                                Dosage Form
+
+                                <Text
+
+                                    as="span"
+
+                                    color="red.500"
+
+                                    ml="1"
+
+                                >
+
+                                    *
+
+                                </Text>
+
+                            </Text>
+
+
+
+                            <NativeSelect.Root>
+
+
+                                <NativeSelect.Field
+
+                                    name=
+                                    "dosageForm"
+
+                                    value={
+                                        product.dosageForm
+                                    }
+
+                                    onChange={
+                                        handleChange
+                                    }
+
+                                >
+
+
+                                    <option
+                                        value=""
+                                    >
+
+                                        Select Dosage Form
+
+                                    </option>
+
+
+                                    <option
+                                        value="TABLET"
+                                    >
+
+                                        Tablet
+
+                                    </option>
+
+
+                                    <option
+                                        value="CAPSULE"
+                                    >
+
+                                        Capsule
+
+                                    </option>
+
+
+                                    <option
+                                        value="SYRUP"
+                                    >
+
+                                        Syrup
+
+                                    </option>
+
+
+                                    <option
+                                        value="INJECTION"
+                                    >
+
+                                        Injection
+
+                                    </option>
+
+
+                                    <option
+                                        value="CREAM"
+                                    >
+
+                                        Cream
+
+                                    </option>
+
+
+                                    <option
+                                        value="OINTMENT"
+                                    >
+
+                                        Ointment
+
+                                    </option>
+
+
+                                    <option
+                                        value="DROPS"
+                                    >
+
+                                        Drops
+
+                                    </option>
+
+
+                                </NativeSelect.Field>
+
+
+                                <NativeSelect.Indicator />
+
+
+                            </NativeSelect.Root>
+
+
+                        </GridItem>
+
+
+
+                        {/* STRENGTH VALUE */}
+
+
+                        <GridItem>
+
+
+                            <Text
+
+                                fontSize="sm"
+
+                                fontWeight=
+                                "medium"
+
+                                mb="2"
+
+                            >
+
+                                Strength
+
+                                <Text
+
+                                    as="span"
+
+                                    color="red.500"
+
+                                    ml="1"
+
+                                >
+
+                                    *
+
+                                </Text>
+
+                            </Text>
+
+
+                            <Input
 
                                 name=
-                                "dosageForm"
+                                "strengthValue"
+
+                                type="number"
+
+                                min="0"
+
+                                step="any"
+
+                                placeholder=
+                                "e.g. 500"
 
                                 value={
-                                    product.dosageForm
+                                    product.strengthValue
                                 }
 
                                 onChange={
                                     handleChange
                                 }
 
-                            >
+                            />
 
 
-                                <option
-                                    value=""
-                                >
-
-                                    Select Dosage Form
-
-                                </option>
-
-
-                                <option
-                                    value="TABLET"
-                                >
-
-                                    Tablet
-
-                                </option>
-
-
-                                <option
-                                    value="CAPSULE"
-                                >
-
-                                    Capsule
-
-                                </option>
-
-
-                                <option
-                                    value="SYRUP"
-                                >
-
-                                    Syrup
-
-                                </option>
-
-
-                                <option
-                                    value="INJECTION"
-                                >
-
-                                    Injection
-
-                                </option>
-
-
-                                <option
-                                    value="CREAM"
-                                >
-
-                                    Cream
-
-                                </option>
-
-
-                                <option
-                                    value="OINTMENT"
-                                >
-
-                                    Ointment
-
-                                </option>
-
-
-                                <option
-                                    value="DROPS"
-                                >
-
-                                    Drops
-
-                                </option>
-
-
-                            </NativeSelect.Field>
-
-
-                            <NativeSelect.Indicator />
-
-
-                        </NativeSelect.Root>
-
-
-                    </GridItem>
+                        </GridItem>
 
 
 
-                    {/* STRENGTH VALUE */}
+                        {/* STRENGTH UNIT */}
 
 
-                    <GridItem>
+                        <GridItem>
 
-
-                        <Text
-
-                            fontSize="sm"
-
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
-
-                        >
-
-                            Strength
 
                             <Text
 
-                                as="span"
+                                fontSize="sm"
 
-                                color="red.500"
+                                fontWeight=
+                                "medium"
 
-                                ml="1"
+                                mb="2"
 
                             >
 
-                                *
+                                Strength Unit
+
+                                <Text
+
+                                    as="span"
+
+                                    color="red.500"
+
+                                    ml="1"
+
+                                >
+
+                                    *
+
+                                </Text>
 
                             </Text>
 
-                        </Text>
 
 
-                        <Input
-
-                            name=
-                            "strengthValue"
-
-                            type="number"
-
-                            min="0"
-
-                            step="any"
-
-                            placeholder=
-                            "e.g. 500"
-
-                            value={
-                                product.strengthValue
-                            }
-
-                            onChange={
-                                handleChange
-                            }
-
-                        />
+                            <NativeSelect.Root>
 
 
-                    </GridItem>
+                                <NativeSelect.Field
 
+                                    name=
+                                    "strengthUnit"
 
+                                    value={
+                                        product.strengthUnit
+                                    }
 
-                    {/* STRENGTH UNIT */}
+                                    onChange={
+                                        handleChange
+                                    }
 
-
-                    <GridItem>
-
-
-                        <Text
-
-                            fontSize="sm"
-
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
-
-                        >
-
-                            Strength Unit
-
-                            <Text
-
-                                as="span"
-
-                                color="red.500"
-
-                                ml="1"
-
-                            >
-
-                                *
-
-                            </Text>
-
-                        </Text>
-
-
-
-                        <NativeSelect.Root>
-
-
-                            <NativeSelect.Field
-
-                                name=
-                                "strengthUnit"
-
-                                value={
-                                    product.strengthUnit
-                                }
-
-                                onChange={
-                                    handleChange
-                                }
-
-                            >
-
-
-                                <option
-                                    value=""
                                 >
 
-                                    Select Unit
 
-                                </option>
+                                    <option
+                                        value=""
+                                    >
 
+                                        Select Unit
 
-                                <option
-                                    value="MG"
-                                >
-
-                                    mg
-
-                                </option>
+                                    </option>
 
 
-                                <option
-                                    value="ML"
-                                >
+                                    <option
+                                        value="MG"
+                                    >
 
-                                    ml
+                                        mg
 
-                                </option>
-
-
-                                <option
-                                    value="G"
-                                >
-
-                                    g
-
-                                </option>
+                                    </option>
 
 
-                            </NativeSelect.Field>
+                                    <option
+                                        value="ML"
+                                    >
+
+                                        ml
+
+                                    </option>
 
 
-                            <NativeSelect.Indicator />
+                                    <option
+                                        value="G"
+                                    >
+
+                                        g
+
+                                    </option>
 
 
-                        </NativeSelect.Root>
+                                </NativeSelect.Field>
 
 
-                    </GridItem>
+                                <NativeSelect.Indicator />
 
 
-                </SimpleGrid>
+                            </NativeSelect.Root>
+
+
+                        </GridItem>
+
+
+                    </SimpleGrid>
+
+
+                </Box>
 
 
             </Box>
 
+        );
 
-        </Box>
-
-    );
-
-}
+    }

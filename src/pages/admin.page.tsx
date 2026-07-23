@@ -13,6 +13,8 @@ import UserRegister from "./Admin/user registation/admin.user.register.page";
 import ExternalUserRegister from "./Admin/user registation/admin.externalUser.register.page";
 import Dashboard from "./Admin/dashBoard";
 import CategoriesManagement from "./Admin/categoriesManagement";
+import AddProduct from "./Admin/Product Management/addNewProduct";
+import EditProduct from "./Admin/Product Management/editProduct";
 
 export default function AdminPage() {
   return (
@@ -142,6 +144,8 @@ export default function AdminPage() {
           <Route index path="/dashboard" element={<Dashboard />} />
           <Route path="/users" element={<UserManagement />} />
           <Route path="/products" element={<ProductManagement />} />
+          <Route path="/products/add" element={<AddProduct />} />
+          <Route path="/products/edit/:id" element={<EditProduct />} />
           <Route path="/categories" element={<CategoriesManagement />} />
           <Route path="/register/newuser" element={<UserRegister />} />
           <Route
