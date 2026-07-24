@@ -1,4 +1,5 @@
 
+import ProductViewDialog from "@/components/Products/ProductViewDialog";
 import ProductSearchBar from "@/components/productSearchBar";
 import { Box, Button, CloseButton, Dialog, Flex, HStack, Portal, SimpleGrid, Text, VStack } from "@chakra-ui/react";
 import { Table } from "@chakra-ui/react/table";
@@ -68,55 +69,59 @@ export default function ProductManagement() {
 
     try {
 
-        await axios.delete(
+      await axios.delete(
 
-            import.meta.env.VITE_BACKEND_URL +
+        import.meta.env.VITE_BACKEND_URL +
 
-            "/product/delete/" +
+        "/product/delete/" +
 
-            selectedProduct.id,
+        selectedProduct.id,
 
-            {
+        {
 
-                headers: {
+          headers: {
 
-                    Authorization:
+            Authorization:
 
-                        "Bearer " +
+              "Bearer " +
 
-                        localStorage.getItem("token")
+              localStorage.getItem("token")
 
-                }
+          }
 
-            }
+        }
 
-        );
+      );
 
-        toast.success(
+      toast.success(
 
-            "Product deleted successfully"
+        "Product deleted successfully"
 
-        );
+      );
 
-        setDeleteDialogOpen(false);
+      setDeleteDialogOpen(false);
 
-        getAllProducts();
+      getAllProducts();
 
     }
 
     catch (error: any) {
 
-        toast.error(
+      toast.error(
 
-            error.response?.data?.error ||
+        error.response?.data?.error ||
 
-            "Failed to delete product"
+        "Failed to delete product"
 
-        );
+      );
 
     }
 
-}
+  }
+
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+
+  const [viewProductId, setViewProductId] = useState<number>();
 
   return (
     <>
@@ -238,12 +243,55 @@ export default function ProductManagement() {
                     </Table.Cell>
 
                     <Table.Cell>
-                      <HStack>
+                      {/* <HStack>
+                        <Button colorScheme="blue" onClick={() => navigate(`/admin/products/edit/${product.id}`, { state: { item: product } })}>View</Button>
                         <Button colorScheme="blue" onClick={() => navigate(`/admin/products/edit/${product.id}`, { state: { item: product } })}>Edit</Button>
                         <Button colorScheme="red" onClick={() => {
                           setSelectedProduct(product);
                           setDeleteDialogOpen(true);
                         }}>Delete</Button>
+                      </HStack> */}
+                      <HStack>
+
+                        <Button
+                          colorPalette="teal"
+                          onClick={() => {
+
+                            setViewProductId(product.id);
+
+                            setViewDialogOpen(true);
+
+                          }}
+                        >
+                          View
+                        </Button>
+
+                        <Button
+                          colorPalette="blue"
+                          onClick={() =>
+                            navigate(`/admin/products/edit/${product.id}`, {
+                              state: {
+                                item: product,
+                              },
+                            })
+                          }
+                        >
+                          Edit
+                        </Button>
+
+                        <Button
+                          colorPalette="red"
+                          onClick={() => {
+
+                            setSelectedProduct(product);
+
+                            setDeleteDialogOpen(true);
+
+                          }}
+                        >
+                          Delete
+                        </Button>
+
                       </HStack>
                     </Table.Cell>
                   </Table.Row>
@@ -254,66 +302,77 @@ export default function ProductManagement() {
 
         </HStack>
       </Box>
+      <ProductViewDialog
+        open={viewDialogOpen}
+        onClose={() => {
+
+          setViewDialogOpen(false);
+
+          setViewProductId(undefined);
+
+        }}
+        productId={viewProductId}
+      />
       <Dialog.Root
-  open={deleteDialogOpen}
-  onOpenChange={(e) => setDeleteDialogOpen(e.open)}
->
-  <Portal>
-    <Dialog.Backdrop />
+        open={deleteDialogOpen}
+        onOpenChange={(e) => setDeleteDialogOpen(e.open)}
+      >
+        <Portal>
+          <Dialog.Backdrop />
 
-    <Dialog.Positioner>
-      <Dialog.Content maxW="450px">
-        <Dialog.CloseTrigger asChild>
-          <CloseButton />
-        </Dialog.CloseTrigger>
+          <Dialog.Positioner>
+            <Dialog.Content maxW="450px">
+              <Dialog.CloseTrigger asChild>
+                <CloseButton />
+              </Dialog.CloseTrigger>
 
-        <Dialog.Header>
-          <Dialog.Title color="red.500">
-            Delete Product
-          </Dialog.Title>
-        </Dialog.Header>
+              <Dialog.Header>
+                <Dialog.Title color="red.500">
+                  Delete Product
+                </Dialog.Title>
+              </Dialog.Header>
 
-        <Dialog.Body>
-          <VStack align="start" gap={3}>
-            <Text>
-              Are you sure you want to delete this product?
-            </Text>
+              <Dialog.Body>
+                <VStack align="start" gap={3}>
+                  <Text>
+                    Are you sure you want to delete this product?
+                  </Text>
 
-            <Text
-              fontWeight="bold"
-              fontSize="lg"
-            >
-              {selectedProduct?.name}
-            </Text>
+                  <Text
+                    fontWeight="bold"
+                    fontSize="lg"
+                  >
+                    {selectedProduct?.name}
+                  </Text>
 
-            <Text
-              color="red.500"
-              fontSize="sm"
-            >
-              This action cannot be undone.
-            </Text>
-          </VStack>
-        </Dialog.Body>
+                  <Text
+                    color="red.500"
+                    fontSize="sm"
+                  >
+                    This action cannot be undone.
+                  </Text>
+                </VStack>
+              </Dialog.Body>
 
-        <Dialog.Footer>
-          <Button
-            variant="outline"
-            onClick={() => setDeleteDialogOpen(false)}
-          >
-            Cancel
-          </Button>
+              <Dialog.Footer>
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
 
-          <Button
-            colorPalette="red"
-            onClick={deleteProduct}
-          >
-            Delete
-          </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog.Positioner>
-  </Portal>
-</Dialog.Root>
+                <Button
+                  colorPalette="red"
+                  onClick={deleteProduct}
+                >
+                  Delete
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
     </>
   )
 
