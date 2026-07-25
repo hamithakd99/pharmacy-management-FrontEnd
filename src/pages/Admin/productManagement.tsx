@@ -1,36 +1,15 @@
 
+import DeleteProductDialog from "@/components/Products/DeleteProductDialog";
+import ProductStatsCards from "@/components/Products/ProductStatsCards";
+import ProductTable from "@/components/Products/ProductTable";
 import ProductViewDialog from "@/components/Products/ProductViewDialog";
 import ProductSearchBar from "@/components/productSearchBar";
-import { Box, Button, CloseButton, Dialog, Flex, HStack, Portal, SimpleGrid, Text, VStack } from "@chakra-ui/react";
-import { Table } from "@chakra-ui/react/table";
+import { Box, Button, Flex} from "@chakra-ui/react";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { MdAddBox } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 
-const cards = [
-  {
-    title: "Total Products",
-    value: 1248,
-  },
-  {
-    title: "Total Categories",
-    value: 48,
-  },
-  {
-    title: "Low Stock Products",
-    value: 5,
-  },
-  {
-    title: "Out of Stock Products",
-    value: 12,
-  },
-  {
-    title: "Expire Soon Products",
-    value: 1,
-  }
-]
 
 export default function ProductManagement() {
 
@@ -42,6 +21,11 @@ export default function ProductManagement() {
 
   const [selectedProduct, setSelectedProduct] =
     useState<any>(null);
+
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+
+  const [viewProductId, setViewProductId] = useState<number>();
+
 
   function getAllProducts() {
 
@@ -63,65 +47,61 @@ export default function ProductManagement() {
     getAllProducts();
   }, [])
 
-  async function deleteProduct() {
+  // async function deleteProduct() {
 
-    if (!selectedProduct) return;
+  //   if (!selectedProduct) return;
 
-    try {
+  //   try {
 
-      await axios.delete(
+  //     await axios.delete(
 
-        import.meta.env.VITE_BACKEND_URL +
+  //       import.meta.env.VITE_BACKEND_URL +
 
-        "/product/delete/" +
+  //       "/product/delete/" +
 
-        selectedProduct.id,
+  //       selectedProduct.id,
 
-        {
+  //       {
 
-          headers: {
+  //         headers: {
 
-            Authorization:
+  //           Authorization:
 
-              "Bearer " +
+  //             "Bearer " +
 
-              localStorage.getItem("token")
+  //             localStorage.getItem("token")
 
-          }
+  //         }
 
-        }
+  //       }
 
-      );
+  //     );
 
-      toast.success(
+  //     toast.success(
 
-        "Product deleted successfully"
+  //       "Product deleted successfully"
 
-      );
+  //     );
 
-      setDeleteDialogOpen(false);
+  //     setDeleteDialogOpen(false);
 
-      getAllProducts();
+  //     getAllProducts();
 
-    }
+  //   }
 
-    catch (error: any) {
+  //   catch (error: any) {
 
-      toast.error(
+  //     toast.error(
 
-        error.response?.data?.error ||
+  //       error.response?.data?.error ||
 
-        "Failed to delete product"
+  //       "Failed to delete product"
 
-      );
+  //     );
 
-    }
+  //   }
 
-  }
-
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
-
-  const [viewProductId, setViewProductId] = useState<number>();
+  // }
 
   return (
     <>
@@ -167,141 +147,49 @@ export default function ProductManagement() {
 
       </Flex>
 
-      <SimpleGrid
-        minChildWidth="150px"
-        gap={4}
-        mt={4}
-      >
-        {cards.map((card) => (
-          <Box
-            key={card.title}
-            rounded="lg"
-            p={4}
-            bg="white"
-            borderWidth="1px"
-            borderColor="gray.200"
-            boxShadow="sm"
-            minH="110px"
-            display="flex"
-            flexDirection="column"
-            justifyContent="space-between"
-          >
-            <Text
-              fontSize="sm"
-              color="gray.600"
-              fontWeight="medium"
-            >
-              {card.title}
-            </Text>
+      <ProductStatsCards products={products} />
 
-            <Text
-              fontSize="3xl"
-              fontWeight="bold"
-            >
-              {card.value}
-            </Text>
-          </Box>
-        ))}
-      </SimpleGrid>
+      <ProductTable
 
-      <Box>
-        <HStack>
-          <Box
-            w="100%"
-            justifyContent="center"
-            alignItems="center"
-            display="flex">
-            <Table.Root variant="outline" colorPalette="blue" mt={4}>
-              <Table.Header>
-                <Table.Row>
-                  <Table.ColumnHeader>Product ID</Table.ColumnHeader>
-                  <Table.ColumnHeader>Product Name</Table.ColumnHeader>
-                  <Table.ColumnHeader>Brand</Table.ColumnHeader>
-                  <Table.ColumnHeader>Current Stock</Table.ColumnHeader>
-                  <Table.ColumnHeader>Selling Price</Table.ColumnHeader>
-                  <Table.ColumnHeader>Actions</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {products.map((product: any, index: number) => (
-                  <Table.Row key={index}>
-                    <Table.Cell textStyle="sm" textAlign="start">{product.productId}</Table.Cell>
+        products={products}
 
-                    <Table.Cell>{product.name}</Table.Cell>
+        onView={(product) => {
 
-                    <Table.Cell>{product.brand ?? "-"}</Table.Cell>
+          setViewProductId(product.id);
 
-                    <Table.Cell>
-                      {product.totalStock}
-                    </Table.Cell>
+          setViewDialogOpen(true);
 
-                    <Table.Cell>
-                      <Text textStyle="sm" fontWeight="bold">
-                        Rs. {product.sellingPrice.toFixed(2)}
-                      </Text>
-                      <Text textStyle="xs">Buy Price Rs. {product.buyingPrice.toFixed(2)}</Text>
-                    </Table.Cell>
+        }}
 
-                    <Table.Cell>
-                      {/* <HStack>
-                        <Button colorScheme="blue" onClick={() => navigate(`/admin/products/edit/${product.id}`, { state: { item: product } })}>View</Button>
-                        <Button colorScheme="blue" onClick={() => navigate(`/admin/products/edit/${product.id}`, { state: { item: product } })}>Edit</Button>
-                        <Button colorScheme="red" onClick={() => {
-                          setSelectedProduct(product);
-                          setDeleteDialogOpen(true);
-                        }}>Delete</Button>
-                      </HStack> */}
-                      <HStack>
+        onEdit={(product) => {
 
-                        <Button
-                          colorPalette="teal"
-                          onClick={() => {
+          navigate(
 
-                            setViewProductId(product.id);
+            `/admin/products/edit/${product.id}`,
 
-                            setViewDialogOpen(true);
+            {
 
-                          }}
-                        >
-                          View
-                        </Button>
+              state: {
 
-                        <Button
-                          colorPalette="blue"
-                          onClick={() =>
-                            navigate(`/admin/products/edit/${product.id}`, {
-                              state: {
-                                item: product,
-                              },
-                            })
-                          }
-                        >
-                          Edit
-                        </Button>
+                item: product
 
-                        <Button
-                          colorPalette="red"
-                          onClick={() => {
+              }
 
-                            setSelectedProduct(product);
+            }
 
-                            setDeleteDialogOpen(true);
+          );
 
-                          }}
-                        >
-                          Delete
-                        </Button>
+        }}
 
-                      </HStack>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
-          </Box>
+        onDelete={(product) => {
 
-        </HStack>
-      </Box>
+          setSelectedProduct(product);
+
+          setDeleteDialogOpen(true);
+
+        }}
+
+      />
       <ProductViewDialog
         open={viewDialogOpen}
         onClose={() => {
@@ -313,7 +201,24 @@ export default function ProductManagement() {
         }}
         productId={viewProductId}
       />
-      <Dialog.Root
+      <DeleteProductDialog
+
+        open={deleteDialogOpen}
+
+        onClose={() => {
+
+          setDeleteDialogOpen(false);
+
+          setSelectedProduct(null);
+
+        }}
+
+        product={selectedProduct}
+
+        onDeleted={getAllProducts}
+
+      />
+      {/* <Dialog.Root
         open={deleteDialogOpen}
         onOpenChange={(e) => setDeleteDialogOpen(e.open)}
       >
@@ -372,7 +277,7 @@ export default function ProductManagement() {
             </Dialog.Content>
           </Dialog.Positioner>
         </Portal>
-      </Dialog.Root>
+      </Dialog.Root> */}
     </>
   )
 
