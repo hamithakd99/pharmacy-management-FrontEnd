@@ -15,6 +15,7 @@ import Dashboard from "./Admin/dashBoard";
 import CategoriesManagement from "./Admin/categoriesManagement";
 import AddProduct from "./Admin/Product Management/addNewProduct";
 import EditProduct from "./Admin/Product Management/editProduct";
+import { GoodReceivedNote } from "./Admin/GoodReceivedNote";
 
 export default function AdminPage() {
   return (
@@ -91,6 +92,17 @@ export default function AdminPage() {
               Category
             </Box>
           </Link>
+          <Link to="/admin/grn">
+            <Box
+              p={3}
+              rounded="md"
+              _hover={{
+                bg: "teal.600",
+              }}
+            >
+              GRN
+            </Box>
+          </Link>
 
           <Link to="/admin/orders">
             <Box
@@ -152,6 +164,7 @@ export default function AdminPage() {
             path="/register/external/newuser"
             element={<ExternalUserRegister />}
           />
+          <Route path="/grn" element={<GoodReceivedNote />} />
         </Routes>
 
       </Box>
