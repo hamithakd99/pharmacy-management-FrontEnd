@@ -15,8 +15,7 @@ import Dashboard from "./Admin/dashBoard";
 import CategoriesManagement from "./Admin/categoriesManagement";
 import AddProduct from "./Admin/Product Management/addNewProduct";
 import EditProduct from "./Admin/Product Management/editProduct";
-import { GoodReceivedNote } from "./Admin/GoodReceivedNote";
-
+import GRNManagement from "./Admin/gRNManagement";
 export default function AdminPage() {
   return (
     <Flex h="100vh" bg="gray.50">
@@ -164,7 +163,7 @@ export default function AdminPage() {
             path="/register/external/newuser"
             element={<ExternalUserRegister />}
           />
-          <Route path="/grn" element={<GoodReceivedNote />} />
+          <Route path="/grn" element={<GRNManagement />} />
         </Routes>
 
       </Box>
