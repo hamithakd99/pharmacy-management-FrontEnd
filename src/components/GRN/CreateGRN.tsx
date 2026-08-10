@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GRNItemsTable from "@/components/GRN/GRNItemsTable";
 import type { GRNItem } from "@/components/GRN/GRNItemsTable";
+import toast from "react-hot-toast";
 
 type PurchaseOrder = {
 
@@ -64,6 +65,9 @@ export default function CreateGRN() {
 
     const [items, setItems] = useState<GRNItem[]>([]);
 
+    const [supplierId, setSupplierId] =
+        useState<number>();
+
 
     useEffect(() => {
 
@@ -90,6 +94,9 @@ export default function CreateGRN() {
         catch (error) {
 
             console.log(error);
+            toast.error(
+                "Failed to load purchase orders"
+            );
 
         }
 
@@ -135,6 +142,8 @@ export default function CreateGRN() {
 
                     productId: item.productId,
 
+                    productCode: item.product.productId,
+
                     productName: item.product.name,
 
                     orderedQuantity: item.quantity,
@@ -165,7 +174,23 @@ export default function CreateGRN() {
 
             );
 
+            setSupplierId(
+                po.supplierId
+            );
+
+            setSupplierName(
+                po.supplier.firstName +
+                " " +
+                po.supplier.lastName
+            );
+
+
+            setSupplierId(
+                po.supplierId
+            );
+
             // Product table
+
             <GRNItemsTable
 
                 items={items}
@@ -180,6 +205,101 @@ export default function CreateGRN() {
         catch (error) {
 
             console.log(error);
+
+        }
+
+    }
+
+    async function createGRN() {
+
+        if (!selectedPOId) {
+
+            toast.error(
+                "Please select a Purchase Order"
+            );
+
+            return;
+
+        }
+
+        if (items.length === 0) {
+
+            toast.error(
+                "No products found in this Purchase Order"
+            );
+
+            return;
+
+        }
+
+        try {
+
+            const response = await axios.post(
+
+                import.meta.env.VITE_BACKEND_URL +
+                "/stock-batch/create",
+
+                {
+                    purchaseOrderId:
+                        Number(selectedPOId),
+                    
+                        supplierId,
+
+                    receivedDate,
+
+                    paymentStatus,
+
+                    invoiceDiscountAmount:
+                        invoiceDiscount,
+
+                    items: items.map((item) => ({
+
+                        productId:
+                            item.productId,
+
+                        receivedQuantity:
+                            item.receivedQuantity,
+
+                        buyingPrice:
+                            item.buyingPrice,
+
+                        sellingPrice:
+                            item.sellingPrice,
+
+                        expiryDate:
+                            item.expiryDate,
+
+                        manufacturingDate:
+                            item.manufacturingDate ||
+                            null,
+
+                        purchaseOrderItemId:
+                            item.purchaseOrderItemId,
+
+                    })),
+
+                }
+
+            );
+
+            console.log(response.data);
+
+            toast.success(
+                "GRN created successfully"
+            );
+
+            navigate("/admin/grn");
+
+        } catch (error: any) {
+
+            console.error(error);
+
+            toast.error(
+
+                error.response?.data?.message ??
+                "Failed to create GRN"
+
+            );
 
         }
 
@@ -449,9 +569,17 @@ export default function CreateGRN() {
 
                         <Text>
 
-                            Product Table
+                            <Heading
+                                size="md"
+                                mb={4}
+                            >
+                                Products
+                            </Heading>
 
-                            (Next Step)
+                            <GRNItemsTable
+                                items={items}
+                                setItems={setItems}
+                            />
 
                         </Text>
 
@@ -482,6 +610,7 @@ export default function CreateGRN() {
 
                 <Button
                     colorPalette="blue"
+                    onClick={createGRN}
                 >
 
                     Create GRN
