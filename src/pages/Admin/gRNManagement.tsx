@@ -1,6 +1,7 @@
 import { Box } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 import GRNSearchBar from "@/components/GRN/GRNSearchBar";
 import GRNTable from "@/components/GRN/GRNTable";
@@ -26,6 +27,7 @@ export default function GRNManagement() {
     useState<string>();
 
   const [paymentStatus, setPaymentStatus] = useState("");
+  const navigate = useNavigate();
 
 
   function getAllStockBatches() {
@@ -146,8 +148,9 @@ export default function GRNManagement() {
           setViewDialogOpen(true);
         }}
         onEdit={(batch) => {
-          // placeholder edit handler
-          console.log("Edit GRN:", batch.batchNumber);
+          navigate(
+            `/admin/grn/edit/${batch.batchNumber}`
+        );
         }}
       />
 
