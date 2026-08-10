@@ -14,6 +14,8 @@ type Props = {
 
     onView: (batch: StockBatch) => void;
 
+    onEdit: (batch: StockBatch) => void;
+
 };
 
 export default function GRNTable({
@@ -21,7 +23,7 @@ export default function GRNTable({
     stockBatches,
 
     onView,
-
+    onEdit,
 }: Props) {
 
     return (
@@ -115,7 +117,7 @@ export default function GRNTable({
                                 {
 
                                     batch.purchaseOrder
-                                    ?.orderNumber
+                                        ?.orderNumber
 
                                     ??
 
@@ -174,15 +176,15 @@ export default function GRNTable({
                                     colorPalette={
 
                                         batch.paymentStatus ===
-                                        "PAID"
+                                            "PAID"
 
-                                        ?
+                                            ?
 
-                                        "green"
+                                            "green"
 
-                                        :
+                                            :
 
-                                        "orange"
+                                            "orange"
 
                                     }
 
@@ -218,6 +220,20 @@ export default function GRNTable({
 
                                         View
 
+                                    </Button>
+
+                                    <Button
+                                        size="sm"
+                                        colorPalette="orange"
+                                        onClick={() => onEdit(batch)}
+                                    >
+                                        Edit
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        colorPalette="yellow"
+                                    >
+                                        Print
                                     </Button>
 
                                 </HStack>

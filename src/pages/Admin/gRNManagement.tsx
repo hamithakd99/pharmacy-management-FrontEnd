@@ -34,10 +34,11 @@ export default function GRNManagement() {
 
       import.meta.env.VITE_BACKEND_URL +
 
-      "/stock-batch/all"
+      "/stock-batch/"
 
     ).then((response) => {
 
+      console.log(response.data);
       setStockBatches(
         response.data.data
       );
@@ -139,21 +140,15 @@ export default function GRNManagement() {
       />
 
       <GRNTable
-
         stockBatches={filteredStockBatches}
-
         onView={(batch) => {
-
-          setSelectedBatchNumber(
-
-            batch.batchNumber
-
-          );
-
+          setSelectedBatchNumber(batch.batchNumber);
           setViewDialogOpen(true);
-
         }}
-
+        onEdit={(batch) => {
+          // placeholder edit handler
+          console.log("Edit GRN:", batch.batchNumber);
+        }}
       />
 
       <GRNViewDialog

@@ -16,6 +16,7 @@ import CategoriesManagement from "./Admin/categoriesManagement";
 import AddProduct from "./Admin/Product Management/addNewProduct";
 import EditProduct from "./Admin/Product Management/editProduct";
 import GRNManagement from "./Admin/gRNManagement";
+import CreateGRN from "@/components/GRN/CreateGRN";
 export default function AdminPage() {
   return (
     <Flex h="100vh" bg="gray.50">
@@ -164,6 +165,7 @@ export default function AdminPage() {
             element={<ExternalUserRegister />}
           />
           <Route path="/grn" element={<GRNManagement />} />
+          <Route path="/grn/create" element={<CreateGRN />} />
         </Routes>
 
       </Box>
