@@ -65,9 +65,6 @@ export default function GRNForm({
     const [supplierName, setSupplierName] =
         useState("");
 
-    const [supplierId, setSupplierId] =
-        useState<number>();
-
     const [invoiceNumber, setInvoiceNumber] =
         useState("");
 
@@ -121,9 +118,6 @@ export default function GRNForm({
 
             const batch = response.data.data;
 
-            setSupplierId(
-                batch.supplierId
-            );
 
             setSupplierName(
 
