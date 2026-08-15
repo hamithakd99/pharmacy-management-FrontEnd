@@ -83,7 +83,7 @@ export default function CreateGRN() {
 
                 import.meta.env.VITE_BACKEND_URL +
 
-                "/purchase-order"
+                "/po/all-purchase-orders"
 
             );
 
@@ -116,7 +116,7 @@ export default function CreateGRN() {
 
                 import.meta.env.VITE_BACKEND_URL +
 
-                "/purchase-order/" +
+                "/po/all-purchase-orders" +
 
                 id
 

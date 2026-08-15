@@ -18,6 +18,8 @@ import EditProduct from "./Admin/Product Management/editProduct";
 import GRNManagement from "./Admin/gRNManagement";
 import CreateGRN from "@/components/GRN/CreateGRN";
 import EditGRN from "@/components/GRN/EditGRN";
+import CreatePO from "@/components/PO/CreatePO";
+import PurchaseOrderManagement from "./Admin/purchaseOrderManagement";
 export default function AdminPage() {
   return (
     <Flex h="100vh" bg="gray.50">
@@ -91,6 +93,17 @@ export default function AdminPage() {
               }}
             >
               Category
+            </Box>
+          </Link>
+          <Link to="/admin/po">
+            <Box
+              p={3}
+              rounded="md"
+              _hover={{
+                bg: "teal.600",
+              }}
+            >
+              PO
             </Box>
           </Link>
           <Link to="/admin/grn">
@@ -168,6 +181,8 @@ export default function AdminPage() {
           <Route path="/grn" element={<GRNManagement />} />
           <Route path="/grn/create" element={<CreateGRN />} />
           <Route path="/grn/edit/:batchNumber" element={<EditGRN />} />
+          <Route path="/po" element={<PurchaseOrderManagement />} />
+          <Route path="/po/create" element={<CreatePO />} />
         </Routes>
 
       </Box>
