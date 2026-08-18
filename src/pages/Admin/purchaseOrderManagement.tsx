@@ -15,6 +15,7 @@ import { LuPlus, LuSearch } from "react-icons/lu";
 import type { PurchaseOrder } from "@/components/PO/POTable";
 import POTable from "@/components/PO/POTable";
 import POViewDialog from "@/components/PO/POViewDialog";
+import DeletePODialog from "@/components/PO/DeletePODialog";
 
 
 
@@ -42,6 +43,9 @@ export default function PurchaseOrderManagement() {
         useState<PurchaseOrder | null>(null);
 
     const [viewDialogOpen, setViewDialogOpen] =
+        useState(false);
+
+    const [deleteDialogOpen, setDeleteDialogOpen] =
         useState(false);
 
 
@@ -187,79 +191,93 @@ export default function PurchaseOrderManagement() {
     =====================================================
     */
 
-    async function handleDelete(
+    // async function handleDelete(
+    //     purchaseOrder: PurchaseOrder
+    // ) {
+
+    //     const confirmed =
+    //         window.confirm(
+
+    //             `Are you sure you want to delete ${purchaseOrder.orderNumber}?`
+
+    //         );
+
+
+    //     if (!confirmed) {
+    //         return;
+    //     }
+
+
+    //     try {
+
+    //         await axios.delete(
+
+    //             import.meta.env.VITE_BACKEND_URL +
+
+    //             "/po/purchase-orders/" +
+
+    //             purchaseOrder.id,
+
+    //             {
+
+    //                 headers: {
+
+    //                     Authorization:
+
+    //                         "Bearer " +
+
+    //                         localStorage.getItem(
+    //                             "token"
+    //                         ),
+
+    //                 },
+
+    //             }
+
+    //         );
+
+
+    //         toast.success(
+    //             "Purchase order deleted successfully"
+    //         );
+
+
+    //         /*
+    //         Refresh table
+    //         */
+
+    //         getPurchaseOrders();
+
+    //     }
+
+    //     catch (error: any) {
+
+    //         console.error(error);
+
+
+    //         toast.error(
+
+    //             error.response?.data?.error ??
+
+    //             "Failed to delete purchase order"
+
+    //         );
+
+    //     }
+
+    // }
+
+    function handleDelete(
         purchaseOrder: PurchaseOrder
     ) {
 
-        const confirmed =
-            window.confirm(
+        setSelectedPO(
+            purchaseOrder
+        );
 
-                `Are you sure you want to delete ${purchaseOrder.orderNumber}?`
-
-            );
-
-
-        if (!confirmed) {
-            return;
-        }
-
-
-        try {
-
-            await axios.delete(
-
-                import.meta.env.VITE_BACKEND_URL +
-
-                "/po/purchase-orders/" +
-
-                purchaseOrder.id,
-
-                {
-
-                    headers: {
-
-                        Authorization:
-
-                            "Bearer " +
-
-                            localStorage.getItem(
-                                "token"
-                            ),
-
-                    },
-
-                }
-
-            );
-
-
-            toast.success(
-                "Purchase order deleted successfully"
-            );
-
-
-            /*
-            Refresh table
-            */
-
-            getPurchaseOrders();
-
-        }
-
-        catch (error: any) {
-
-            console.error(error);
-
-
-            toast.error(
-
-                error.response?.data?.error ??
-
-                "Failed to delete purchase order"
-
-            );
-
-        }
+        setDeleteDialogOpen(
+            true
+        );
 
     }
 
@@ -442,6 +460,44 @@ export default function PurchaseOrderManagement() {
                 purchaseOrder={
                     selectedPO
                 }
+
+            />
+
+            <DeletePODialog
+
+                open={
+                    deleteDialogOpen
+                }
+
+                onClose={() => {
+
+                    setDeleteDialogOpen(
+                        false
+                    );
+
+                    setSelectedPO(
+                        null
+                    );
+
+                }}
+
+                purchaseOrder={
+                    selectedPO
+                }
+
+                onDeleted={() => {
+
+                    setDeleteDialogOpen(
+                        false
+                    );
+
+                    setSelectedPO(
+                        null
+                    );
+
+                    getPurchaseOrders();
+
+                }}
 
             />
 
