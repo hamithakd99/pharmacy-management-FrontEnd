@@ -174,7 +174,7 @@ export default function PurchaseOrderManagement() {
 
         navigate(
 
-            `/admin/po/update/purchase-orders/${purchaseOrder.id}`
+            `/admin/po/purchase-orders/${purchaseOrder.id}`
 
         );
 
@@ -210,7 +210,7 @@ export default function PurchaseOrderManagement() {
 
                 import.meta.env.VITE_BACKEND_URL +
 
-                "/purchase-order/" +
+                "/po/purchase-orders/" +
 
                 purchaseOrder.id,
 

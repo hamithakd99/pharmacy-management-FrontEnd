@@ -20,6 +20,7 @@ import CreateGRN from "@/components/GRN/CreateGRN";
 import EditGRN from "@/components/GRN/EditGRN";
 import CreatePO from "@/components/PO/CreatePO";
 import PurchaseOrderManagement from "./Admin/purchaseOrderManagement";
+import EditPO from "@/components/PO/EditPO";
 export default function AdminPage() {
   return (
     <Flex h="100vh" bg="gray.50">
@@ -183,6 +184,7 @@ export default function AdminPage() {
           <Route path="/grn/edit/:batchNumber" element={<EditGRN />} />
           <Route path="/po" element={<PurchaseOrderManagement />} />
           <Route path="/po/create" element={<CreatePO />} />
+          <Route path="/po/purchase-orders/:id" element={<EditPO />} />
         </Routes>
 
       </Box>
