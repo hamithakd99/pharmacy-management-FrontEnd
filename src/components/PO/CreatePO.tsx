@@ -971,7 +971,7 @@ export default function CreatePO() {
 
                     onClick={() =>
                         navigate(
-                            "/admin/po/all-purchase-orders"
+                            "/admin/po/"
                         )
                     }
 

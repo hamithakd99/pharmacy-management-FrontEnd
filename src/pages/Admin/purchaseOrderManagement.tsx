@@ -16,6 +16,7 @@ import type { PurchaseOrder } from "@/components/PO/POTable";
 import POTable from "@/components/PO/POTable";
 import POViewDialog from "@/components/PO/POViewDialog";
 import DeletePODialog from "@/components/PO/DeletePODialog";
+import POStatusCards from "@/components/PO/POStatsCards";
 
 
 
@@ -48,6 +49,27 @@ export default function PurchaseOrderManagement() {
     const [deleteDialogOpen, setDeleteDialogOpen] =
         useState(false);
 
+    const totalOrders = purchaseOrders.length;
+
+    const pendingOrders =
+        purchaseOrders.filter(
+            (po) => po.status === "PENDING"
+        ).length;
+
+    const partiallyReceivedOrders =
+        purchaseOrders.filter(
+            (po) => po.status === "PARTIALLY_RECEIVED"
+        ).length;
+
+    const completedOrders =
+        purchaseOrders.filter(
+            (po) => po.status === "COMPLETED"
+        ).length;
+
+    const cancelledOrders =
+        purchaseOrders.filter(
+            (po) => po.status === "CANCELLED"
+        ).length;
 
     /*
     =====================================================
@@ -71,7 +93,7 @@ export default function PurchaseOrderManagement() {
             const response = await axios.get(
 
                 import.meta.env.VITE_BACKEND_URL +
-                "/po/all-purchase-orders",
+                "/po/all",
 
             );
 
@@ -98,6 +120,7 @@ export default function PurchaseOrderManagement() {
         }
 
     }
+
 
 
     /*
@@ -281,6 +304,37 @@ export default function PurchaseOrderManagement() {
 
     }
 
+    function handleCreateGRN(
+        purchaseOrder: PurchaseOrder
+    ) {
+
+        if (
+            purchaseOrder.status === "COMPLETED" ||
+            purchaseOrder.status === "CANCELLED"
+        ) {
+            toast.error(
+                "GRN cannot be created for this Purchase Order."
+            );
+
+            return;
+        }
+
+        navigate(
+            `/admin/grn/create?purchaseOrderId=${purchaseOrder.id}`
+        );
+    }
+
+    // function handlePrint(
+    //     purchaseOrder: PurchaseOrder
+    // ) {
+
+    //     setSelectedPO(
+    //         purchaseOrder
+    //     );
+
+    //     setViewDialogOpen(true);
+    // }
+
 
     /*
     =====================================================
@@ -307,6 +361,14 @@ export default function PurchaseOrderManagement() {
                 Purchase Order Management
 
             </Box>
+
+            <POStatusCards
+                totalOrders={totalOrders}
+                pendingOrders={pendingOrders}
+                partiallyReceivedOrders={partiallyReceivedOrders}
+                completedOrders={completedOrders}
+                cancelledOrders={cancelledOrders}
+            />
 
 
             {/* SEARCH + CREATE */}
@@ -422,6 +484,10 @@ export default function PurchaseOrderManagement() {
 
                     onView={
                         handleView
+                    }
+
+                    onCreateGRN={
+                        handleCreateGRN
                     }
 
                     onEdit={

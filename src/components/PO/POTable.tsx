@@ -65,6 +65,10 @@ type POTableProps = {
         purchaseOrder: PurchaseOrder
     ) => void;
 
+    onCreateGRN: (
+        purchaseOrder: PurchaseOrder
+    ) => void;
+
     onEdit: (
         purchaseOrder: PurchaseOrder
     ) => void;
@@ -85,6 +89,8 @@ export default function POTable({
     onEdit,
 
     onDelete,
+
+    onCreateGRN,
 
 }: POTableProps) {
 
@@ -213,183 +219,227 @@ export default function POTable({
                     ) : (
 
                         purchaseOrders.map(
-                            (purchaseOrder) => (
+                            (purchaseOrder) => {
+                                const isLocked =
+                                    purchaseOrder.status ===
+                                    "PARTIALLY_RECEIVED" ||
+                                    purchaseOrder.status ===
+                                    "COMPLETED" ||
+                                    purchaseOrder.status ===
+                                    "CANCELLED";
 
-                                <Table.Row
-                                    key={
-                                        purchaseOrder.id
-                                    }
-                                >
+                                const canCreateGRN =
+                                    purchaseOrder.status ===
+                                    "PENDING" ||
+                                    purchaseOrder.status ===
+                                    "PARTIALLY_RECEIVED";
 
-                                    {/* PO NUMBER */}
-
-                                    <Table.Cell>
-
-                                        <Text
-                                            fontWeight="bold"
-                                        >
-
-                                            {
-                                                purchaseOrder.orderNumber
-                                            }
-
-                                        </Text>
-
-                                    </Table.Cell>
+                                return (
 
 
-                                    {/* SUPPLIER */}
-
-                                    <Table.Cell>
-
-                                        <Text>
-
-                                            {
-                                                purchaseOrder.supplier
-                                                    ? `${purchaseOrder.supplier.firstName} ${purchaseOrder.supplier.lastName}`
-                                                    : "-"
-                                            }
-
-                                        </Text>
-
-                                    </Table.Cell>
-
-
-                                    {/* DATE */}
-
-                                    <Table.Cell>
-
-                                        {new Date(
-                                            purchaseOrder.createdAt
-                                        ).toLocaleDateString(
-                                            "en-GB"
-                                        )}
-
-                                    </Table.Cell>
-
-
-                                    {/* ITEMS */}
-
-                                    <Table.Cell>
-
-                                        {
-                                            purchaseOrder.items
-                                                ?.length ?? 0
+                                    <Table.Row
+                                        key={
+                                            purchaseOrder.id
                                         }
+                                    >
 
-                                    </Table.Cell>
+                                        {/* PO NUMBER */}
+
+                                        <Table.Cell>
+
+                                            <Text
+                                                fontWeight="bold"
+                                            >
+
+                                                {
+                                                    purchaseOrder.orderNumber
+                                                }
+
+                                            </Text>
+
+                                        </Table.Cell>
 
 
-                                    {/* STATUS */}
+                                        {/* SUPPLIER */}
 
-                                    <Table.Cell>
+                                        <Table.Cell>
 
-                                        <Badge
-                                            colorPalette={
-                                                getStatusColor(
-                                                    purchaseOrder.status
-                                                )
-                                            }
-                                        >
+                                            <Text>
+
+                                                {
+                                                    purchaseOrder.supplier
+                                                        ? `${purchaseOrder.supplier.firstName} ${purchaseOrder.supplier.lastName}`
+                                                        : "-"
+                                                }
+
+                                            </Text>
+
+                                        </Table.Cell>
+
+
+                                        {/* DATE */}
+
+                                        <Table.Cell>
+
+                                            {new Date(
+                                                purchaseOrder.createdAt
+                                            ).toLocaleDateString(
+                                                "en-GB"
+                                            )}
+
+                                        </Table.Cell>
+
+
+                                        {/* ITEMS */}
+
+                                        <Table.Cell>
 
                                             {
-                                                getStatusLabel(
-                                                    purchaseOrder.status
-                                                )
+                                                purchaseOrder.items
+                                                    ?.length ?? 0
                                             }
 
-                                        </Badge>
-
-                                    </Table.Cell>
+                                        </Table.Cell>
 
 
-                                    {/* ACTIONS */}
+                                        {/* STATUS */}
 
-                                    <Table.Cell>
+                                        <Table.Cell>
 
-                                        <HStack
-                                            gap={2}
-                                        >
+                                            <Badge
+                                                colorPalette={
+                                                    getStatusColor(
+                                                        purchaseOrder.status
+                                                    )
+                                                }
+                                            >
 
-                                            <Button
-
-                                                size="sm"
-
-                                                variant="outline"
-
-                                                colorPalette="blue"
-
-                                                onClick={() =>
-                                                    onView(
-                                                        purchaseOrder
+                                                {
+                                                    getStatusLabel(
+                                                        purchaseOrder.status
                                                     )
                                                 }
 
+                                            </Badge>
+
+                                        </Table.Cell>
+
+
+                                        {/* ACTIONS */}
+
+                                        <Table.Cell>
+
+                                            <HStack
+                                                gap={2}
                                             >
 
-                                                View
-
-                                            </Button>
-
-
-                                            {purchaseOrder.status ===
-                                                "PENDING" && (
-
                                                 <Button
 
                                                     size="sm"
 
                                                     variant="outline"
 
-                                                    colorPalette="orange"
+                                                    colorPalette="blue"
 
                                                     onClick={() =>
-                                                        onEdit(
+                                                        onView(
                                                             purchaseOrder
                                                         )
                                                     }
 
                                                 >
 
-                                                    Edit
+                                                    View
 
                                                 </Button>
-
-                                            )}
-
-
-                                            {purchaseOrder.status ===
-                                                "PENDING" && (
 
                                                 <Button
-
                                                     size="sm"
-
-                                                    variant="outline"
-
-                                                    colorPalette="red"
-
+                                                    colorPalette="green"
+                                                    disabled={!canCreateGRN}
                                                     onClick={() =>
-                                                        onDelete(
-                                                            purchaseOrder
-                                                        )
+                                                        onCreateGRN(purchaseOrder)
                                                     }
-
                                                 >
-
-                                                    Delete
-
+                                                    GRN
                                                 </Button>
 
-                                            )}
 
-                                        </HStack>
+                                                {purchaseOrder.status ===
+                                                    "PENDING" && (
 
-                                    </Table.Cell>
+                                                        <Button
 
-                                </Table.Row>
+                                                            size="sm"
 
-                            )
+                                                            variant="outline"
+
+                                                            colorPalette="orange"
+
+                                                            disabled={isLocked}
+
+                                                            onClick={() =>
+                                                                onEdit(
+                                                                    purchaseOrder
+                                                                )
+                                                            }
+
+                                                        >
+
+                                                            Edit
+
+                                                        </Button>
+
+                                                    )}
+
+
+                                                {purchaseOrder.status ===
+                                                    "PENDING" && (
+
+                                                        <Button
+
+                                                            size="sm"
+
+                                                            variant="outline"
+
+                                                            colorPalette="red"
+
+                                                            disabled={isLocked}
+
+                                                            onClick={() =>
+                                                                onDelete(
+                                                                    purchaseOrder
+                                                                )
+                                                            }
+
+                                                        >
+
+                                                            Delete
+
+                                                        </Button>
+
+
+                                                    )}
+
+                                                <Button
+                                                    size="sm"
+                                                    colorPalette="gray"
+                                                    onClick={() =>
+                                                        onView(purchaseOrder)
+                                                    }
+                                                >
+                                                    Print
+                                                </Button>
+
+                                            </HStack>
+
+                                        </Table.Cell>
+
+                                    </Table.Row>
+
+                                )
+
+                            }
 
                         )
 

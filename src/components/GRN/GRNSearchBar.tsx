@@ -1,12 +1,10 @@
 import {
-    Button,
     HStack,
     Input,
     InputGroup,
     NativeSelect,
 } from "@chakra-ui/react";
-import { LuPlus, LuSearch } from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
+import { LuSearch } from "react-icons/lu";
 
 type Props = {
 
@@ -32,7 +30,6 @@ export default function GRNSearchBar({
 
 }: Props) {
 
-    const navigate = useNavigate();
 
     return (
 
@@ -106,28 +103,6 @@ export default function GRNSearchBar({
                 </NativeSelect.Root>
 
             </HStack>
-
-            <Button
-
-                colorPalette="blue"
-
-                onClick={() =>
-
-                    navigate(
-
-                        "/admin/grn/create"
-
-                    )
-
-                }
-
-            >
-
-                <LuPlus />
-
-                Create GRN
-
-            </Button>
 
         </HStack>
 

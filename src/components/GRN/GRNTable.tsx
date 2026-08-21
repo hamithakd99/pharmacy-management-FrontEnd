@@ -114,16 +114,7 @@ export default function GRNTable({
 
                             <Table.Cell>
 
-                                {
-
-                                    batch.purchaseOrder
-                                        ?.orderNumber
-
-                                    ??
-
-                                    "-"
-
-                                }
+                                {batch.purchaseOrder?.orderNumber ?? "-"}
 
                             </Table.Cell>
 

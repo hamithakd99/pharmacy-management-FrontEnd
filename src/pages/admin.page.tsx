@@ -21,7 +21,10 @@ import EditGRN from "@/components/GRN/EditGRN";
 import CreatePO from "@/components/PO/CreatePO";
 import PurchaseOrderManagement from "./Admin/purchaseOrderManagement";
 import EditPO from "@/components/PO/EditPO";
+import { useState } from "react";
 export default function AdminPage() {
+
+  const [inventoryOpen, setInventoryOpen] = useState(false);
   return (
     <Flex h="100vh" bg="gray.50">
 
@@ -85,51 +88,123 @@ export default function AdminPage() {
               Products
             </Box>
           </Link>
-          <Link to="/admin/categories">
-            <Box
-              p={3}
-              rounded="md"
-              _hover={{
-                bg: "teal.600",
-              }}
-            >
-              Category
-            </Box>
-          </Link>
-          <Link to="/admin/po">
-            <Box
-              p={3}
-              rounded="md"
-              _hover={{
-                bg: "teal.600",
-              }}
-            >
-              PO
-            </Box>
-          </Link>
-          <Link to="/admin/grn">
-            <Box
-              p={3}
-              rounded="md"
-              _hover={{
-                bg: "teal.600",
-              }}
-            >
-              GRN
-            </Box>
-          </Link>
+          {/* ================================
+    INVENTORY
+================================ */}
 
-          <Link to="/admin/orders">
+          <Box>
+
+            {/* Inventory Main Button */}
+
             <Box
               p={3}
               rounded="md"
+              cursor="pointer"
               _hover={{
                 bg: "teal.600",
               }}
+              onClick={() =>
+                setInventoryOpen(!inventoryOpen)
+              }
             >
-              Orders
+
+              <Flex
+                justify="space-between"
+                align="center"
+              >
+
+                <Text>
+                  Inventory
+                </Text>
+
+                <Text>
+                  {inventoryOpen ? "▲" : "▼"}
+                </Text>
+
+              </Flex>
+
             </Box>
-          </Link>
+
+
+            {/* Inventory Sub Menu */}
+
+            {inventoryOpen && (
+
+              <VStack
+                align="stretch"
+                gap={1}
+                mt={1}
+                pl={4}
+              >
+
+                <Link to="/admin/categories">
+
+                  <Box
+                    p={2}
+                    rounded="md"
+                    fontSize="sm"
+                    _hover={{
+                      bg: "teal.600",
+                    }}
+                  >
+                    Category
+                  </Box>
+
+                </Link>
+
+
+                <Link to="/admin/po">
+
+                  <Box
+                    p={2}
+                    rounded="md"
+                    fontSize="sm"
+                    _hover={{
+                      bg: "teal.600",
+                    }}
+                  >
+                    PO
+                  </Box>
+
+                </Link>
+
+
+                <Link to="/admin/grn">
+
+                  <Box
+                    p={2}
+                    rounded="md"
+                    fontSize="sm"
+                    _hover={{
+                      bg: "teal.600",
+                    }}
+                  >
+                    GRN
+                  </Box>
+
+                </Link>
+
+
+                <Link to="/admin/orders">
+
+                  <Box
+                    p={2}
+                    rounded="md"
+                    fontSize="sm"
+                    _hover={{
+                      bg: "teal.600",
+                    }}
+                  >
+                    Orders
+                  </Box>
+
+                </Link>
+
+              </VStack>
+
+            )}
+
+          </Box>
 
           <Link to="/admin/reports">
             <Box
