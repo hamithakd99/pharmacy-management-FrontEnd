@@ -18,58 +18,13 @@ import toast from "react-hot-toast";
 import GRNItemsTable from "@/components/GRN/GRNItemsTable";
 import type { GRNItem } from "@/components/GRN/GRNItemsTable";
 
-
-type PurchaseOrder = {
-
-    id: number;
-
-    orderNumber: string;
-
-    supplierId: number;
-
-    status: string;
-
-    createdAt: string;
-
-    supplier: {
-
-        id: number;
-
-        firstName: string;
-
-        lastName: string;
-
-    };
-
-};
-
-
 export default function CreateGRN() {
 
     const navigate = useNavigate();
-
-
-    // =====================================================
-    // PURCHASE ORDERS
-    // =====================================================
-
-    const [purchaseOrders, setPurchaseOrders] =
-        useState<PurchaseOrder[]>([]);
-
-
-    const [selectedPOId, setSelectedPOId] =
-        useState("");
-
-
-    const [selectedPO, setSelectedPO] =
-        useState<any>(null);
-
-
-    const [loadingPO, setLoadingPO] =
-        useState(false);
-
+    const [selectedPOId, setSelectedPOId] = useState("");
+    const [selectedPO, setSelectedPO] = useState<any>(null);
+    const [loadingPO, setLoadingPO] = useState(false);
     const [searchParams] = useSearchParams();
-
     const purchaseOrderId = searchParams.get("purchaseOrderId");
 
 
@@ -77,12 +32,8 @@ export default function CreateGRN() {
     // SUPPLIER
     // =====================================================
 
-    const [supplierId, setSupplierId] =
-        useState<number | undefined>();
-
-
-    const [supplierName, setSupplierName] =
-        useState("");
+    const [supplierId, setSupplierId] = useState<number | undefined>()
+    const [supplierName, setSupplierName] = useState("");
 
 
     // =====================================================
@@ -101,39 +52,24 @@ export default function CreateGRN() {
     // PAYMENT
     // =====================================================
 
-    const [paymentStatus, setPaymentStatus] =
-        useState("PENDING");
-
-
-    const [invoiceDiscount, setInvoiceDiscount] =
-        useState(0);
-
+    const [paymentStatus, setPaymentStatus] = useState("PENDING");
+    const [invoiceDiscount, setInvoiceDiscount] = useState(0);
 
     // =====================================================
     // ITEMS
     // =====================================================
 
-    const [items, setItems] =
-        useState<GRNItem[]>([]);
-
+    const [items, setItems] = useState<GRNItem[]>([]);
 
     // =====================================================
     // CREATE LOADING
     // =====================================================
 
-    const [creating, setCreating] =
-        useState(false);
-
+    const [creating, setCreating] = useState(false);
 
     // =====================================================
     // LOAD PENDING PURCHASE ORDERS
     // =====================================================
-
-    useEffect(() => {
-
-        getPendingPurchaseOrders();
-
-    }, []);
 
     useEffect(() => {
 
@@ -147,48 +83,6 @@ export default function CreateGRN() {
 
     }, [purchaseOrderId]);
 
-
-    async function getPendingPurchaseOrders() {
-
-        try {
-
-            const response =
-                await axios.get(
-
-                    import.meta.env.VITE_BACKEND_URL +
-                    "/po/all"
-
-                );
-
-
-            const availablePOs =
-                response.data.filter(
-                    (po: PurchaseOrder) =>
-                        po.status === "PENDING" ||
-                        po.status === "PARTIALLY_RECEIVED"
-                );
-
-            setPurchaseOrders(
-                availablePOs
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                error
-            );
-
-            toast.error(
-                "Failed to load purchase orders"
-            );
-
-        }
-
-    }
-
-
     // =====================================================
     // LOAD SELECTED PURCHASE ORDER
     // =====================================================
@@ -196,24 +90,13 @@ export default function CreateGRN() {
     async function handlePOSelect(
         purchaseOrderId: string
     ) {
-
-        /*
-        Clear everything when
-        no PO is selected.
-        */
-
         if (!purchaseOrderId) {
 
             setSelectedPOId("");
-
             setSelectedPO(null);
-
             setSupplierId(undefined);
-
             setSupplierName("");
-
             setItems([]);
-
             return;
 
         }
@@ -222,13 +105,6 @@ export default function CreateGRN() {
         try {
 
             setLoadingPO(true);
-
-
-            /*
-            IMPORTANT:
-            Save selected PO ID
-            */
-
             setSelectedPOId(
                 purchaseOrderId
             );
@@ -243,41 +119,26 @@ export default function CreateGRN() {
 
                 );
 
-
             const po =
                 response.data;
 
-
             console.log(
-                "SELECTED PO:",
-                po
+                "SELECTED PO:", po
             );
 
 
-            setSelectedPO(
-                po
-            );
-
+            setSelectedPO(po);
 
             // =================================================
             // SUPPLIER
             // =================================================
 
-            setSupplierId(
-                po.supplierId
-            );
-
-
+            setSupplierId(po.supplierId);
             setSupplierName(
-
                 po.supplier
-
                     ? `${po.supplier.firstName} ${po.supplier.lastName}`
-
                     : ""
-
             );
-
 
             // =================================================
             // PRODUCTS
@@ -288,65 +149,30 @@ export default function CreateGRN() {
                 (po.items ?? []).map(
                     (item: any) => {
 
-                        const alreadyReceived =
-                            item.alreadyReceived ?? 0;
-
-
+                        const alreadyReceived = item.alreadyReceived ?? 0;
                         const remainingQuantity =
                             Math.max(
-
                                 item.quantity -
                                 alreadyReceived,
-
                                 0
-
                             );
 
 
                         return {
 
-                            purchaseOrderItemId:
-                                item.id,
-
-                            productId:
-                                item.productId,
-
-                            productCode:
-                                item.product?.productId ??
-                                "",
-
-                            productName:
-                                item.product?.name ??
-                                "",
-
-                            brand:
-                                item.product?.brand ??
-                                "",
-
-                            orderedQuantity:
-                                item.quantity,
-
-                            alreadyReceived:
-                                alreadyReceived,
-
-                            remainingQuantity:
-                                remainingQuantity,
-
-                            receivedQuantity:
-                                remainingQuantity,
-
-                            buyingPrice:
-                                0,
-
-                            sellingPrice:
-                                0,
-
-                            expiryDate:
-                                "",
-
-                            manufacturingDate:
-                                "",
-
+                            purchaseOrderItemId: item.id,
+                            productId: item.productId,
+                            productCode: item.product?.productId ?? "",
+                            productName: item.product?.name ?? "",
+                            brand: item.product?.brand ?? "",
+                            orderedQuantity: item.quantity,
+                            alreadyReceived: alreadyReceived,
+                            remainingQuantity: remainingQuantity,
+                            receivedQuantity: remainingQuantity,
+                            buyingPrice: 0,
+                            sellingPrice: 0,
+                            expiryDate: "",
+                            manufacturingDate: "",
                         };
 
                     }
@@ -371,16 +197,13 @@ export default function CreateGRN() {
             toast.error(
 
                 error.response?.data?.error ??
-
                 "Failed to load purchase order"
 
             );
 
 
             setSelectedPOId("");
-
             setSelectedPO(null);
-
             setItems([]);
 
         }
@@ -776,58 +599,16 @@ export default function CreateGRN() {
                     <Field.Root>
 
                         <Field.Label>
-                            Select PO ID
+                            Purchase Order
                         </Field.Label>
 
-
-                        <NativeSelect.Root disabled={loadingPO}>
-
-                            <NativeSelect.Field
-
-                                value={
-                                    selectedPOId
-                                }
-
-                                onChange={(e) =>
-                                    handlePOSelect(
-                                        e.target.value
-                                    )
-                                }
-
-                            >
-
-                                <option value="">
-                                    Select Purchase Order
-                                </option>
-
-
-                                {purchaseOrders.map(
-                                    (po) => (
-
-                                        <option
-                                            key={
-                                                po.id
-                                            }
-                                            value={
-                                                po.id
-                                            }
-                                        >
-
-                                            {
-                                                po.orderNumber
-                                            }
-
-                                        </option>
-
-                                    )
-                                )}
-
-                            </NativeSelect.Field>
-
-
-                            <NativeSelect.Indicator />
-
-                        </NativeSelect.Root>
+                        <Input
+                            value={
+                                selectedPO?.orderNumber ||
+                                ""
+                            }
+                            disabled
+                        />
 
                     </Field.Root>
 
