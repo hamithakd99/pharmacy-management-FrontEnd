@@ -176,15 +176,71 @@ export default function PurchaseOrderManagement() {
     =====================================================
     */
 
-    function handleView(
+    // function handleView(
+    //     purchaseOrder: PurchaseOrder
+    // ) {
+
+    //     setSelectedPO(
+    //         purchaseOrder
+    //     );
+
+    //     setViewDialogOpen(true);
+
+    // }
+
+    async function handleView(
         purchaseOrder: PurchaseOrder
     ) {
 
-        setSelectedPO(
-            purchaseOrder
-        );
+        try {
 
-        setViewDialogOpen(true);
+            setLoading(true);
+
+            const response =
+                await axios.get(
+
+                    import.meta.env.VITE_BACKEND_URL +
+
+                    "/po/purchase-orders/" +
+
+                    purchaseOrder.id
+
+                );
+
+
+            const fullPurchaseOrder =
+                response.data;
+
+
+            setSelectedPO(
+                fullPurchaseOrder
+            );
+
+
+            setViewDialogOpen(
+                true
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Failed to load purchase order:",
+                error
+            );
+
+            toast.error(
+                "Failed to load purchase order"
+            );
+
+        }
+
+        finally {
+
+            setLoading(false);
+
+        }
 
     }
 

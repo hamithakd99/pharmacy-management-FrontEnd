@@ -11,19 +11,15 @@ import {
     VStack,
 } from "@chakra-ui/react";
 
-import type {
-    PurchaseOrder,
-} from "./POTable";
+import type { PurchaseOrder } from "./POTable";
+import POReceivingHistory from "./POReceivingHistory";
 
 
 type POViewDialogProps = {
 
     open: boolean;
-
     onClose: () => void;
-
-    purchaseOrder:
-        PurchaseOrder | null;
+    purchaseOrder: PurchaseOrder | null;
 
 };
 
@@ -31,9 +27,7 @@ type POViewDialogProps = {
 export default function POViewDialog({
 
     open,
-
     onClose,
-
     purchaseOrder,
 
 }: POViewDialogProps) {
@@ -454,6 +448,13 @@ export default function POViewDialog({
                                         </Table.ScrollArea>
 
                                     </Box>
+
+                                    <POReceivingHistory
+                                    
+                                        receivingHistory={
+                                            purchaseOrder.receivingHistory ?? []
+                                        }
+                                    />
 
 
                                     {/* TOTAL */}

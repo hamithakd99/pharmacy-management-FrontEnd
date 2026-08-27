@@ -6,23 +6,41 @@ import {
     Text,
 } from "@chakra-ui/react";
 
+export type GRNItem = {
+    id: number;
+    productId: string;
+    productName: string;
+    brand?: string | null;
+    receivedQuantity: number;
+    buyingPrice: number;
+    sellingPrice: number;
+    lineBuyingTotal: number;
+    lineSellingTotal: number;
+};
+
+export type GRNHistory = {
+    id: number;
+    batchNumber: string;
+    invoiceNumber: string;
+    receivedDate: string;
+    paymentStatus: string;
+    invoiceDiscountAmount: number;
+    totalBuyingValue: number;
+    totalSellingValue: number;
+    items: GRNItem[];
+};
+
 
 export type PurchaseOrderItem = {
 
     id: number;
-
     productId: number;
-
     quantity: number;
-
     product?: {
 
         id: number;
-
         productId: string;
-
         name: string;
-
         brand?: string | null;
 
     };
@@ -33,26 +51,29 @@ export type PurchaseOrderItem = {
 export type PurchaseOrder = {
 
     id: number;
-
     orderNumber: string;
-
     supplierId: number;
-
     createdAt: string;
-
     status: string;
-
     supplier?: {
 
         id: number;
-
         firstName: string;
-
         lastName: string;
 
     };
 
     items: PurchaseOrderItem[];
+    receivingHistory: GRNHistory[];
+
+    summary: {
+        totalOrderedItems: number;
+        totalReceivedItems: number;
+        totalRemainingItems: number;
+        totalBuyingValue: number;
+        totalSellingValue: number;
+        totalGRNs: number;
+    };
 
 };
 
@@ -61,21 +82,10 @@ type POTableProps = {
 
     purchaseOrders: PurchaseOrder[];
 
-    onView: (
-        purchaseOrder: PurchaseOrder
-    ) => void;
-
-    onCreateGRN: (
-        purchaseOrder: PurchaseOrder
-    ) => void;
-
-    onEdit: (
-        purchaseOrder: PurchaseOrder
-    ) => void;
-
-    onDelete: (
-        purchaseOrder: PurchaseOrder
-    ) => void;
+    onView: (purchaseOrder: PurchaseOrder) => void;
+    onCreateGRN: (purchaseOrder: PurchaseOrder) => void;
+    onEdit: (purchaseOrder: PurchaseOrder) => void;
+    onDelete: (purchaseOrder: PurchaseOrder) => void;
 
 };
 
@@ -83,13 +93,9 @@ type POTableProps = {
 export default function POTable({
 
     purchaseOrders,
-
     onView,
-
     onEdit,
-
     onDelete,
-
     onCreateGRN,
 
 }: POTableProps) {
@@ -341,10 +347,12 @@ export default function POTable({
 
                                                     colorPalette="blue"
 
-                                                    onClick={() =>
+                                                    onClick={() => {
+                                                        
                                                         onView(
                                                             purchaseOrder
                                                         )
+                                                    }
                                                     }
 
                                                 >
