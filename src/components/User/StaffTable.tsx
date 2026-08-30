@@ -95,12 +95,12 @@ export default function StaffTable({
                                 <Badge
                                     colorPalette={
                                         user.role ===
-                                        "ADMIN"
+                                            "ADMIN"
                                             ? "purple"
                                             : user.role ===
-                                              "CASHIER"
-                                            ? "blue"
-                                            : "green"
+                                                "CASHIER"
+                                                ? "blue"
+                                                : "green"
                                     }
                                 >
                                     {user.role}

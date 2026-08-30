@@ -26,10 +26,11 @@ export default function UserManagement() {
     const [loading, setLoading] = useState(true);
     // Staff Dialog
     const [staffDialogOpen, setStaffDialogOpen] = useState(false);
-
     const [staffFormLoading, setStaffFormLoading] = useState(false);
-
     const [editingStaff, setEditingStaff] = useState<StaffUser | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [userToDelete, setUserToDelete] = useState<StaffUser | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
 
 
@@ -351,10 +352,23 @@ export default function UserManagement() {
     // DELETE STAFF USER
     // =================================================
 
-    const handleDeleteStaff =
-        async (
-            user: StaffUser
-        ) => {
+    const handleDeleteStaff = (
+        user: StaffUser
+    ) => {
+        setUserToDelete(user);
+        setDeleteDialogOpen(true);
+
+    };
+
+    const confirmDeleteStaff = async () => {
+
+        if (!userToDelete) {
+            return;
+        }
+
+        try {
+
+            setDeleteLoading(true);
 
             const token =
                 localStorage.getItem("token");
@@ -368,54 +382,54 @@ export default function UserManagement() {
                 return;
             }
 
-            const confirmed =
-                window.confirm(
-                    `Are you sure you want to delete ${user.firstName} ${user.lastName}?`
-                );
+            await axios.delete(
+                import.meta.env.VITE_BACKEND_URL +
+                `/user/delete/${userToDelete.id}`,
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`,
+                    },
+                }
+            );
 
-            if (!confirmed) {
+            toast.success(
+                "Staff user deleted successfully."
+            );
 
-                return;
+            setUsers(
+                (currentUsers) =>
+                    currentUsers.filter(
+                        (user) =>
+                            user.id !==
+                            userToDelete.id
+                    )
+            );
 
-            }
+            setDeleteDialogOpen(false);
 
+            setUserToDelete(null);
 
-            try {
-                await axios.delete(
-                    import.meta.env.VITE_BACKEND_URL +
-                    `/user/delete/${user.id}`,
-                    {
-                        headers: {
-                            Authorization:
-                                `Bearer ${token}`,
-                        },
-                    }
-                );
+        } catch (error: any) {
 
+            console.error(
+                "Delete Staff Error:",
+                error
+            );
 
-                setUsers(
-                    (currentUsers) =>
-                        currentUsers.filter(
-                            (item) =>
-                                item.id !==
-                                user.id
-                        )
-                );
+            toast.error(
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Failed to delete staff user."
+            );
 
+        } finally {
 
-            } catch (error) {
+            setDeleteLoading(false);
 
-                console.error(
-                    "Failed to delete staff user:",
-                    error
-                );
+        }
 
-                window.alert(
-                    "Failed to delete user."
-                );
-
-            }
-        };
+    };
 
 
     // =================================================
@@ -493,7 +507,7 @@ export default function UserManagement() {
 
                 return;
             }
-            
+
             await axios.put(
                 import.meta.env.VITE_BACKEND_URL +
                 `/user/update/${editingStaff.id}`,
@@ -880,8 +894,7 @@ export default function UserManagement() {
                             color="gray.500"
                             mt={1}
                         >
-                            Try a different search
-                            term.
+                            Try a different search term.
                         </Text>
 
                     </Box>
@@ -889,21 +902,10 @@ export default function UserManagement() {
                 ) : (
 
                     <StaffTable
-                        users={
-                            filteredStaff
-                        }
-
-                        onView={
-                            handleViewStaff
-                        }
-
-                        onEdit={
-                            handleEditStaff
-                        }
-
-                        onDelete={
-                            handleDeleteStaff
-                        }
+                        users={filteredStaff}
+                        onView={handleViewStaff}
+                        onEdit={handleEditStaff}
+                        onDelete={handleDeleteStaff}
                     />
 
                 )
@@ -1030,6 +1032,133 @@ export default function UserManagement() {
                                 />
 
                             </Dialog.Body>
+
+                        </Dialog.Content>
+
+                    </Dialog.Positioner>
+
+                </Portal>
+            </Dialog.Root>
+            <Dialog.Root
+                open={deleteDialogOpen}
+                onOpenChange={(details) => {
+
+                    if (!details.open) {
+
+                        setDeleteDialogOpen(false);
+
+                        setUserToDelete(null);
+
+                    }
+
+                }}
+            >
+                <Portal>
+
+                    <Dialog.Backdrop />
+
+                    <Dialog.Positioner>
+
+                        <Dialog.Content
+                            maxW="420px"
+                            rounded="xl"
+                        >
+
+                            <Dialog.Header>
+
+                                <Dialog.Title>
+                                    Delete Staff User
+                                </Dialog.Title>
+
+                            </Dialog.Header>
+
+
+                            <Dialog.Body>
+
+                                <Text
+                                    color="gray.600"
+                                    mb={3}
+                                >
+                                    Are you sure you want to
+                                    delete this staff user?
+                                </Text>
+
+
+                                {userToDelete && (
+
+                                    <Box
+                                        bg="gray.50"
+                                        rounded="lg"
+                                        p={4}
+                                    >
+
+                                        <Text
+                                            fontWeight="700"
+                                        >
+                                            {userToDelete.firstName}{" "}
+                                            {userToDelete.lastName}
+                                        </Text>
+
+                                        <Text
+                                            fontSize="sm"
+                                            color="gray.500"
+                                        >
+                                            {userToDelete.userId}
+                                        </Text>
+
+                                        <Text
+                                            fontSize="sm"
+                                            color="gray.500"
+                                        >
+                                            {userToDelete.email}
+                                        </Text>
+
+                                    </Box>
+
+                                )}
+
+
+                                <Text
+                                    fontSize="sm"
+                                    color="red.500"
+                                    mt={4}
+                                >
+                                    This action cannot be undone.
+                                </Text>
+
+                            </Dialog.Body>
+
+
+                            <Dialog.Footer>
+
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+
+                                        setDeleteDialogOpen(false);
+
+                                        setUserToDelete(null);
+
+                                    }}
+                                    disabled={deleteLoading}
+                                >
+                                    Cancel
+                                </Button>
+
+
+                                <Button
+                                    colorPalette="red"
+                                    onClick={
+                                        confirmDeleteStaff
+                                    }
+                                    loading={
+                                        deleteLoading
+                                    }
+                                >
+                                    Delete User
+                                </Button>
+
+                            </Dialog.Footer>
 
                         </Dialog.Content>
 
