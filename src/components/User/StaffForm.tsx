@@ -95,12 +95,26 @@ export default function StaffForm({
 
     };
 
-
     const handleSubmit = (
         e: React.FormEvent
     ) => {
 
         e.preventDefault();
+
+        if (
+            !formData.firstName.trim() ||
+            !formData.lastName.trim() ||
+            !formData.email.trim() ||
+            !formData.contactNumber.trim() ||
+            !formData.addressLine1.trim() ||
+            !formData.city.trim()
+        ) {
+            return;
+        }
+
+        if (!isEdit && !formData.password.trim()) {
+            return;
+        }
 
         const data: Record<string, unknown> = {
             firstName:
@@ -119,13 +133,13 @@ export default function StaffForm({
                 formData.contactNumber.trim(),
 
             nickName:
-                formData.nickName.trim(),
+                formData.nickName.trim() || null,
 
             addressLine1:
                 formData.addressLine1.trim(),
 
             addressLine2:
-                formData.addressLine2.trim(),
+                formData.addressLine2.trim() || null,
 
             city:
                 formData.city.trim(),
@@ -134,31 +148,19 @@ export default function StaffForm({
                 formData.province,
 
             postalCode:
-                formData.postalCode.trim(),
+                formData.postalCode.trim() || null,
         };
 
-
-        /*
-        Password only needs to be sent
-        when creating a new staff user.
-        */
-
-        if (
-            !isEdit &&
-            formData.password.trim()
-        ) {
-
+        // Only send password when creating
+        if (!isEdit) {
             data.password =
                 formData.password;
-
         }
 
-
-        onSubmit?.(
-            data
-        );
-
+        onSubmit?.(data);
     };
+
+
 
 
     return (

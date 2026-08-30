@@ -289,10 +289,28 @@ export default function UserManagement() {
 
             setStaffFormLoading(true);
 
+            const token =
+                localStorage.getItem("token");
+
+            if (!token) {
+
+                toast.error(
+                    "You are not logged in."
+                );
+
+                return;
+            }
+
             await axios.post(
                 import.meta.env.VITE_BACKEND_URL +
                 "/user/register",
-                data
+                data,
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`,
+                    },
+                }
             );
 
             toast.success(
@@ -305,10 +323,19 @@ export default function UserManagement() {
 
         } catch (error: any) {
 
-            console.error(error);
+            console.error(
+                "Create Staff Error:",
+                error
+            );
+
+            console.error(
+                "Server Response:",
+                error.response?.data
+            );
 
             toast.error(
-                error.response?.data?.error ??
+                error.response?.data?.message ||
+                error.response?.data?.error ||
                 "Failed to create staff user."
             );
 
@@ -317,7 +344,6 @@ export default function UserManagement() {
             setStaffFormLoading(false);
 
         }
-
     };
 
 
@@ -329,6 +355,18 @@ export default function UserManagement() {
         async (
             user: StaffUser
         ) => {
+
+            const token =
+                localStorage.getItem("token");
+
+            if (!token) {
+
+                toast.error(
+                    "You are not logged in."
+                );
+
+                return;
+            }
 
             const confirmed =
                 window.confirm(
@@ -345,7 +383,13 @@ export default function UserManagement() {
             try {
                 await axios.delete(
                     import.meta.env.VITE_BACKEND_URL +
-                    `/user/delete/${user.id}`
+                    `/user/delete/${user.id}`,
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`,
+                        },
+                    }
                 );
 
 
@@ -438,9 +482,28 @@ export default function UserManagement() {
 
             setStaffFormLoading(true);
 
+            const token =
+                localStorage.getItem("token");
+
+            if (!token) {
+
+                toast.error(
+                    "You are not logged in."
+                );
+
+                return;
+            }
+            
             await axios.put(
+                import.meta.env.VITE_BACKEND_URL +
                 `/user/update/${editingStaff.id}`,
-                data
+                data,
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`,
+                    },
+                }
             );
 
             toast.success(
@@ -455,10 +518,19 @@ export default function UserManagement() {
 
         } catch (error: any) {
 
-            console.error(error);
+            console.error(
+                "Update Staff Error:",
+                error
+            );
+
+            console.error(
+                "Server Response:",
+                error.response?.data
+            );
 
             toast.error(
-                error.response?.data?.error ??
+                error.response?.data?.message ||
+                error.response?.data?.error ||
                 "Failed to update staff."
             );
 
@@ -467,7 +539,6 @@ export default function UserManagement() {
             setStaffFormLoading(false);
 
         }
-
     };
 
 
