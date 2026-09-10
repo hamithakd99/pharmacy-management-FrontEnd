@@ -111,7 +111,10 @@ export default function CreatePO() {
             );
 
             setSuppliers(
-                response.data
+                response.data.filter(
+                    (user: Supplier & { role?: string }) =>
+                        user.role === "SUPPLIER"
+                )
             );
 
         }

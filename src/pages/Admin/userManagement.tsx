@@ -1,7 +1,10 @@
+import ExternalUserDetailsDialog from "@/components/User/ExternalUserDetailsDialog";
+import ExternalUserForm from "@/components/User/ExternalUserForm";
 import ExternalUserTable from "@/components/User/ExternalUserTable";
 import StaffForm from "@/components/User/StaffForm";
 import StaffTable from "@/components/User/StaffTable";
 import type { ExternalUser, StaffUser } from "@/components/User/user.types";
+import UserDetailsDialog from "@/components/User/UserDetailsDialog";
 import UserSummaryCards from "@/components/User/UserSummaryCards";
 import { Box, Button, Dialog, Flex, Heading, Input, Portal, Spinner, Text } from "@chakra-ui/react";
 import axios from "axios";
@@ -11,7 +14,8 @@ import toast from "react-hot-toast";
 
 type ActiveTab =
     | "STAFF"
-    | "EXTERNAL";
+    | "CUSTOMERS"
+    | "SUPPLIERS";
 
 export default function UserManagement() {
 
@@ -31,6 +35,13 @@ export default function UserManagement() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<StaffUser | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [viewDialogOpen, setViewDialogOpen] = useState(false);
+    const [selectedStaff, setSelectedStaff] = useState<StaffUser | null>(null);
+    const [externalDialogOpen, setExternalDialogOpen] = useState(false);
+    const [externalFormLoading, setExternalFormLoading] = useState(false);
+    const [editingExternalUser, setEditingExternalUser] = useState<ExternalUser | null>(null);
+    const [selectedExternalUser, setSelectedExternalUser] = useState<ExternalUser | null>(null);
+    const [externalViewOpen, setExternalViewOpen] = useState(false);
 
 
 
@@ -193,54 +204,90 @@ export default function UserManagement() {
     // EXTERNAL USER SEARCH
     // =================================================
 
-    const filteredExternalUsers =
-        useMemo(() => {
+    // =================================================
+    // CUSTOMER SEARCH
+    // =================================================
 
+    const filteredCustomers =
+        useMemo(() => {
             const value =
                 search
                     .toLowerCase()
                     .trim();
 
-            if (!value) {
-
-                return externalUsers;
-
-            }
-
-            return externalUsers.filter(
-                (user) =>
-                    user.userId
-                        .toLowerCase()
-                        .includes(value) ||
-
-                    user.firstName
-                        .toLowerCase()
-                        .includes(value) ||
-
-                    user.lastName
-                        .toLowerCase()
-                        .includes(value) ||
-
-                    user.email
-                        .toLowerCase()
-                        .includes(value) ||
-
-                    user.contactNumber
-                        .toLowerCase()
-                        .includes(value) ||
-
-                    user.role
-                        .toLowerCase()
-                        .includes(value) ||
-
-                    user.city
-                        .toLowerCase()
-                        .includes(value)
-            );
-
+            return externalUsers
+                .filter(
+                    (user) =>
+                        user.role === "CUSTOMER"
+                )
+                .filter(
+                    (user) =>
+                        !value ||
+                        user.userId
+                            .toLowerCase()
+                            .includes(value) ||
+                        user.firstName
+                            .toLowerCase()
+                            .includes(value) ||
+                        user.lastName
+                            .toLowerCase()
+                            .includes(value) ||
+                        user.email
+                            .toLowerCase()
+                            .includes(value) ||
+                        user.contactNumber
+                            .toLowerCase()
+                            .includes(value) ||
+                        user.city
+                            .toLowerCase()
+                            .includes(value)
+                );
         }, [
             externalUsers,
-            search,
+            search
+        ]);
+
+    // =================================================
+    // SUPPLIER SEARCH
+    // =================================================
+
+    const filteredSuppliers =
+        useMemo(() => {
+            const value =
+                search
+                    .toLowerCase()
+                    .trim();
+
+            return externalUsers
+                .filter(
+                    (user) =>
+                        user.role === "SUPPLIER"
+                )
+                .filter(
+                    (user) =>
+                        !value ||
+                        user.userId
+                            .toLowerCase()
+                            .includes(value) ||
+                        user.firstName
+                            .toLowerCase()
+                            .includes(value) ||
+                        user.lastName
+                            .toLowerCase()
+                            .includes(value) ||
+                        user.email
+                            .toLowerCase()
+                            .includes(value) ||
+                        user.contactNumber
+                            .toLowerCase()
+                            .includes(value) ||
+                        user.city
+                            .toLowerCase()
+                            .includes(value)
+                );
+        }, [
+            externalUsers,
+            search
         ]);
 
 
@@ -555,20 +602,151 @@ export default function UserManagement() {
         }
     };
 
+    const handleCreateExternalUser = async (
+        data: Record<string, unknown>
+    ) => {
+        try {
+            setExternalFormLoading(true);
+
+            const token =
+                localStorage.getItem("token");
+
+            if (!token) {
+                toast.error(
+                    "You are not logged in."
+                );
+                return;
+            }
+
+            await axios.post(
+                import.meta.env.VITE_BACKEND_URL +
+                "/external/register",
+                data,
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+            toast.success(
+                "External user created successfully."
+            );
+
+            setExternalDialogOpen(false);
+            setEditingExternalUser(null);
+
+            await loadExternalUsers();
+        } catch (error: any) {
+            console.error(
+                "Create External User Error:",
+                error
+            );
+
+            console.error(
+                "Server Response:",
+                error.response?.data
+            );
+
+            toast.error(
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Failed to create external user."
+            );
+        } finally {
+            setExternalFormLoading(false);
+        }
+    };
+
+    const handleUpdateExternalUser = async (
+        data: Record<string, unknown>
+    ) => {
+        if (!editingExternalUser) {
+            return;
+        }
+
+        try {
+            setExternalFormLoading(true);
+
+            const token =
+                localStorage.getItem("token");
+
+            if (!token) {
+                toast.error(
+                    "You are not logged in."
+                );
+                return;
+            }
+
+            const updateData = {
+                firstName: data.firstName,
+                lastName: data.lastName,
+                email: data.email,
+                contactNumber: data.contactNumber,
+                nickName: data.nickName,
+                addressLine1: data.addressLine1,
+                addressLine2: data.addressLine2,
+                city: data.city,
+                province: data.province,
+                postalCode: data.postalCode
+            };
+
+            await axios.put(
+                import.meta.env.VITE_BACKEND_URL +
+                `/external/update/${editingExternalUser.id}`,
+                updateData,
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+            toast.success(
+                "External user updated successfully."
+            );
+
+            setExternalDialogOpen(false);
+            setEditingExternalUser(null);
+
+            await loadExternalUsers();
+        } catch (error: any) {
+            console.error(
+                "Update External User Error:",
+                error
+            );
+
+            console.error(
+                "Server Response:",
+                error.response?.data
+            );
+
+            toast.error(
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Failed to update external user."
+            );
+        } finally {
+            setExternalFormLoading(false);
+        }
+    };
+
 
     // =================================================
     // VIEW STAFF
     // =================================================
 
-    const handleViewStaff =
-        (user: StaffUser) => {
+    const handleViewStaff = (
+        user: StaffUser
+    ) => {
 
-            console.log(
-                "View Staff User:",
-                user
-            );
+        setSelectedStaff(user);
 
-        };
+        setViewDialogOpen(true);
+
+    };
 
 
     // =================================================
@@ -590,30 +768,24 @@ export default function UserManagement() {
     // VIEW EXTERNAL USER
     // =================================================
 
-    const handleViewExternalUser =
-        (user: ExternalUser) => {
-
-            console.log(
-                "View External User:",
-                user
-            );
-
-        };
+    const handleViewExternalUser = (
+        user: ExternalUser
+    ) => {
+        setSelectedExternalUser(user);
+        setExternalViewOpen(true);
+    };
 
 
     // =================================================
     // EDIT EXTERNAL USER
     // =================================================
 
-    const handleEditExternalUser =
-        (user: ExternalUser) => {
-
-            console.log(
-                "Edit External User:",
-                user
-            );
-
-        };
+    const handleEditExternalUser = (
+        user: ExternalUser
+    ) => {
+        setEditingExternalUser(user);
+        setExternalDialogOpen(true);
+    };
 
 
     // =================================================
@@ -685,6 +857,10 @@ export default function UserManagement() {
 
                     <Button
                         colorPalette="teal"
+                        onClick={() => {
+                            setEditingExternalUser(null);
+                            setExternalDialogOpen(true);
+                        }}
                     >
                         + External User
                     </Button>
@@ -727,62 +903,63 @@ export default function UserManagement() {
                 TABS
             ================================================= */}
 
+            {/* =================================================
+    TABS
+================================================= */}
+
             <Flex
                 borderBottomWidth="1px"
                 borderColor="gray.200"
                 mb={4}
                 gap={1}
             >
-
                 <Button
                     variant={
-                        activeTab ===
-                            "STAFF"
+                        activeTab === "STAFF"
                             ? "subtle"
                             : "ghost"
                     }
                     colorPalette="blue"
                     roundedBottom="none"
                     onClick={() => {
-
-                        setActiveTab(
-                            "STAFF"
-                        );
-
+                        setActiveTab("STAFF");
                         setSearch("");
-
                     }}
                 >
-                    Staff
-                    {" "}
-                    ({users.length})
+                    Staff ({users.length})
                 </Button>
-
 
                 <Button
                     variant={
-                        activeTab ===
-                            "EXTERNAL"
+                        activeTab === "CUSTOMERS"
                             ? "subtle"
                             : "ghost"
                     }
-                    colorPalette="teal"
+                    colorPalette="green"
                     roundedBottom="none"
                     onClick={() => {
-
-                        setActiveTab(
-                            "EXTERNAL"
-                        );
-
+                        setActiveTab("CUSTOMERS");
                         setSearch("");
-
                     }}
                 >
-                    External Users
-                    {" "}
-                    ({externalUsers.length})
+                    Customers ({customers})
                 </Button>
 
+                <Button
+                    variant={
+                        activeTab === "SUPPLIERS"
+                            ? "subtle"
+                            : "ghost"
+                    }
+                    colorPalette="orange"
+                    roundedBottom="none"
+                    onClick={() => {
+                        setActiveTab("SUPPLIERS");
+                        setSearch("");
+                    }}
+                >
+                    Suppliers ({suppliers})
+                </Button>
             </Flex>
 
 
@@ -811,10 +988,11 @@ export default function UserManagement() {
                             )
                         }
                         placeholder={
-                            activeTab ===
-                                "STAFF"
+                            activeTab === "STAFF"
                                 ? "Search staff..."
-                                : "Search suppliers or customers..."
+                                : activeTab === "CUSTOMERS"
+                                    ? "Search customers..."
+                                    : "Search suppliers..."
                         }
                         bg="white"
                     />
@@ -851,28 +1029,15 @@ export default function UserManagement() {
             ================================================= */}
 
             {loading ? (
-
                 <Flex
                     justify="center"
                     align="center"
                     minH="250px"
                 >
-
-                    <Spinner
-                        size="lg"
-                    />
-
+                    <Spinner size="lg" />
                 </Flex>
-
-            ) : activeTab ===
-                "STAFF" ? (
-
-                /* =================================================
-                   STAFF TABLE
-                ================================================= */
-
+            ) : activeTab === "STAFF" ? (
                 filteredStaff.length === 0 ? (
-
                     <Box
                         bg="white"
                         borderWidth="1px"
@@ -881,7 +1046,6 @@ export default function UserManagement() {
                         p={10}
                         textAlign="center"
                     >
-
                         <Text
                             fontWeight="600"
                             color="gray.600"
@@ -896,29 +1060,17 @@ export default function UserManagement() {
                         >
                             Try a different search term.
                         </Text>
-
                     </Box>
-
                 ) : (
-
                     <StaffTable
                         users={filteredStaff}
                         onView={handleViewStaff}
                         onEdit={handleEditStaff}
                         onDelete={handleDeleteStaff}
                     />
-
                 )
-
-            ) : (
-
-                /* =================================================
-                   EXTERNAL USER TABLE
-                ================================================= */
-
-                filteredExternalUsers.length ===
-                    0 ? (
-
+            ) : activeTab === "CUSTOMERS" ? (
+                filteredCustomers.length === 0 ? (
                     <Box
                         bg="white"
                         borderWidth="1px"
@@ -927,12 +1079,11 @@ export default function UserManagement() {
                         p={10}
                         textAlign="center"
                     >
-
                         <Text
                             fontWeight="600"
                             color="gray.600"
                         >
-                            No external users found
+                            No customers found
                         </Text>
 
                         <Text
@@ -940,35 +1091,72 @@ export default function UserManagement() {
                             color="gray.500"
                             mt={1}
                         >
-                            Try a different search
-                            term.
+                            Try a different search term.
+                        </Text>
+                    </Box>
+                ) : (
+                    <ExternalUserTable
+                        users={filteredCustomers}
+                        onView={handleViewExternalUser}
+                        onEdit={handleEditExternalUser}
+                        onDelete={handleDeleteExternalUser}
+                    />
+                )
+            ) : (
+                filteredSuppliers.length === 0 ? (
+                    <Box
+                        bg="white"
+                        borderWidth="1px"
+                        borderColor="gray.200"
+                        rounded="lg"
+                        p={10}
+                        textAlign="center"
+                    >
+                        <Text
+                            fontWeight="600"
+                            color="gray.600"
+                        >
+                            No suppliers found
                         </Text>
 
+                        <Text
+                            fontSize="sm"
+                            color="gray.500"
+                            mt={1}
+                        >
+                            Try a different search term.
+                        </Text>
                     </Box>
-
                 ) : (
-
                     <ExternalUserTable
-                        users={
-                            filteredExternalUsers
-                        }
-
-                        onView={
-                            handleViewExternalUser
-                        }
-
-                        onEdit={
-                            handleEditExternalUser
-                        }
-
-                        onDelete={
-                            handleDeleteExternalUser
-                        }
+                        users={filteredSuppliers}
+                        onView={handleViewExternalUser}
+                        onEdit={handleEditExternalUser}
+                        onDelete={handleDeleteExternalUser}
                     />
-
                 )
-
             )}
+
+
+            <UserDetailsDialog
+                open={viewDialogOpen}
+                user={selectedStaff}
+                onClose={() => {
+
+                    setViewDialogOpen(false);
+
+                    setSelectedStaff(null);
+
+                }}
+            />
+            <ExternalUserDetailsDialog
+                open={externalViewOpen}
+                user={selectedExternalUser}
+                onClose={() => {
+                    setExternalViewOpen(false);
+                    setSelectedExternalUser(null);
+                }}
+            />
             <Dialog.Root
                 open={staffDialogOpen}
                 onOpenChange={(details) => {
@@ -1164,6 +1352,60 @@ export default function UserManagement() {
 
                     </Dialog.Positioner>
 
+                </Portal>
+            </Dialog.Root>
+            <Dialog.Root
+                open={externalDialogOpen}
+                onOpenChange={(details) => {
+                    if (!details.open) {
+                        setExternalDialogOpen(false);
+                        setEditingExternalUser(null);
+                    }
+                }}
+            >
+                <Portal>
+                    <Dialog.Backdrop />
+
+                    <Dialog.Positioner>
+                        <Dialog.Content
+                            maxW="900px"
+                            rounded="xl"
+                        >
+                            <Dialog.Header>
+                                <Dialog.Title>
+                                    {editingExternalUser
+                                        ? "Edit External User"
+                                        : "Register External User"}
+                                </Dialog.Title>
+                            </Dialog.Header>
+
+                            <Dialog.Body pb={5}>
+                                <ExternalUserForm
+                                    user={
+                                        editingExternalUser
+                                    }
+                                    loading={
+                                        externalFormLoading
+                                    }
+                                    onCancel={() => {
+                                        setExternalDialogOpen(
+                                            false
+                                        );
+                                        setEditingExternalUser(
+                                            null
+                                        );
+                                    }}
+                                    onSubmit={(data: Record<string, unknown>) => {
+                                        if (editingExternalUser) {
+                                            handleUpdateExternalUser(data);
+                                        } else {
+                                            handleCreateExternalUser(data);
+                                        }
+                                    }}
+                                />
+                            </Dialog.Body>
+                        </Dialog.Content>
+                    </Dialog.Positioner>
                 </Portal>
             </Dialog.Root>
 
