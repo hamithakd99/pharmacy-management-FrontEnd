@@ -8,24 +8,18 @@ import GRNTable from "@/components/GRN/GRNTable";
 import GRNViewDialog from "@/components/GRN/GRNViewDialog";
 import GRNStatsCards from "@/components/GRN/GRNStatsCards";
 import type { StockBatch } from "@/types/stockBatch";
+import toast from "react-hot-toast";
+import GRNPDF from "@/pdf/GRNPDF";
+import { pdf } from "@react-pdf/renderer";
 
 
 
 export default function GRNManagement() {
 
-  const [stockBatches, setStockBatches] =
-    useState<StockBatch[]>([]);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [viewDialogOpen, setViewDialogOpen] =
-    useState(false);
-
-  const [selectedBatchNumber,
-    setSelectedBatchNumber] =
-    useState<string>();
-
+  const [stockBatches, setStockBatches] = useState<StockBatch[]>([]);
+  const [search, setSearch] = useState("");
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedBatchNumber, setSelectedBatchNumber] = useState<string>();
   const [paymentStatus, setPaymentStatus] = useState("");
   const navigate = useNavigate();
 
@@ -48,6 +42,47 @@ export default function GRNManagement() {
     });
 
   }
+
+  async function handlePrint(batch: StockBatch) {
+    try {
+        const response = await axios.get(
+            import.meta.env.VITE_BACKEND_URL +
+            "/stock-batch/" +
+            batch.batchNumber
+        );
+
+        const fullBatch = response.data.data;
+
+        const blob = await pdf(
+            <GRNPDF
+                stockBatch={fullBatch}
+            />
+        ).toBlob();
+
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${fullBatch.batchNumber}.pdf`;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+        }, 60000);
+    } catch (error) {
+        console.error(
+            "Failed to generate GRN PDF:",
+            error
+        );
+
+        toast.error(
+            "Failed to generate GRN PDF."
+        );
+    }
+}
 
 
   useEffect(() => {
@@ -152,6 +187,7 @@ export default function GRNManagement() {
             `/admin/grn/edit/${batch.batchNumber}`
         );
         }}
+        onPrint={handlePrint}
       />
 
       <GRNViewDialog

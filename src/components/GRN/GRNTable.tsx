@@ -11,19 +11,18 @@ import { Table } from "@chakra-ui/react/table";
 type Props = {
 
     stockBatches: StockBatch[];
-
     onView: (batch: StockBatch) => void;
-
     onEdit: (batch: StockBatch) => void;
+    onPrint: (batch: StockBatch) => void;
 
 };
 
 export default function GRNTable({
 
     stockBatches,
-
     onView,
     onEdit,
+    onPrint,
 }: Props) {
 
     return (
@@ -223,6 +222,7 @@ export default function GRNTable({
                                     <Button
                                         size="sm"
                                         colorPalette="yellow"
+                                        onClick={() => onPrint(batch)}
                                     >
                                         Print
                                     </Button>
