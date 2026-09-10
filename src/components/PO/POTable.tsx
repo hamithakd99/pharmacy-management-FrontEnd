@@ -86,6 +86,7 @@ type POTableProps = {
     onCreateGRN: (purchaseOrder: PurchaseOrder) => void;
     onEdit: (purchaseOrder: PurchaseOrder) => void;
     onDelete: (purchaseOrder: PurchaseOrder) => void;
+    onPrint: (purchaseOrder: PurchaseOrder) => void;
 
 };
 
@@ -97,6 +98,7 @@ export default function POTable({
     onEdit,
     onDelete,
     onCreateGRN,
+    onPrint
 
 }: POTableProps) {
 
@@ -348,7 +350,7 @@ export default function POTable({
                                                     colorPalette="blue"
 
                                                     onClick={() => {
-                                                        
+
                                                         onView(
                                                             purchaseOrder
                                                         )
@@ -433,7 +435,7 @@ export default function POTable({
                                                     size="sm"
                                                     colorPalette="gray"
                                                     onClick={() =>
-                                                        onView(purchaseOrder)
+                                                        onPrint(purchaseOrder)
                                                     }
                                                 >
                                                     Print

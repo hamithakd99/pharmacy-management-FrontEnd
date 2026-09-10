@@ -1,11 +1,4 @@
-import {
-    Box,
-    Button,
-    Flex,
-    Input,
-    InputGroup,
-    Text,
-} from "@chakra-ui/react";
+import { Box, Button, Flex, Input, InputGroup, Text, } from "@chakra-ui/react";
 
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -17,6 +10,8 @@ import POTable from "@/components/PO/POTable";
 import POViewDialog from "@/components/PO/POViewDialog";
 import DeletePODialog from "@/components/PO/DeletePODialog";
 import POStatusCards from "@/components/PO/POStatsCards";
+import PurchaseOrderPDF from "@/pdf/PurchaseOrderPDF";
+import { pdf } from "@react-pdf/renderer";
 
 
 
@@ -31,23 +26,17 @@ export default function PurchaseOrderManagement() {
     =====================================================
     */
 
-    const [purchaseOrders, setPurchaseOrders] =
-        useState<PurchaseOrder[]>([]);
+    const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
 
-    const [search, setSearch] =
-        useState("");
+    const [search, setSearch] = useState("");
 
-    const [loading, setLoading] =
-        useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const [selectedPO, setSelectedPO] =
-        useState<PurchaseOrder | null>(null);
+    const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
 
-    const [viewDialogOpen, setViewDialogOpen] =
-        useState(false);
+    const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
-    const [deleteDialogOpen, setDeleteDialogOpen] =
-        useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const totalOrders = purchaseOrders.length;
 
@@ -78,23 +67,16 @@ export default function PurchaseOrderManagement() {
     */
 
     useEffect(() => {
-
         getPurchaseOrders();
-
     }, []);
 
 
     async function getPurchaseOrders() {
-
         try {
-
             setLoading(true);
-
             const response = await axios.get(
-
                 import.meta.env.VITE_BACKEND_URL +
                 "/po/all",
-
             );
 
             setPurchaseOrders(
@@ -104,19 +86,12 @@ export default function PurchaseOrderManagement() {
         }
 
         catch (error) {
-
             console.error(error);
-
-            toast.error(
-                "Failed to load purchase orders"
-            );
-
+            toast.error("Failed to load purchase orders");
         }
 
         finally {
-
             setLoading(false);
-
         }
 
     }
@@ -161,7 +136,6 @@ export default function PurchaseOrderManagement() {
                 return (
 
                     poNumber.includes(keyword) ||
-
                     supplierName.includes(keyword)
 
                 );
@@ -380,16 +354,60 @@ export default function PurchaseOrderManagement() {
         );
     }
 
-    // function handlePrint(
-    //     purchaseOrder: PurchaseOrder
-    // ) {
+    async function handlePrint(purchaseOrder: PurchaseOrder) {
+        try {
+            setLoading(true);
 
-    //     setSelectedPO(
-    //         purchaseOrder
-    //     );
+            const response = await axios.get(
+                import.meta.env.VITE_BACKEND_URL +
+                "/po/purchase-orders/" +
+                purchaseOrder.id
+            );
 
-    //     setViewDialogOpen(true);
-    // }
+            const fullPurchaseOrder = response.data;
+
+            const blob = await pdf(
+                <PurchaseOrderPDF
+                    purchaseOrder={fullPurchaseOrder}
+                />
+            ).toBlob();
+
+            const url = URL.createObjectURL(blob);
+
+            const printWindow = window.open(
+                url,
+                "_blank"
+            );
+
+            if (!printWindow) {
+                toast.error(
+                    "Please allow pop-ups to print the Purchase Order."
+                );
+                URL.revokeObjectURL(url);
+                return;
+            }
+
+            printWindow.onload = () => {
+                printWindow.focus();
+                printWindow.print();
+            };
+
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 60000);
+        } catch (error) {
+            console.error(
+                "Failed to print purchase order:",
+                error
+            );
+
+            toast.error(
+                "Failed to generate Purchase Order PDF."
+            );
+        } finally {
+            setLoading(false);
+        }
+    }
 
 
     /*
@@ -553,6 +571,7 @@ export default function PurchaseOrderManagement() {
                     onDelete={
                         handleDelete
                     }
+                    onPrint={handlePrint}
 
                 />
 
