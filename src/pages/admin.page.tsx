@@ -22,6 +22,7 @@ import CreatePO from "@/components/PO/CreatePO";
 import PurchaseOrderManagement from "./Admin/purchaseOrderManagement";
 import EditPO from "@/components/PO/EditPO";
 import { useState } from "react";
+import OrderManagement from "./Admin/orderManagement";
 export default function AdminPage() {
 
   const [inventoryOpen, setInventoryOpen] = useState(false);
@@ -260,6 +261,7 @@ export default function AdminPage() {
           <Route path="/po" element={<PurchaseOrderManagement />} />
           <Route path="/po/create" element={<CreatePO />} />
           <Route path="/po/purchase-orders/:id" element={<EditPO />} />
+          <Route path="/orders" element={<OrderManagement />} />
         </Routes>
 
       </Box>
