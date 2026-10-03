@@ -289,13 +289,13 @@ const OrderTable = ({
                                                         )
                                                     }
                                                 >
-                                                    <FiEye />
+                                                    
                                                     View
                                                 </Button>
 
                                                 <Button
                                                     size="sm"
-                                                    variant="outline"
+                                                    // variant="outline"
                                                     colorPalette="orange"
                                                     disabled={
                                                         order.status ===
@@ -309,13 +309,12 @@ const OrderTable = ({
                                                         )
                                                     }
                                                 >
-                                                    <FiEdit />
                                                     Edit
                                                 </Button>
 
                                                 <Button
                                                     size="sm"
-                                                    variant="outline"
+                                                    // variant="outline"
                                                     colorPalette="red"
                                                     disabled={
                                                         order.status ===
@@ -327,7 +326,6 @@ const OrderTable = ({
                                                         )
                                                     }
                                                 >
-                                                    <FiX />
                                                     Cancel
                                                 </Button>
 
@@ -344,7 +342,6 @@ const OrderTable = ({
                                                         )
                                                     }
                                                 >
-                                                    <FiPrinter />
                                                     Print
                                                 </Button>
                                             </HStack>

@@ -6,6 +6,7 @@ import OrderStats from "@/components/Order/OrderStats";
 import OrderTable from "@/components/Order/OrderTable";
 import PaymentDialog from "@/components/Order/PaymentDialog";
 import OrderDetailsDialog from "@/components/Order/OrderDetailsDialog";
+import { useNavigate } from "react-router-dom";
 
 interface OrderCustomer {
     id: number;
@@ -76,6 +77,8 @@ const OrderManagement = () => {
 
     const [viewOrder, setViewOrder] = useState<Order | null>(null);
     const [editOrder, setEditOrder] = useState<Order | null>(null);
+
+    const navigate = useNavigate();
 
     const fetchOrders = async (showRefresh = false) => {
         try {
@@ -324,11 +327,7 @@ const OrderManagement = () => {
 
                     <Button
                         colorPalette="blue"
-                        onClick={() => {
-                            console.log(
-                                "Create new order"
-                            );
-                        }}
+                        onClick={() => navigate("/admin/orders/create")}
                     >
                         <FiPlus />
                         New Order
