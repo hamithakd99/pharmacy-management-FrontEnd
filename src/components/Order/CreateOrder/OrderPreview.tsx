@@ -60,9 +60,8 @@ const OrderPreview = ({
             return "Walk-in Customer";
         }
 
-        const fullName = `${customer.firstName || ""} ${
-            customer.lastName || ""
-        }`.trim();
+        const fullName = `${customer.firstName || ""} ${customer.lastName || ""
+            }`.trim();
 
         return fullName || "Registered Customer";
     };
@@ -459,13 +458,13 @@ const OrderPreview = ({
 
                         {selectedProducts.map((item, index) => (
                             <Flex
-                                key={item.productId}
+                                key={item.allocationId}
                                 px={5}
                                 py={4}
                                 align="center"
                                 borderBottom={
                                     index <
-                                    selectedProducts.length - 1
+                                        selectedProducts.length - 1
                                         ? "1px solid"
                                         : "none"
                                 }
@@ -473,31 +472,43 @@ const OrderPreview = ({
                             >
                                 <Box flex={1}>
                                     <Text
-                                        fontSize="xs"
-                                        color="blue.600"
+                                        fontSize="sm"
                                         fontWeight="600"
+                                        color="blue.600"
                                     >
                                         {item.productCode}
                                     </Text>
 
                                     <Text
-                                        mt={1}
                                         fontSize="sm"
                                         fontWeight="600"
-                                        color="gray.800"
                                     >
                                         {item.name}
                                     </Text>
 
-                                    {item.brand && (
-                                        <Text
-                                            mt={1}
-                                            fontSize="xs"
-                                            color="gray.500"
-                                        >
-                                            {item.brand}
-                                        </Text>
-                                    )}
+                                    <Text
+                                        fontSize="xs"
+                                        color="gray.500"
+                                    >
+                                        {item.brand || "-"}
+                                    </Text>
+
+                                    <Text
+                                        fontSize="xs"
+                                        color="purple.600"
+                                        fontWeight="600"
+                                        mt={1}
+                                    >
+                                        Batch: {item.batchNumber || "-"}
+                                    </Text>
+
+                                    <Text
+                                        fontSize="xs"
+                                        color="gray.500"
+                                    >
+                                        Expiry: {new Date(item.expiryDate).toLocaleDateString("en-GB")}
+                                    </Text>
+
                                 </Box>
 
                                 <Text
@@ -603,12 +614,12 @@ const OrderPreview = ({
                                     fontWeight="700"
                                     color={
                                         orderDetails.paymentStatus ===
-                                        "PAID"
+                                            "PAID"
                                             ? "green.600"
                                             : orderDetails.paymentStatus ===
-                                              "PARTIAL"
-                                            ? "orange.600"
-                                            : "gray.700"
+                                                "PARTIAL"
+                                                ? "orange.600"
+                                                : "gray.700"
                                     }
                                 >
                                     {getPaymentStatus()}
@@ -778,7 +789,7 @@ const OrderPreview = ({
                     </Box>
                 </Flex>
             </Box>
-                        <Flex
+            <Flex
                 justify="flex-end"
                 mt={6}
                 gap={3}

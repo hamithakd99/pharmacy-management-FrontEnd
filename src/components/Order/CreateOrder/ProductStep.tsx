@@ -1,16 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import {
-    Box,
-    Button,
-    Flex,
-    Heading,
-    HStack,
-    Input,
-    SimpleGrid,
-    Spinner,
-    Text,
-} from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, HStack, Input, SimpleGrid, Spinner, Text } from "@chakra-ui/react";
 import {
     FiCheck,
     FiMinus,
@@ -21,9 +11,16 @@ import {
     FiTrash2,
 } from "react-icons/fi";
 
+interface StockBatch {
+    batchNumber: string;
+}
+
 interface StockBatchItem {
     id: number;
     availableQuantity: number;
+    sellingPrice: number;
+    expiryDate: string;
+    stockBatch?: StockBatch;
 }
 
 interface Product {
@@ -37,13 +34,16 @@ interface Product {
 }
 
 export interface SelectedProduct {
+    allocationId: string;
     productId: number;
     productCode: string;
     name: string;
-    brand: string;
-    sellingPrice: number;
-    availableStock: number;
+    brand?: string | null;
+    batchId: number;
+    batchNumber?: string;
+    expiryDate: string;
     quantity: number;
+    sellingPrice: number;
     lineTotal: number;
 }
 
@@ -88,16 +88,16 @@ const ProductStep = ({
     }, []);
 
     const getAvailableStock = (product: Product) => {
-        if (typeof product.totalStock === "number") {
-            return Math.max(0, product.totalStock);
-        }
-
         if (product.stockBatchItems?.length) {
             return product.stockBatchItems.reduce(
                 (total, batch) =>
                     total + Number(batch.availableQuantity || 0),
                 0
             );
+        }
+
+        if (typeof product.totalStock === "number") {
+            return Math.max(0, product.totalStock);
         }
 
         return 0;
@@ -120,74 +120,205 @@ const ProductStep = ({
     }, [products, search]);
 
     const getSelectedQuantity = (productId: number) => {
-        return (
-            selectedProducts.find((item) => item.productId === productId)
-                ?.quantity || 0
-        );
+        return selectedProducts
+            .filter((item) => item.productId === productId)
+            .reduce(
+                (total, item) => total + item.quantity,
+                0
+            );
     };
 
     const addProduct = (product: Product) => {
-        const availableStock = getAvailableStock(product);
+        const availableBatches = (product.stockBatchItems || [])
+            .filter(
+                (batch) =>
+                    Number(batch.availableQuantity || 0) > 0 &&
+                    new Date(batch.expiryDate) > new Date()
+            )
+            .sort(
+                (a, b) =>
+                    new Date(a.expiryDate).getTime() -
+                    new Date(b.expiryDate).getTime()
+            );
+
+        const availableStock = availableBatches.reduce(
+            (total, batch) =>
+                total + Number(batch.availableQuantity || 0),
+            0
+        );
 
         if (availableStock <= 0) {
             return;
         }
 
-        const existingProduct = selectedProducts.find(
-            (item) => item.productId === product.id
-        );
+        const existingQuantity = getSelectedQuantity(product.id);
 
-        if (existingProduct) {
-            if (existingProduct.quantity >= availableStock) {
-                return;
-            }
-
-            updateQuantity(product.id, existingProduct.quantity + 1);
+        if (existingQuantity >= availableStock) {
             return;
         }
 
-        const sellingPrice = Number(product.sellingPrice || 0);
+        const requestedQuantity = existingQuantity + 1;
 
-        const newProduct: SelectedProduct = {
-            productId: product.id,
-            productCode: product.productId,
-            name: product.name,
-            brand: product.brand || "",
-            sellingPrice,
-            availableStock,
-            quantity: 1,
-            lineTotal: sellingPrice,
-        };
+        const remainingToAllocate = requestedQuantity;
 
-        onProductsChange([...selectedProducts, newProduct]);
+        const allocations: SelectedProduct[] = [];
+
+        let remaining = remainingToAllocate;
+
+        for (const batch of availableBatches) {
+            if (remaining <= 0) {
+                break;
+            }
+
+            const batchAvailable = Number(
+                batch.availableQuantity || 0
+            );
+
+            const allocatedQuantity = Math.min(
+                remaining,
+                batchAvailable
+            );
+
+            if (allocatedQuantity <= 0) {
+                continue;
+            }
+
+            allocations.push({
+                allocationId:
+                    `${product.id}-${batch.id}`,
+                productId: product.id,
+                productCode: product.productId,
+                name: product.name,
+                brand: product.brand || "",
+                batchId: batch.id,
+                batchNumber:
+                    batch.stockBatch?.batchNumber,
+                expiryDate: batch.expiryDate,
+                quantity: allocatedQuantity,
+                sellingPrice: Number(
+                    batch.sellingPrice || 0
+                ),
+                lineTotal:
+                    allocatedQuantity *
+                    Number(batch.sellingPrice || 0)
+            });
+
+            remaining -= allocatedQuantity;
+        }
+
+        if (remaining > 0) {
+            return;
+        }
+
+        onProductsChange(
+            [
+                ...selectedProducts.filter(
+                    (item) =>
+                        item.productId !== product.id
+                ),
+                ...allocations
+            ]
+        );
     };
 
-    const updateQuantity = (productId: number, quantity: number) => {
+    const updateQuantity = (
+        productId: number,
+        quantity: number
+    ) => {
         if (quantity <= 0) {
             removeProduct(productId);
             return;
         }
 
-        const updatedProducts = selectedProducts.map((item) => {
-            if (item.productId !== productId) {
-                return item;
+        const product = products.find(
+            (item) => item.id === productId
+        );
+
+        if (!product) {
+            return;
+        }
+
+        const availableBatches = (product.stockBatchItems || [])
+            .filter(
+                (batch) =>
+                    Number(batch.availableQuantity || 0) > 0 &&
+                    new Date(batch.expiryDate) > new Date()
+            )
+            .sort(
+                (a, b) =>
+                    new Date(a.expiryDate).getTime() -
+                    new Date(b.expiryDate).getTime()
+            );
+
+        const totalAvailable = availableBatches.reduce(
+            (total, batch) =>
+                total + Number(batch.availableQuantity || 0),
+            0
+        );
+
+        const requestedQuantity = Math.min(
+            quantity,
+            totalAvailable
+        );
+
+        let remaining = requestedQuantity;
+
+        const allocations: SelectedProduct[] = [];
+
+        for (const batch of availableBatches) {
+            if (remaining <= 0) {
+                break;
             }
 
-            const newQuantity = Math.min(quantity, item.availableStock);
+            const batchAvailable = Number(
+                batch.availableQuantity || 0
+            );
 
-            return {
-                ...item,
-                quantity: newQuantity,
-                lineTotal: newQuantity * item.sellingPrice,
-            };
-        });
+            const allocatedQuantity = Math.min(
+                remaining,
+                batchAvailable
+            );
 
-        onProductsChange(updatedProducts);
+            if (allocatedQuantity <= 0) {
+                continue;
+            }
+
+            allocations.push({
+                allocationId:
+                    `${product.id}-${batch.id}`,
+                productId: product.id,
+                productCode: product.productId,
+                name: product.name,
+                brand: product.brand || "",
+                batchId: batch.id,
+                batchNumber:
+                    batch.stockBatch?.batchNumber,
+                expiryDate: batch.expiryDate,
+                quantity: allocatedQuantity,
+                sellingPrice: Number(
+                    batch.sellingPrice || 0
+                ),
+                lineTotal:
+                    allocatedQuantity *
+                    Number(batch.sellingPrice || 0)
+            });
+
+            remaining -= allocatedQuantity;
+        }
+
+        onProductsChange([
+            ...selectedProducts.filter(
+                (item) => item.productId !== productId
+            ),
+            ...allocations
+        ]);
     };
 
     const removeProduct = (productId: number) => {
         onProductsChange(
-            selectedProducts.filter((item) => item.productId !== productId)
+            selectedProducts.filter(
+                (item) => item.productId !== productId
+            )
         );
     };
 
@@ -472,7 +603,7 @@ const ProductStep = ({
                                                 {formatCurrency(
                                                     Number(
                                                         product.sellingPrice ||
-                                                            0
+                                                        0
                                                     )
                                                 )}
                                             </Text>
@@ -492,8 +623,8 @@ const ProductStep = ({
                                                     isOutOfStock
                                                         ? "red.500"
                                                         : availableStock <= 10
-                                                        ? "orange.500"
-                                                        : "green.600"
+                                                            ? "orange.500"
+                                                            : "green.600"
                                                 }
                                             >
                                                 {availableStock}
@@ -660,7 +791,7 @@ const ProductStep = ({
                     <Box>
                         {selectedProducts.map((item, index) => (
                             <Flex
-                                key={item.productId}
+                                key={item.allocationId}
                                 px={5}
                                 py={4}
                                 align={{
@@ -675,7 +806,7 @@ const ProductStep = ({
                                 }}
                                 borderBottom={
                                     index <
-                                    selectedProducts.length - 1
+                                        selectedProducts.length - 1
                                         ? "1px solid"
                                         : "none"
                                 }
@@ -683,29 +814,42 @@ const ProductStep = ({
                             >
                                 <Box flex={1}>
                                     <Text
-                                        fontSize="xs"
-                                        color="blue.600"
+                                        fontSize="sm"
                                         fontWeight="600"
+                                        color="blue.600"
                                     >
                                         {item.productCode}
                                     </Text>
+
                                     <Text
-                                        mt={1}
                                         fontSize="sm"
-                                        fontWeight="700"
-                                        color="gray.800"
+                                        fontWeight="600"
                                     >
                                         {item.name}
                                     </Text>
-                                    {item.brand && (
-                                        <Text
-                                            fontSize="xs"
-                                            color="gray.500"
-                                            mt={1}
-                                        >
-                                            {item.brand}
-                                        </Text>
-                                    )}
+
+                                    <Text
+                                        fontSize="xs"
+                                        color="gray.500"
+                                    >
+                                        {item.brand || "-"}
+                                    </Text>
+
+                                    <Text
+                                        fontSize="xs"
+                                        color="purple.600"
+                                        fontWeight="600"
+                                        mt={1}
+                                    >
+                                        Batch: {item.batchNumber || "-"}
+                                    </Text>
+
+                                    <Text
+                                        fontSize="xs"
+                                        color="gray.500"
+                                    >
+                                        Expiry: {new Date(item.expiryDate).toLocaleDateString("en-GB")}
+                                    </Text>
                                 </Box>
 
                                 <HStack gap={6}>
@@ -762,7 +906,18 @@ const ProductStep = ({
                                             variant="ghost"
                                             disabled={
                                                 item.quantity >=
-                                                item.availableStock
+                                                getAvailableStock(
+                                                    products.find(
+                                                        (product) =>
+                                                            product.id ===
+                                                            item.productId
+                                                    ) || {
+                                                        id: item.productId,
+                                                        productId: item.productCode,
+                                                        name: item.name,
+                                                        totalStock: 0,
+                                                    }
+                                                )
                                             }
                                             onClick={() =>
                                                 updateQuantity(

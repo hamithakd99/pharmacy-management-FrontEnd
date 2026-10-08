@@ -69,9 +69,8 @@ const OrderDetailsStep = ({
             return "Walk-in Customer";
         }
 
-        const fullName = `${customer.firstName || ""} ${
-            customer.lastName || ""
-        }`.trim();
+        const fullName = `${customer.firstName || ""} ${customer.lastName || ""
+            }`.trim();
 
         return fullName || "Registered Customer";
     };
@@ -333,7 +332,7 @@ const OrderDetailsStep = ({
                 <Box>
                     {selectedProducts.map((item, index) => (
                         <Flex
-                            key={item.productId}
+                            key={item.allocationId}
                             px={5}
                             py={4}
                             align={{ base: "flex-start", md: "center" }}
@@ -349,31 +348,42 @@ const OrderDetailsStep = ({
                         >
                             <Box flex={1}>
                                 <Text
-                                    fontSize="xs"
-                                    color="blue.600"
+                                    fontSize="sm"
                                     fontWeight="600"
+                                    color="blue.600"
                                 >
                                     {item.productCode}
                                 </Text>
 
                                 <Text
-                                    mt={1}
                                     fontSize="sm"
-                                    fontWeight="700"
-                                    color="gray.800"
+                                    fontWeight="600"
                                 >
                                     {item.name}
                                 </Text>
 
-                                {item.brand && (
-                                    <Text
-                                        mt={1}
-                                        fontSize="xs"
-                                        color="gray.500"
-                                    >
-                                        {item.brand}
-                                    </Text>
-                                )}
+                                <Text
+                                    fontSize="xs"
+                                    color="gray.500"
+                                >
+                                    {item.brand || "-"}
+                                </Text>
+
+                                <Text
+                                    fontSize="xs"
+                                    color="purple.600"
+                                    fontWeight="600"
+                                    mt={1}
+                                >
+                                    Batch: {item.batchNumber || "-"}
+                                </Text>
+
+                                <Text
+                                    fontSize="xs"
+                                    color="gray.500"
+                                >
+                                    Expiry: {new Date(item.expiryDate).toLocaleDateString("en-GB")}
+                                </Text>
                             </Box>
 
                             <HStack gap={8}>
@@ -522,8 +532,8 @@ const OrderDetailsStep = ({
                                                 ? status === "PAID"
                                                     ? "green"
                                                     : status === "PARTIAL"
-                                                    ? "orange"
-                                                    : "blue"
+                                                        ? "orange"
+                                                        : "blue"
                                                 : "gray"
                                         }
                                         onClick={() =>

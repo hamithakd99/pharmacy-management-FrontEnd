@@ -54,6 +54,8 @@ interface StockBatchItem {
 
     receivedQuantity: number;
 
+    availableQuantity: number;
+
     buyingPrice: number;
 
     sellingPrice: number;
@@ -185,7 +187,8 @@ export default function ProductViewDialog({
 
                 total +
 
-                item.receivedQuantity,
+                // item.receivedQuantity,
+                item.availableQuantity,
 
             0
 

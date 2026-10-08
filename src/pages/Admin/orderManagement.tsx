@@ -1,12 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Box, Button, Flex, Heading, HStack, Input, NativeSelect, Spinner, Text, } from "@chakra-ui/react";
-import { FiPlus, FiRefreshCw, FiSearch, } from "react-icons/fi";
+import {
+    Box,
+    Button,
+    Flex,
+    Heading,
+    HStack,
+    Input,
+    NativeSelect,
+    Spinner,
+    Text,
+} from "@chakra-ui/react";
+import { FiPlus, FiRefreshCw, FiSearch } from "react-icons/fi";
 import OrderStats from "@/components/Order/OrderStats";
 import OrderTable from "@/components/Order/OrderTable";
-import PaymentDialog from "@/components/Order/PaymentDialog";
 import OrderDetailsDialog from "@/components/Order/OrderDetailsDialog";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 interface OrderCustomer {
     id: number;
@@ -71,12 +81,9 @@ const OrderManagement = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
-
     const [viewOrder, setViewOrder] = useState<Order | null>(null);
-    const [editOrder, setEditOrder] = useState<Order | null>(null);
 
     const navigate = useNavigate();
 
@@ -114,6 +121,10 @@ const OrderManagement = () => {
                 error
             );
 
+            toast.error(
+                "Failed to load orders."
+            );
+
             setOrders([]);
         } finally {
             setLoading(false);
@@ -144,8 +155,9 @@ const OrderManagement = () => {
                 order.customer?.phone ?? "";
 
             const productNames = order.items
-                .map((item) =>
-                    item.product?.name ?? ""
+                .map(
+                    (item) =>
+                        item.product?.name ?? ""
                 )
                 .join(" ");
 
@@ -204,12 +216,15 @@ const OrderManagement = () => {
         const totalSales = orders
             .filter(
                 (order) =>
+                    order.status === "CONFIRMED" ||
                     order.status === "COMPLETED"
             )
             .reduce(
                 (sum, order) =>
                     sum +
-                    Number(order.totalAmount || 0),
+                    Number(
+                        order.totalAmount || 0
+                    ),
                 0
             );
 
@@ -225,25 +240,96 @@ const OrderManagement = () => {
 
     const handleViewOrder = (order: {
         id: number;
+        orderNumber: string;
     }) => {
-        const fullOrder = orders.find(
-            (item) => item.id === order.id
-        );
+        setViewOrder(order as Order);
+    };
 
-        if (fullOrder) {
-            setViewOrder(fullOrder);
+    const handleConfirmOrder = async (
+        order: {
+            id: number;
+            orderNumber: string;
+        }
+    ) => {
+        try {
+            const token =
+                localStorage.getItem("token");
+
+            await axios.patch(
+                `${import.meta.env.VITE_BACKEND_URL}/order/${order.id}/status`,
+                {
+                    status: "CONFIRMED",
+                },
+                {
+                    headers: token
+                        ? {
+                              Authorization: `Bearer ${token}`,
+                          }
+                        : {},
+                }
+            );
+
+            toast.success(
+                `Order ${order.orderNumber} confirmed successfully.`
+            );
+
+            await fetchOrders();
+        } catch (error: any) {
+            console.error(
+                "Confirm Order Error:",
+                error
+            );
+
+            toast.error(
+                error.response?.data?.message ||
+                    error.response?.data?.error ||
+                    "Failed to confirm order."
+            );
+
+            throw error;
         }
     };
 
-    const handleEditOrder = (order: {
-        id: number;
-    }) => {
-        const fullOrder = orders.find(
-            (item) => item.id === order.id
-        );
+    const handleCancelOrder = async (
+        order: {
+            id: number;
+            orderNumber: string;
+        }
+    ) => {
+        try {
+            const token =
+                localStorage.getItem("token");
 
-        if (fullOrder) {
-            setEditOrder(fullOrder);
+            await axios.patch(
+                `${import.meta.env.VITE_BACKEND_URL}/order/${order.id}/cancel`,
+                {},
+                {
+                    headers: token
+                        ? {
+                              Authorization: `Bearer ${token}`,
+                          }
+                        : {},
+                }
+            );
+
+            toast.success(
+                `Order ${order.orderNumber} cancelled successfully.`
+            );
+
+            await fetchOrders();
+        } catch (error: any) {
+            console.error(
+                "Cancel Order Error:",
+                error
+            );
+
+            toast.error(
+                error.response?.data?.message ||
+                    error.response?.data?.error ||
+                    "Failed to cancel order."
+            );
+
+            throw error;
         }
     };
 
@@ -327,7 +413,11 @@ const OrderManagement = () => {
 
                     <Button
                         colorPalette="blue"
-                        onClick={() => navigate("/admin/orders/create")}
+                        onClick={() =>
+                            navigate(
+                                "/admin/orders/create"
+                            )
+                        }
                     >
                         <FiPlus />
                         New Order
@@ -413,7 +503,9 @@ const OrderManagement = () => {
                             }}
                         >
                             <NativeSelect.Field
-                                value={statusFilter}
+                                value={
+                                    statusFilter
+                                }
                                 onChange={(event) =>
                                     setStatusFilter(
                                         event.target.value
@@ -472,7 +564,9 @@ const OrderManagement = () => {
                         as="span"
                         fontWeight="700"
                     >
-                        {filteredOrders.length}
+                        {
+                            filteredOrders.length
+                        }
                     </Text>{" "}
                     of{" "}
                     <Text
@@ -487,8 +581,15 @@ const OrderManagement = () => {
 
             <OrderTable
                 orders={filteredOrders}
-                onViewOrder={handleViewOrder}
-                onEditOrder={handleEditOrder}
+                onViewOrder={
+                    handleViewOrder
+                }
+                onConfirmOrder={
+                    handleConfirmOrder
+                }
+                onCancelOrder={
+                    handleCancelOrder
+                }
             />
 
             <OrderDetailsDialog
@@ -496,17 +597,6 @@ const OrderManagement = () => {
                 open={viewOrder !== null}
                 onClose={() =>
                     setViewOrder(null)
-                }
-            />
-
-            <PaymentDialog
-                order={editOrder}
-                open={editOrder !== null}
-                onClose={() =>
-                    setEditOrder(null)
-                }
-                onSuccess={() =>
-                    fetchOrders()
                 }
             />
         </Box>
