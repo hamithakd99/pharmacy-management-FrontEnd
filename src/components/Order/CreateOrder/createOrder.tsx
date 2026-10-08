@@ -61,7 +61,7 @@ const CreateOrder = () => {
     });
 
     const [creatingOrder, setCreatingOrder] = useState(false);
-    const [createdOrder, setCreatedOrder] = useState<any>(null);
+    // const [createdOrder, setCreatedOrder] = useState<any>(null);
 
     const handleNext = () => {
         if (currentStep === 2 && selectedProducts.length === 0) {
@@ -152,21 +152,10 @@ const CreateOrder = () => {
                 }
             );
 
-            console.log(
-                "ORDER CREATED:",
-                response.data
-            );
+            console.log("ORDER CREATED:", response.data);
 
-            const newOrder =
-                response.data?.data ??
-                response.data?.order ??
-                response.data;
+            toast.success("Order created successfully!");
 
-            setCreatedOrder(newOrder);
-
-            toast.success(
-                "Order created successfully!"
-            );
             navigate("/admin/orders");
 
         } catch (error: any) {
