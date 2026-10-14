@@ -119,19 +119,9 @@ export default function GRNTable({
 
                             <Table.Cell>
 
-                                {
-
-                                    batch.supplier.firstName
-
-                                }
-
-                                {" "}
-
-                                {
-
-                                    batch.supplier.lastName
-
-                                }
+                                {batch.supplier
+                                    ? `${batch.supplier.firstName} ${batch.supplier.lastName}`
+                                    : "N/A"}
 
                             </Table.Cell>
 

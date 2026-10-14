@@ -24,6 +24,7 @@ import EditPO from "@/components/PO/EditPO";
 import { useState } from "react";
 import OrderManagement from "./Admin/orderManagement";
 import CreateOrder from "@/components/Order/CreateOrder/createOrder";
+import OpeningStock from "@/components/Inventory/OpeningStock";
 export default function AdminPage() {
 
   const [inventoryOpen, setInventoryOpen] = useState(false);
@@ -220,7 +221,7 @@ export default function AdminPage() {
             </Box>
           </Link>
 
-          <Link to="/admin/register/newuser">
+          {/* <Link to="/admin/register/newuser">
             <Box
               p={3}
               rounded="md"
@@ -230,6 +231,20 @@ export default function AdminPage() {
             >
               Register Staff
             </Box>
+          </Link> */}
+
+          <Link to="/admin/opening-stock">
+            <Box
+              p={2}
+              rounded="md"
+              fontSize="sm"
+              _hover={{
+                bg: "teal.600",
+              }}
+            >
+              Opening Stock
+            </Box>
+
           </Link>
 
         </VStack>
@@ -264,6 +279,7 @@ export default function AdminPage() {
           <Route path="/po/purchase-orders/:id" element={<EditPO />} />
           <Route path="/orders" element={<OrderManagement />} />
           <Route path="/orders/create" element={<CreateOrder />} />
+          <Route path="/opening-stock" element={<OpeningStock />} />
         </Routes>
 
       </Box>

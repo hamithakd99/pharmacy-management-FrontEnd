@@ -185,21 +185,11 @@ export default function GRNViewDialog({
 
                                                 <Text>
 
-                                                    {
-
-                                                        batch.supplier
-                                                            .firstName
-
-                                                    }
-
-                                                    {" "}
-
-                                                    {
-
-                                                        batch.supplier
-                                                            .lastName
-
-                                                    }
+                                                    {batch.supplier
+                                                        ? `${batch.supplier.firstName} ${batch.supplier.lastName}`
+                                                        : batch.source === "OPENING_STOCK"
+                                                            ? "Opening Stock"
+                                                            : "N/A"}
 
                                                 </Text>
 
@@ -242,7 +232,7 @@ export default function GRNViewDialog({
                                                     colorPalette={
 
                                                         batch.paymentStatus ===
-                                                        "PAID"
+                                                            "PAID"
 
                                                             ? "green"
 
