@@ -1,320 +1,265 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 import {
-    Box,
-    Flex,
-    Heading,
-    Text,
-    VStack,
-    HStack,
+  Box,
+  Flex,
+  Heading,
+  Text,
+  VStack,
+  HStack,
+  Skeleton,
 } from "@chakra-ui/react";
 
 import {
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
-    Tooltip,
-    Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
 } from "recharts";
 
-const categoryData = [
-
-    {
-        name: "Pain Relief",
-        value: 320,
-    },
-
-    {
-        name: "Antibiotics",
-        value: 210,
-    },
-
-    {
-        name: "Vitamins",
-        value: 180,
-    },
-
-    {
-        name: "Skin Care",
-        value: 95,
-    },
-
-    {
-        name: "Others",
-        value: 75,
-    },
-
-];
-
 const COLORS = [
-
-    "#0F766E",
-    "#3B82F6",
-    "#F59E0B",
-    "#8B5CF6",
-    "#EF4444",
-
+  "#0F766E",
+  "#3B82F6",
+  "#F59E0B",
+  "#8B5CF6",
+  "#EF4444",
+  "#06B6D4",
+  "#EC4899",
+  "#84CC16",
 ];
+
+interface ProductCategory {
+  id?: number | string;
+  name?: string;
+  categoryName?: string;
+}
+
+interface Product {
+  id: number | string;
+  isActive?: boolean;
+  categoryId?: number | string | null;
+  category?: ProductCategory | null;
+  categoryName?: string | null;
+}
+
+interface CategoryData {
+  name: string;
+  value: number;
+}
 
 export default function CategoryChart() {
+  const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    const totalProducts = categoryData.reduce(
+  useEffect(() => {
+    const fetchCategoryData = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-        (sum, item) => sum + item.value,
+        const token = localStorage.getItem("token");
 
-        0
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/product/all`,
+          {
+            headers: token
+              ? { Authorization: `Bearer ${token}` }
+              : {},
+          }
+        );
 
-    );
+        const responseData = response.data;
 
-    return (
+        const products: Product[] = Array.isArray(responseData)
+          ? responseData
+          : Array.isArray(responseData?.data)
+            ? responseData.data
+            : Array.isArray(responseData?.products)
+              ? responseData.products
+              : [];
 
-        <Box
+        // Count active products only.
+        const activeProducts = products.filter(
+          (product) => product.isActive !== false
+        );
 
-            bg="white"
+        setTotalProducts(activeProducts.length);
 
-            rounded="xl"
+        // Group products using their actual category names.
+        const categoryCounts = new Map<string, number>();
 
-            border="1px solid"
+        activeProducts.forEach((product) => {
+          const categoryName =
+            product.category?.name ??
+            product.category?.categoryName ??
+            product.categoryName ??
+            (product.categoryId != null
+              ? `Category ${product.categoryId}`
+              : "Uncategorized");
 
-            borderColor="gray.200"
+          categoryCounts.set(
+            categoryName,
+            (categoryCounts.get(categoryName) ?? 0) + 1
+          );
+        });
 
-            boxShadow="sm"
+        const chartData = Array.from(
+          categoryCounts,
+          ([name, value]) => ({ name, value })
+        ).sort((a, b) => b.value - a.value);
 
-            p="6"
+        setCategoryData(chartData);
+      } catch (err) {
+        console.error("Failed to fetch category data:", err);
+        setError("Unable to load product categories.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-            h="100%"
+    fetchCategoryData();
+  }, []);
 
-        >
+  return (
+    <Box
+      bg="white"
+      rounded="xl"
+      border="1px solid"
+      borderColor="gray.200"
+      boxShadow="sm"
+      p={{ base: "4", md: "6" }}
+      h="100%"
+      minW="0"
+    >
+      <Flex
+        justify="space-between"
+        align="center"
+        mb="5"
+      >
+        <Box>
+          <Heading size="md">
+            Product Categories
+          </Heading>
 
-            <Flex
+          <Text color="gray.500" fontSize="sm" mt="1">
+            Distribution of products by category
+          </Text>
+        </Box>
+      </Flex>
 
-                justify="space-between"
-
-                align="center"
-
-                mb="5"
-
-            >
-
-                <Box>
-
-                    <Heading
-
-                        size="md"
-
-                    >
-
-                        Product Categories
-
-                    </Heading>
-
-                    <Text
-
-                        color="gray.500"
-
-                        fontSize="sm"
-
-                    >
-
-                        Distribution of products
-
-                    </Text>
-
-                </Box>
-
-            </Flex>
-
-
-
-            <Box
-
-                h="260px"
-
-            >
-
-                <ResponsiveContainer
-
-                    width="100%"
-
-                    height="100%"
-
+      {loading ? (
+        <VStack align="stretch" gap="4">
+          <Skeleton height="260px" rounded="lg" />
+          <Skeleton height="20px" />
+          <Skeleton height="20px" />
+          <Skeleton height="20px" />
+        </VStack>
+      ) : error ? (
+        <Box py="10" textAlign="center">
+          <Text color="red.500" fontSize="sm">
+            {error}
+          </Text>
+        </Box>
+      ) : categoryData.length === 0 ? (
+        <Box py="10" textAlign="center">
+          <Text color="gray.500" fontSize="sm">
+            No product categories available.
+          </Text>
+        </Box>
+      ) : (
+        <>
+          <Box h="260px" w="100%" minW="0">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={55}
+                  outerRadius={85}
+                  paddingAngle={3}
                 >
+                  {categoryData.map((item, index) => (
+                    <Cell
+                      key={item.name}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
 
-                    <PieChart>
+                <Tooltip
+                  formatter={(value) => [
+                    value,
+                    "Products",
+                  ]}
+                />
 
-                        <Pie
+                <Legend
+                  verticalAlign="bottom"
+                  height={36}
+                  wrapperStyle={{ fontSize: "12px" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
 
-                            data={categoryData}
-
-                            dataKey="value"
-
-                            nameKey="name"
-
-                            innerRadius={60}
-
-                            outerRadius={90}
-
-                            paddingAngle={3}
-
-                        >
-
-                            {
-
-                                categoryData.map(
-
-                                    (
-
-                                        _,
-
-                                        index
-
-                                    ) => (
-
-                                        <Cell
-
-                                            key={index}
-
-                                            fill={COLORS[index]}
-
-                                        />
-
-                                    )
-
-                                )
-
-                            }
-
-                        </Pie>
-
-                        <Tooltip />
-
-                        <Legend />
-
-                    </PieChart>
-
-                </ResponsiveContainer>
-
-            </Box>
-
-
-
-            <VStack
-
-                mt="4"
-
+          <VStack
+            mt="4"
+            gap="3"
+            align="stretch"
+          >
+            {categoryData.map((item, index) => (
+              <HStack
+                key={item.name}
+                justify="space-between"
                 gap="3"
+              >
+                <HStack gap="2" minW="0">
+                  <Box
+                    w="12px"
+                    h="12px"
+                    flexShrink={0}
+                    rounded="full"
+                    bg={COLORS[index % COLORS.length]}
+                  />
 
-                align="stretch"
-
-            >
-
-                {
-
-                    categoryData.map(
-
-                        (
-
-                            item,
-
-                            index
-
-                        ) => (
-
-                            <HStack
-
-                                key={item.name}
-
-                                justify="space-between"
-
-                            >
-
-                                <HStack>
-
-                                    <Box
-
-                                        w="12px"
-
-                                        h="12px"
-
-                                        rounded="full"
-
-                                        bg={COLORS[index]}
-
-                                    />
-
-                                    <Text
-
-                                        fontSize="sm"
-
-                                    >
-
-                                        {item.name}
-
-                                    </Text>
-
-                                </HStack>
-
-                                <Text
-
-                                    fontWeight="600"
-
-                                >
-
-                                    {item.value}
-
-                                </Text>
-
-                            </HStack>
-
-                        )
-
-                    )
-
-                }
-
-            </VStack>
-
-
-
-            <Box
-
-                mt="6"
-
-                pt="4"
-
-                borderTop="1px solid"
-
-                borderColor="gray.100"
-
-            >
+                  <Text fontSize="sm" truncate>
+                    {item.name}
+                  </Text>
+                </HStack>
 
                 <Text
-
-                    fontSize="sm"
-
-                    color="gray.500"
-
+                  fontWeight="600"
+                  fontSize="sm"
+                  flexShrink={0}
                 >
-
-                    Total Products
-
+                  {item.value}
                 </Text>
+              </HStack>
+            ))}
+          </VStack>
+        </>
+      )}
 
-                <Heading
+      <Box
+        mt="6"
+        pt="4"
+        borderTop="1px solid"
+        borderColor="gray.100"
+      >
+        <Text fontSize="sm" color="gray.500">
+          Total Active Products
+        </Text>
 
-                    size="lg"
-
-                    color="teal.600"
-
-                >
-
-                    {totalProducts}
-
-                </Heading>
-
-            </Box>
-
-        </Box>
-
-    );
-
+        <Heading size="lg" color="teal.600" mt="1">
+          {loading ? "—" : totalProducts.toLocaleString()}
+        </Heading>
+      </Box>
+    </Box>
+  );
 }
