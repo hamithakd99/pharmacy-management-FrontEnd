@@ -10,10 +10,10 @@ import {
     Text
 } from "@chakra-ui/react";
 
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import api from "@/api/axios";
 
 
 type Supplier = {
@@ -103,12 +103,7 @@ export default function CreatePO() {
 
         try {
 
-            const response = await axios.get(
-
-                import.meta.env.VITE_BACKEND_URL +
-                "/external/all-external-users"
-
-            );
+            const response = await api.get("/external/all-external-users");
 
             setSuppliers(
                 response.data.filter(
@@ -142,12 +137,7 @@ export default function CreatePO() {
 
         try {
 
-            const response = await axios.get(
-
-                import.meta.env.VITE_BACKEND_URL +
-                "/product/all"
-
-            );
+            const response = await api.get( "/product/all" );
 
             setProducts(
                 response.data
@@ -417,10 +407,7 @@ export default function CreatePO() {
 
 
             const response =
-                await axios.post(
-
-                    import.meta.env.VITE_BACKEND_URL +
-                    "/po/create",
+                await api.post("/po/create",
 
                     {
 

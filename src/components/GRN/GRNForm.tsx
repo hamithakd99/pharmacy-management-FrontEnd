@@ -10,11 +10,10 @@ import {
     Text,
     VStack,
 } from "@chakra-ui/react";
-
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import api from "@/api/axios";
 
 type GRNFormProps = {
 
@@ -106,15 +105,7 @@ export default function GRNForm({
 
             setLoading(true);
 
-            const response = await axios.get(
-
-                import.meta.env.VITE_BACKEND_URL +
-
-                "/stock-batch/" +
-
-                batchNumber
-
-            );
+            const response = await api.get("/stock-batch/" + batchNumber );
 
             const batch = response.data.data;
 
@@ -377,13 +368,7 @@ export default function GRNForm({
 
             setSaving(true);
 
-            await axios.put(
-
-                import.meta.env.VITE_BACKEND_URL +
-
-                "/stock-batch/" +
-
-                batchNumber,
+            await api.put( "/stock-batch/" + batchNumber,
 
                 {
 

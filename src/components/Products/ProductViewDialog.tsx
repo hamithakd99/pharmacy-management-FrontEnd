@@ -568,15 +568,9 @@ export default function ProductViewDialog({
 
                                                     <Table.Cell>
 
-                                                        {
-                                                            item.stockBatch.supplier.firstName
-                                                        }
-
-                                                        {" "}
-
-                                                        {
-                                                            item.stockBatch.supplier.lastName
-                                                        }
+                                                        {item.stockBatch.supplier
+                                                            ? `${item.stockBatch.supplier.firstName} ${item.stockBatch.supplier.lastName}`
+                                                            : "N/A"}
 
                                                     </Table.Cell>
 

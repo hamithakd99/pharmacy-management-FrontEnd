@@ -1,7 +1,7 @@
 
+import api from "@/api/axios";
 import { Box, Button, Dialog, Flex, NativeSelect, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import toast from "react-hot-toast";
 
 interface PaymentDialogProps {
@@ -35,8 +35,8 @@ const PaymentDialog = ({ order, open, onClose, onSuccess }: PaymentDialogProps) 
             setSaving(true);
             const token = localStorage.getItem("token");
 
-            await axios.patch(
-                `${import.meta.env.VITE_BACKEND_URL}/order/${order.id}/payment`,
+            await api.patch(
+                `/order/${order.id}/payment`,
                 {
                     paymentStatus,
                     paymentMethod: paymentMethod || null,

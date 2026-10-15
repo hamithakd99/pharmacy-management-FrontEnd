@@ -1,3 +1,4 @@
+import api from "@/api/axios";
 import {
     Box,
     Button,
@@ -6,7 +7,6 @@ import {
     NativeSelect,
     Text,
 } from "@chakra-ui/react";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FiCheckCircle } from "react-icons/fi";
@@ -52,8 +52,8 @@ const OrderStatusDialog = ({
 
             const token = localStorage.getItem("token");
 
-            await axios.patch(
-                `${import.meta.env.VITE_BACKEND_URL}/order/${order.id}/status`,
+            await api.patch(
+                `/order/${order.id}/status`,
                 {
                     status,
                 },

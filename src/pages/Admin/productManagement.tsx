@@ -5,9 +5,9 @@ import ProductTable, { type Product } from "@/components/Products/ProductTable";
 import ProductViewDialog from "@/components/Products/ProductViewDialog";
 import ProductSearchBar from "@/components/Products/ProductSearchBar";
 import { Box } from "@chakra-ui/react";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "@/api/axios";
 
 
 export default function ProductManagement() {
@@ -37,14 +37,12 @@ export default function ProductManagement() {
         );
     });
 
-
-
   function getAllProducts() {
 
-    axios
+    api
       .get(
-        import.meta.env.VITE_BACKEND_URL +
-        "/product/all"
+        "/product/all",
+        
       )
 
       .then((response) => {

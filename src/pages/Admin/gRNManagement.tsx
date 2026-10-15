@@ -1,6 +1,5 @@
 import { Box } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 import GRNSearchBar from "@/components/GRN/GRNSearchBar";
@@ -11,6 +10,7 @@ import type { StockBatch } from "@/types/stockBatch";
 import toast from "react-hot-toast";
 import GRNPDF from "@/pdf/GRNPDF";
 import { pdf } from "@react-pdf/renderer";
+import api from "@/api/axios";
 
 
 
@@ -26,11 +26,7 @@ export default function GRNManagement() {
 
   function getAllStockBatches() {
 
-    axios.get(
-
-      import.meta.env.VITE_BACKEND_URL +
-
-      "/stock-batch/"
+    api.get("/stock-batch/"
 
     ).then((response) => {
 
@@ -45,9 +41,7 @@ export default function GRNManagement() {
 
   async function handlePrint(batch: StockBatch) {
     try {
-        const response = await axios.get(
-            import.meta.env.VITE_BACKEND_URL +
-            "/stock-batch/" +
+        const response = await api.get( "/stock-batch/" +
             batch.batchNumber
         );
 

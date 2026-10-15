@@ -1,6 +1,5 @@
 
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import {
     Badge,
     Box,
@@ -16,6 +15,8 @@ import {
 } from "@chakra-ui/react";
 import toast from "react-hot-toast";
 import { FiPlus, FiTrash2, FiPackage } from "react-icons/fi";
+import { isAxiosError } from "axios";
+import api from "@/api/axios";
 
 type Product = {
     id: number;
@@ -35,6 +36,11 @@ type OpeningStockItem = {
     sellingPrice: string;
     expiryDate: string;
     manufacturingDate: string;
+};
+
+type ApiErrorResponse = {
+    message?: string;
+    error?: string;
 };
 
 const today = () => {
@@ -67,13 +73,11 @@ export default function OpeningStock() {
     const [search, setSearch] = useState("");
     const [nextRowId, setNextRowId] = useState(2);
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await axios.get(
-                    `${backendUrl}/product/all`
+                const response = await api.get(
+                    "/product/all"
                 );
 
                 const data = Array.isArray(response.data)
@@ -94,7 +98,7 @@ export default function OpeningStock() {
         };
 
         fetchProducts();
-    }, [backendUrl]);
+    }, []);
 
     const filteredProducts = useMemo(() => {
         const keyword = search.trim().toLowerCase();
@@ -235,8 +239,8 @@ export default function OpeningStock() {
         try {
             setSaving(true);
 
-            const response = await axios.post(
-                `${backendUrl}/stock/opening-stock/bulk`,
+            const response = await api.post(
+                "/stock/opening-stock/bulk",
                 payload,
                 {
                     headers: {
@@ -253,7 +257,7 @@ export default function OpeningStock() {
         } catch (error) {
             console.error("Failed to save opening stock:", error);
 
-            if (axios.isAxiosError(error)) {
+            if (isAxiosError<ApiErrorResponse>(error)) {
                 toast.error(
                     error.response?.data?.message ||
                     error.response?.data?.error ||

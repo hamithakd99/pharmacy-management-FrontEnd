@@ -1,3 +1,4 @@
+import api from "@/api/axios";
 import {
   Box,
   Button,
@@ -9,7 +10,6 @@ import {
   Portal,
   createListCollection,
 } from "@chakra-ui/react";
-import axios from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -72,8 +72,8 @@ const UserRegister = () => {
 
     async function handleRegister() {
         try {
-            const response = await axios.post(
-                import.meta.env.VITE_BACKEND_URL + "/user/register",
+            const response = await api.post(
+                "/user/register",
                 formData
             );
             

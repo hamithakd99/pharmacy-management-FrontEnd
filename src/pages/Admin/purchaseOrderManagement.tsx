@@ -1,6 +1,5 @@
 import { Box, Button, Flex, Input, InputGroup, Text, } from "@chakra-ui/react";
 
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -12,6 +11,7 @@ import DeletePODialog from "@/components/PO/DeletePODialog";
 import POStatusCards from "@/components/PO/POStatsCards";
 import PurchaseOrderPDF from "@/pdf/PurchaseOrderPDF";
 import { pdf } from "@react-pdf/renderer";
+import api from "@/api/axios";
 
 
 
@@ -74,8 +74,7 @@ export default function PurchaseOrderManagement() {
     async function getPurchaseOrders() {
         try {
             setLoading(true);
-            const response = await axios.get(
-                import.meta.env.VITE_BACKEND_URL +
+            const response = await api.get(
                 "/po/all",
             );
 
@@ -171,9 +170,7 @@ export default function PurchaseOrderManagement() {
             setLoading(true);
 
             const response =
-                await axios.get(
-
-                    import.meta.env.VITE_BACKEND_URL +
+                await api.get(
 
                     "/po/purchase-orders/" +
 
@@ -358,9 +355,7 @@ export default function PurchaseOrderManagement() {
         try {
             setLoading(true);
 
-            const response = await axios.get(
-                import.meta.env.VITE_BACKEND_URL +
-                "/po/purchase-orders/" +
+            const response = await api.get( "/po/purchase-orders/" +
                 purchaseOrder.id
             );
 

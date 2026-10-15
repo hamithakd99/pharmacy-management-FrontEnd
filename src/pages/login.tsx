@@ -1,5 +1,5 @@
+import api from "@/api/axios";
 import { Box, Button, HStack, Input, VStack } from "@chakra-ui/react";
-import axios from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,7 @@ const Login = () => {
 
     async function handleLogin() {
         try {
-            const response = await axios.post(import.meta.env.VITE_BACKEND_URL + "/user/login", {
+            const response = await api.post("/user/login", {
                 email: email,
                 password: password
             })
@@ -24,8 +24,8 @@ const Login = () => {
                 JSON.stringify(response.data.user)
             );
 
-            console.log(response.data);
-            console.log(response.data.role);
+            // console.log(response.data);
+            // console.log(response.data.role);
             if (response.data.role === "ADMIN") {
                 navigate("/admin");
             } else {

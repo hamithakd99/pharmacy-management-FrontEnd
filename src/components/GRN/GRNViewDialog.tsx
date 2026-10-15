@@ -1,3 +1,4 @@
+import api from "@/api/axios";
 import {
     Badge,
     Box,
@@ -12,7 +13,6 @@ import {
     VStack,
 } from "@chakra-ui/react";
 
-import axios from "axios";
 import { useEffect, useState } from "react";
 
 type Props = {
@@ -41,13 +41,7 @@ export default function GRNViewDialog({
 
         if (!batchNumber) return;
 
-        axios.get(
-
-            import.meta.env.VITE_BACKEND_URL +
-
-            "/stock-batch/" +
-
-            batchNumber
+        api.get( "/stock-batch/" + batchNumber
 
         ).then((response) => {
 

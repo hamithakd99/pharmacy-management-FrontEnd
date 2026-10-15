@@ -1,3 +1,4 @@
+import api from "@/api/axios";
 import {
     Box,
     Button,
@@ -9,8 +10,6 @@ import {
     SimpleGrid,
     Text,
 } from "@chakra-ui/react";
-
-import axios from "axios";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -97,12 +96,17 @@ export default function AddProduct() {
 
         setCategoriesLoading(true);
 
-        axios
-            .get(
-                import.meta.env.VITE_BACKEND_URL +
-                "/category/all"
-            )
+        const token = localStorage.getItem("token");
 
+        if (!token) {
+            toast.error("Please log in to continue.");
+            setCategoriesLoading(false);
+            navigate("/login");
+            return;
+        }
+
+        api
+            .get("/category/all")
             .then((response) => {
 
                 setCategories(response.data);
@@ -278,10 +282,7 @@ export default function AddProduct() {
 
         setSaving(true);
 
-        await axios.post(
-
-            import.meta.env.VITE_BACKEND_URL +
-            "/product/create",
+        await api.post("/product/create",
 
             {
 

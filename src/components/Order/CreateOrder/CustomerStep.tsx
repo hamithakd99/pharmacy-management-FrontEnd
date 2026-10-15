@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import {
     Box,
     Button,
@@ -20,6 +19,7 @@ import {
     FiUserPlus,
     FiUsers,
 } from "react-icons/fi";
+import api from "@/api/axios";
 
 export interface Customer {
     id: number;
@@ -56,8 +56,8 @@ const CustomerStep = ({
                 setLoading(true);
                 setError("");
 
-                const response = await axios.get(
-                    `${import.meta.env.VITE_BACKEND_URL}/external/all-external-users`
+                const response = await api.get(
+                    `/external/all-external-users`
                 );
 
                 const data = Array.isArray(response.data)

@@ -9,14 +9,13 @@ import {
     SimpleGrid,
     Text,
 } from "@chakra-ui/react";
-
-import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import GRNItemsTable from "@/components/GRN/GRNItemsTable";
 import type { GRNItem } from "@/components/GRN/GRNItemsTable";
+import api from "@/api/axios";
 
 export default function CreateGRN() {
 
@@ -111,10 +110,7 @@ export default function CreateGRN() {
 
 
             const response =
-                await axios.get(
-
-                    import.meta.env.VITE_BACKEND_URL +
-                    "/po/purchase-orders/" +
+                await api.get( "/po/purchase-orders/" +
                     purchaseOrderId
 
                 );
@@ -418,10 +414,7 @@ export default function CreateGRN() {
 
 
             const response =
-                await axios.post(
-
-                    import.meta.env.VITE_BACKEND_URL +
-                    "/stock-batch/create",
+                await api.post("/stock-batch/create",
 
                     {
 

@@ -1,3 +1,4 @@
+import api from "@/api/axios";
 import {
     Badge,
     Box,
@@ -14,8 +15,6 @@ import {
     Text,
     VStack
 } from "@chakra-ui/react";
-
-import axios from "axios";
 
 import {
     useEffect,
@@ -184,11 +183,8 @@ export default function CategoryManagement() {
         setLoading(true);
 
 
-        axios
-            .get(
-
-                import.meta.env.VITE_BACKEND_URL
-                + "/category/all"
+        api
+            .get("/category/all"
 
             )
 
@@ -273,10 +269,7 @@ export default function CategoryManagement() {
 
 
             const response =
-                await axios.post(
-
-                    import.meta.env.VITE_BACKEND_URL
-                    + "/category/create",
+                await api.post("/category/create",
 
                     {
 
@@ -397,10 +390,7 @@ export default function CategoryManagement() {
 
 
             const response =
-                await axios.put(
-
-                    import.meta.env.VITE_BACKEND_URL
-                    + "/category/update/"
+                await api.put("/category/update/"
                     + selectedCategory.id,
 
                     {
@@ -507,10 +497,7 @@ export default function CategoryManagement() {
 
 
             const response =
-                await axios.delete(
-
-                    import.meta.env.VITE_BACKEND_URL
-                    + "/category/delete/"
+                await api.delete("/category/delete/"
                     + selectedCategory.id,
                     {
                         headers: {
@@ -599,19 +586,7 @@ export default function CategoryManagement() {
 
 
             const response =
-                await axios.get(
-
-                    import.meta.env.VITE_BACKEND_URL
-                    + "/category/one/"
-                    + category.id
-
-                );
-
-
-            console.log(
-                "Category Products:",
-                response.data
-            );
+                await api.get( "/category/one/" + category.id );
 
 
             setSelectedCategoryDetails(

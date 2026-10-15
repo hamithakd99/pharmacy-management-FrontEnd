@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import { Box, Button, Flex, Heading, HStack, Input, SimpleGrid, Spinner, Text } from "@chakra-ui/react";
 import {
     FiCheck,
@@ -10,6 +9,7 @@ import {
     FiShoppingCart,
     FiTrash2,
 } from "react-icons/fi";
+import api from "@/api/axios";
 
 interface StockBatch {
     batchNumber: string;
@@ -67,8 +67,8 @@ const ProductStep = ({
                 setLoading(true);
                 setError("");
 
-                const response = await axios.get(
-                    `${import.meta.env.VITE_BACKEND_URL}/product/all`
+                const response = await api.get(
+                    `/product/all`
                 );
 
                 const data = Array.isArray(response.data)

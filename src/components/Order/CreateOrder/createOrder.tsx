@@ -9,7 +9,7 @@ import OrderPreview from "./OrderPreview";
 import type { OrderDetails } from "./OrderDetailsStep";
 import OrderDetailsStep from "./OrderDetailsStep";
 import toast from "react-hot-toast";
-import axios from "axios";
+import api from "@/api/axios";
 
 const steps = [
     {
@@ -142,8 +142,8 @@ const CreateOrder = () => {
 
             console.log("CREATE ORDER PAYLOAD:", payload);
 
-            const response = await axios.post(
-                import.meta.env.VITE_BACKEND_URL + "/order",
+            const response = await api.post(
+                "/order",
                 payload,
                 {
                     headers: {
