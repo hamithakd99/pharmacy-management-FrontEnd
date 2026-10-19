@@ -1,3 +1,4 @@
+import api from "@/api/axios";
 import {
   Box,
   Input,
@@ -5,7 +6,6 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import axios from "axios";
 import { useEffect, useState } from "react";
 
 interface Product {
@@ -37,8 +37,8 @@ export default function ProductSearchBar({
       try {
         setLoading(true);
 
-        const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/product/search?query=${search}`
+        const response = await api.get(
+          `/product/search?query=${search}`
         );
 
         setProducts(response.data);

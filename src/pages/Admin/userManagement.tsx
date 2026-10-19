@@ -1,3 +1,4 @@
+import api from "@/api/axios";
 import ExternalUserDetailsDialog from "@/components/User/ExternalUserDetailsDialog";
 import ExternalUserForm from "@/components/User/ExternalUserForm";
 import ExternalUserTable from "@/components/User/ExternalUserTable";
@@ -7,7 +8,6 @@ import type { ExternalUser, StaffUser } from "@/components/User/user.types";
 import UserDetailsDialog from "@/components/User/UserDetailsDialog";
 import UserSummaryCards from "@/components/User/UserSummaryCards";
 import { Box, Button, Dialog, Flex, Heading, Input, Portal, Spinner, Text } from "@chakra-ui/react";
-import axios from "axios";
 
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -54,8 +54,7 @@ export default function UserManagement() {
         try {
 
             const response =
-                await axios.get(
-                    import.meta.env.VITE_BACKEND_URL + "/user/");
+                await api.get("/user/");
 
             setUsers(
                 response.data
@@ -82,10 +81,7 @@ export default function UserManagement() {
         try {
 
             const response =
-                await axios.get(
-                    import.meta.env.VITE_BACKEND_URL +
-                    "/external/all-external-users"
-                );
+                await api.get("/external/all-external-users" );
 
             setExternalUsers(
                 response.data
@@ -349,9 +345,7 @@ export default function UserManagement() {
                 return;
             }
 
-            await axios.post(
-                import.meta.env.VITE_BACKEND_URL +
-                "/user/register",
+            await api.post( "/user/register",
                 data,
                 {
                     headers: {
@@ -429,9 +423,7 @@ export default function UserManagement() {
                 return;
             }
 
-            await axios.delete(
-                import.meta.env.VITE_BACKEND_URL +
-                `/user/delete/${userToDelete.id}`,
+            await api.delete(`/user/delete/${userToDelete.id}`,
                 {
                     headers: {
                         Authorization:
@@ -502,9 +494,7 @@ export default function UserManagement() {
 
 
             try {
-                await axios.delete(
-                    import.meta.env.VITE_BACKEND_URL + `/external/delete/${user.id}`
-                );
+                await api.delete(`/external/delete/${user.id}`);
 
 
                 setExternalUsers(
@@ -555,9 +545,7 @@ export default function UserManagement() {
                 return;
             }
 
-            await axios.put(
-                import.meta.env.VITE_BACKEND_URL +
-                `/user/update/${editingStaff.id}`,
+            await api.put( `/user/update/${editingStaff.id}`,
                 data,
                 {
                     headers: {
@@ -618,17 +606,12 @@ export default function UserManagement() {
                 return;
             }
 
-            await axios.post(
-                import.meta.env.VITE_BACKEND_URL +
-                "/external/register",
-                data,
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
-                    }
+            await api.post( "/external/register", data, {
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`
                 }
-            );
+            } );
 
             toast.success(
                 "External user created successfully."
@@ -692,17 +675,12 @@ export default function UserManagement() {
                 postalCode: data.postalCode
             };
 
-            await axios.put(
-                import.meta.env.VITE_BACKEND_URL +
-                `/external/update/${editingExternalUser.id}`,
-                updateData,
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
-                    }
+            await api.put( `/external/update/${editingExternalUser.id}`, updateData, {
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`
                 }
-            );
+            } );
 
             toast.success(
                 "External user updated successfully."
