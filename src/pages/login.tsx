@@ -60,16 +60,36 @@ export default function Login() {
 
             toast.success("Welcome back!");
 
-            if (response.data.role === "ADMIN") {
-                navigate("/admin");
-            } else {
-                navigate("/admin/dashboard");
+            // if (response.data.role === "ADMIN") {
+            //     navigate("/admin");
+            // } else {
+            //     navigate("/admin/dashboard");
+            // }
+            
+            const role = response.data.user.role;
+
+            switch (role) {
+                case "ADMIN":
+                    navigate("/admin", { replace: true });
+                    break;
+
+                case "CASHIER":
+                    navigate("/cashier", { replace: true });
+                    break;
+
+                case "EMPLOYEE":
+                    navigate("/employee", { replace: true });
+                    break;
+
+                default:
+                    toast.error("Invalid user role");
             }
+
         } catch (error: any) {
             toast.error(
                 error?.response?.data?.message ||
-                    error?.response?.data?.error ||
-                    "Login failed. Please check your credentials."
+                error?.response?.data?.error ||
+                "Login failed. Please check your credentials."
             );
         } finally {
             setLoading(false);
@@ -213,10 +233,10 @@ export default function Login() {
                                     prefersReducedMotion
                                         ? undefined
                                         : {
-                                              duration: 3.2,
-                                              ease: "easeInOut",
-                                              repeat: Infinity,
-                                          }
+                                            duration: 3.2,
+                                            ease: "easeInOut",
+                                            repeat: Infinity,
+                                        }
                                 }
                             >
                                 <img

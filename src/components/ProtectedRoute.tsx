@@ -1,28 +1,57 @@
+
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
-export default function ProtectedRoute() {
-  const location = useLocation();
+interface ProtectedRouteProps {
+    allowedRoles?: string[];
+}
 
-  const token = localStorage.getItem("token");
-  const storedUser = localStorage.getItem("user");
+interface StoredUser {
+    role?: string;
+}
 
-  let user: { role?: string } | null = null;
+export default function ProtectedRoute({
+    allowedRoles,
+}: ProtectedRouteProps) {
+    const location = useLocation();
 
-  try {
-    user = storedUser ? JSON.parse(storedUser) : null;
-  } catch {
-    user = null;
-  }
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
 
-  // Not logged in
-  if (!token || !user?.role) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
-  }
+    let user: StoredUser | null = null;
 
-  // Logged in, check role
-//   if (user?.role !== "ADMIN") {
-//     return <Navigate to="/login" replace state={{ from: location }} />;
-//   }
+    try {
+        user = storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+        user = null;
+    }
 
-  return <Outlet />;
+    // Login වී නැත්නම් හෝ user data වලංගු නොවේ නම්
+    if (!token || !user?.role) {
+        return (
+            <Navigate
+                to="/login"
+                replace
+                state={{ from: location }}
+            />
+        );
+    }
+
+    // Role එකට අවසර නැත්නම් අදාළ dashboard එකට යවන්න
+    if (allowedRoles && !allowedRoles.includes(user.role)) {
+        switch (user.role) {
+            case "ADMIN":
+                return <Navigate to="/admin" replace />;
+
+            case "CASHIER":
+                return <Navigate to="/cashier" replace />;
+
+            case "EMPLOYEE":
+                return <Navigate to="/employee" replace />;
+
+            default:
+                return <Navigate to="/login" replace />;
+        }
+    }
+
+    return <Outlet />;
 }

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
     Box,
@@ -8,48 +9,25 @@ import {
     Text,
     VStack,
 } from "@chakra-ui/react";
-import {
-    FiHome,
-    FiUsers,
-    FiPackage,
-    FiShoppingCart,
-    FiBarChart2,
-    FiChevronDown,
-    FiChevronRight,
-    FiChevronLeft,
-    FiMenu,
-    FiX,
-    FiLayers,
-    FiClipboard,
-    FiTruck,
-    FiArchive,
-    FiLogOut,
-} from "react-icons/fi";
+
 import {
     NavLink,
-    Route,
-    Routes,
+    Outlet,
     useLocation,
     useNavigate,
 } from "react-router-dom";
 
-import ProductManagement from "./Admin/productManagement";
-import UserManagement from "./Admin/userManagement";
-import UserRegister from "./Admin/user registation/admin.user.register.page";
-import ExternalUserRegister from "./Admin/user registation/admin.externalUser.register.page";
-import Dashboard from "./Admin/dashBoard";
-import CategoriesManagement from "./Admin/categoriesManagement";
-import AddProduct from "./Admin/Product Management/addNewProduct";
-import EditProduct from "./Admin/Product Management/editProduct";
-import GRNManagement from "./Admin/gRNManagement";
-import CreateGRN from "@/components/GRN/CreateGRN";
-import EditGRN from "@/components/GRN/EditGRN";
-import CreatePO from "@/components/PO/CreatePO";
-import PurchaseOrderManagement from "./Admin/purchaseOrderManagement";
-import EditPO from "@/components/PO/EditPO";
-import OrderManagement from "./Admin/orderManagement";
-import CreateOrder from "@/components/Order/CreateOrder/createOrder";
-import OpeningStock from "@/components/Inventory/OpeningStock";
+import {
+    FiHome,
+    FiPackage,
+    FiShoppingCart,
+    FiChevronLeft,
+    FiChevronRight,
+    FiMenu,
+    FiX,
+    FiLogOut,
+} from "react-icons/fi";
+
 import LogoutDialog from "@/components/LogoutDialog";
 
 const COLORS = {
@@ -60,57 +38,15 @@ const COLORS = {
     muted: "#64748B",
 };
 
-const menuItems = [
-    {
-        title: "Dashboard",
-        path: "/admin/dashboard",
-        icon: FiHome,
-    },
-    {
-        title: "Users",
-        path: "/admin/users",
-        icon: FiUsers,
-    },
-    {
-        title: "Products",
-        path: "/admin/products",
-        icon: FiPackage,
-    },
-];
+export interface MenuItem {
+    label: string;
+    path: string;
+}
 
-const inventoryItems = [
-    {
-        title: "Categories",
-        path: "/admin/categories",
-        icon: FiLayers,
-    },
-    {
-        title: "Purchase Orders",
-        path: "/admin/po",
-        icon: FiClipboard,
-    },
-    {
-        title: "GRN",
-        path: "/admin/grn",
-        icon: FiTruck,
-    },
-    {
-        title: "Orders",
-        path: "/admin/orders",
-        icon: FiShoppingCart,
-    },
-    {
-        title: "Opening Stock",
-        path: "/admin/opening-stock",
-        icon: FiArchive,
-    },
-];
-
-const reportItem = {
-    title: "Reports",
-    path: "/admin/reports",
-    icon: FiBarChart2,
-};
+interface RoleLayoutProps {
+    title: string;
+    menuItems: MenuItem[];
+}
 
 interface StoredUser {
     firstName?: string;
@@ -118,14 +54,33 @@ interface StoredUser {
     role?: string;
 }
 
-export default function AdminPage() {
+const getMenuIcon = (label: string) => {
+    switch (label.toLowerCase()) {
+        case "dashboard":
+            return FiHome;
+        case "products":
+        case "product management":
+            return FiPackage;
+        case "point of sale":
+        case "orders":
+        case "order management":
+            return FiShoppingCart;
+        default:
+            return FiPackage;
+    }
+};
+
+export default function RoleLayout({
+    title,
+    menuItems,
+}: RoleLayoutProps) {
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [inventoryOpen, setInventoryOpen] = useState(false);
-    const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
-
-    const location = useLocation();
-    const navigate = useNavigate();
+    const [isLogoutDialogOpen, setIsLogoutDialogOpen] =
+        useState(false);
 
     let user: StoredUser = {};
 
@@ -136,21 +91,12 @@ export default function AdminPage() {
         user = {};
     }
 
-    const userName = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Administrator";
+    const userName =
+        [user.firstName, user.lastName]
+            .filter(Boolean)
+            .join(" ") || title;
 
-    const userRole = user.role || "ADMIN";
-
-    const isInventoryActive = inventoryItems.some(
-        (item) =>
-            location.pathname === item.path ||
-            location.pathname.startsWith(`${item.path}/`)
-    );
-
-    useEffect(() => {
-        if (isInventoryActive) {
-            setInventoryOpen(true);
-        }
-    }, [isInventoryActive]);
+    const userRole = user.role || title.toUpperCase();
 
     useEffect(() => {
         setMobileOpen(false);
@@ -162,92 +108,6 @@ export default function AdminPage() {
 
         setIsLogoutDialogOpen(false);
         navigate("/login", { replace: true });
-    }
-
-    function renderNavItem(
-        item: {
-            title: string;
-            path: string;
-            icon: React.ElementType;
-        },
-        nested = false
-    ) {
-        const Icon = item.icon;
-
-        return (
-            <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === "/admin/dashboard"}
-                style={{ textDecoration: "none" }}
-            >
-                {({ isActive }) => (
-                    <HStack
-                        position="relative"
-                        minH="42px"
-                        px={collapsed && !nested ? "0" : nested ? "3" : "3"}
-                        py="2"
-                        ml={nested && !collapsed ? "2" : "0"}
-                        justify={
-                            collapsed && !nested
-                                ? "center"
-                                : "flex-start"
-                        }
-                        gap="3"
-                        rounded="lg"
-                        bg={isActive ? COLORS.navy : "transparent"}
-                        color={isActive ? "white" : COLORS.muted}
-                        fontWeight={isActive ? "semibold" : "medium"}
-                        cursor="pointer"
-                        transition="all 0.18s ease"
-                        title={collapsed ? item.title : undefined}
-                        _hover={{
-                            bg: isActive ? COLORS.navy : COLORS.mint,
-                            color: isActive ? "white" : COLORS.navy,
-                        }}
-                    >
-                        {isActive && (
-                            <Box
-                                position="absolute"
-                                left="0"
-                                top="8px"
-                                bottom="8px"
-                                w="3px"
-                                bg={COLORS.green}
-                                roundedRight="full"
-                            />
-                        )}
-
-                        <Box
-                            minW="20px"
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                            fontSize="17px"
-                            color={isActive ? "#65D6A7" : "inherit"}
-                        >
-                            <Icon />
-                        </Box>
-
-                        {(!collapsed || mobileOpen) && (
-                            <Text fontSize="sm" flex="1" truncate>
-                                {item.title}
-                            </Text>
-                        )}
-
-                        {isActive && (!collapsed || mobileOpen) && (
-                            <Box
-                                w="5px"
-                                h="5px"
-                                rounded="full"
-                                bg="#65D6A7"
-                                flexShrink={0}
-                            />
-                        )}
-                    </HStack>
-                )}
-            </NavLink>
-        );
     }
 
     function renderSidebar(isMobile = false) {
@@ -262,7 +122,7 @@ export default function AdminPage() {
                 bg={COLORS.white}
                 overflow="hidden"
             >
-                {/* Logo */}
+                {/* Pharmacy logo */}
                 <Flex
                     minH={compact ? "76px" : "112px"}
                     px={compact ? "2" : "4"}
@@ -325,7 +185,7 @@ export default function AdminPage() {
                     )}
                 </Flex>
 
-                {/* Sidebar controls */}
+                {/* Sidebar heading and collapse */}
                 <Flex
                     px="3"
                     pt="3"
@@ -347,26 +207,36 @@ export default function AdminPage() {
                     {!isMobile && (
                         <IconButton
                             aria-label={
-                                compact ? "Expand sidebar" : "Collapse sidebar"
+                                compact
+                                    ? "Expand sidebar"
+                                    : "Collapse sidebar"
                             }
                             title={
-                                compact ? "Expand sidebar" : "Collapse sidebar"
+                                compact
+                                    ? "Expand sidebar"
+                                    : "Collapse sidebar"
                             }
                             size="xs"
                             variant="ghost"
                             color={COLORS.navy}
-                            onClick={() => setCollapsed((value) => !value)}
+                            onClick={() =>
+                                setCollapsed((value) => !value)
+                            }
                             _hover={{
                                 bg: COLORS.mint,
                                 color: COLORS.green,
                             }}
                         >
-                            {compact ? <FiChevronRight /> : <FiChevronLeft />}
+                            {compact ? (
+                                <FiChevronRight />
+                            ) : (
+                                <FiChevronLeft />
+                            )}
                         </IconButton>
                     )}
                 </Flex>
 
-                {/* Navigation */}
+                {/* Role-specific navigation */}
                 <VStack
                     align="stretch"
                     gap="1"
@@ -375,87 +245,118 @@ export default function AdminPage() {
                     flex="1"
                     minH="0"
                     overflowY="auto"
-                    overflowX="hidden"
                 >
-                    {menuItems.map((item) => renderNavItem(item))}
+                    {menuItems.map((item) => {
+                        const Icon = getMenuIcon(item.label);
 
-                    {/* Inventory group */}
-                    <Box>
-                        <HStack
-                            minH="42px"
-                            px={compact ? "0" : "3"}
-                            justify={compact ? "center" : "flex-start"}
-                            gap="3"
-                            rounded="lg"
-                            cursor="pointer"
-                            bg={
-                                isInventoryActive
-                                    ? COLORS.mint
-                                    : "transparent"
-                            }
-                            color={
-                                isInventoryActive
-                                    ? COLORS.navy
-                                    : COLORS.muted
-                            }
-                            fontWeight={isInventoryActive ? "semibold" : "medium"}
-                            title={compact ? "Inventory" : undefined}
-                            onClick={() => {
-                                if (compact) {
-                                    setCollapsed(false);
-                                    setInventoryOpen(true);
-                                } else {
-                                    setInventoryOpen((value) => !value);
-                                }
-                            }}
-                            _hover={{
-                                bg: COLORS.mint,
-                                color: COLORS.navy,
-                            }}
-                        >
-                            <Box
-                                minW="20px"
-                                display="flex"
-                                justifyContent="center"
-                                fontSize="17px"
-                                color={isInventoryActive ? COLORS.green : "inherit"}
+                        return (
+                            <NavLink
+                                key={item.path}
+                                to={item.path}
+                                end
+                                style={{
+                                    textDecoration: "none",
+                                }}
                             >
-                                <FiPackage />
-                            </Box>
+                                {({ isActive }) => (
+                                    <HStack
+                                        position="relative"
+                                        minH="42px"
+                                        px={compact ? "0" : "3"}
+                                        py="2"
+                                        justify={
+                                            compact
+                                                ? "center"
+                                                : "flex-start"
+                                        }
+                                        gap="3"
+                                        rounded="lg"
+                                        bg={
+                                            isActive
+                                                ? COLORS.navy
+                                                : "transparent"
+                                        }
+                                        color={
+                                            isActive
+                                                ? "white"
+                                                : COLORS.muted
+                                        }
+                                        fontWeight={
+                                            isActive
+                                                ? "semibold"
+                                                : "medium"
+                                        }
+                                        cursor="pointer"
+                                        transition="all 0.18s ease"
+                                        title={
+                                            compact
+                                                ? item.label
+                                                : undefined
+                                        }
+                                        _hover={{
+                                            bg: isActive
+                                                ? COLORS.navy
+                                                : COLORS.mint,
+                                            color: isActive
+                                                ? "white"
+                                                : COLORS.navy,
+                                        }}
+                                    >
+                                        {isActive && (
+                                            <Box
+                                                position="absolute"
+                                                left="0"
+                                                top="8px"
+                                                bottom="8px"
+                                                w="3px"
+                                                bg={COLORS.green}
+                                                roundedRight="full"
+                                            />
+                                        )}
 
-                            {(!compact || isMobile) && (
-                                <>
-                                    <Text fontSize="sm" flex="1">
-                                        Inventory
-                                    </Text>
+                                        <Box
+                                            minW="20px"
+                                            display="flex"
+                                            justifyContent="center"
+                                            alignItems="center"
+                                            fontSize="17px"
+                                            color={
+                                                isActive
+                                                    ? "#65D6A7"
+                                                    : "inherit"
+                                            }
+                                        >
+                                            <Icon />
+                                        </Box>
 
-                                    {inventoryOpen ? (
-                                        <FiChevronDown size={14} />
-                                    ) : (
-                                        <FiChevronRight size={14} />
-                                    )}
-                                </>
-                            )}
-                        </HStack>
+                                        {(!compact || isMobile) && (
+                                            <Text
+                                                fontSize="sm"
+                                                flex="1"
+                                                truncate
+                                            >
+                                                {item.label}
+                                            </Text>
+                                        )}
 
-                        {inventoryOpen && (!compact || isMobile) && (
-                            <VStack
-                                align="stretch"
-                                gap="1"
-                                mt="1"
-                                pl="2"
-                            >
-                                {inventoryItems.map((item) =>
-                                    renderNavItem(item, true)
+                                        {isActive &&
+                                            (!compact || isMobile) && (
+                                                <Box
+                                                    w="5px"
+                                                    h="5px"
+                                                    rounded="full"
+                                                    bg="#65D6A7"
+                                                    flexShrink={0}
+                                                />
+                                            )}
+                                    </HStack>
                                 )}
-                            </VStack>
-                        )}
-                    </Box>
-
-                    {renderNavItem(reportItem)}
+                            </NavLink>
+                        );
+                    })}
                 </VStack>
 
-                {/* User profile */}
+                {/* User profile and sign out */}
                 <Box
                     p={compact ? "2" : "3"}
                     borderTop="1px solid"
@@ -512,7 +413,9 @@ export default function AdminPage() {
                         borderColor="gray.200"
                         color="gray.600"
                         rounded="lg"
-                        onClick={() => setIsLogoutDialogOpen(true)}
+                        onClick={() =>
+                            setIsLogoutDialogOpen(true)
+                        }
                         _hover={{
                             bg: "red.50",
                             color: "red.600",
@@ -520,19 +423,21 @@ export default function AdminPage() {
                         }}
                     >
                         <FiLogOut />
+
                         {(!compact || isMobile) && (
                             <Text fontSize="xs" ml="1">
                                 Sign out
                             </Text>
                         )}
-
-                        <LogoutDialog
-                            open={isLogoutDialogOpen}
-                            onClose={() => setIsLogoutDialogOpen(false)}
-                            onConfirm={handleLogout}
-                        />
-
                     </Button>
+
+                    <LogoutDialog
+                        open={isLogoutDialogOpen}
+                        onClose={() =>
+                            setIsLogoutDialogOpen(false)
+                        }
+                        onConfirm={handleLogout}
+                    />
                 </Box>
             </Flex>
         );
@@ -561,7 +466,7 @@ export default function AdminPage() {
                 {renderSidebar()}
             </Box>
 
-            {/* Mobile sidebar overlay */}
+            {/* Mobile navigation drawer */}
             {mobileOpen && (
                 <Box
                     display={{ base: "block", md: "none" }}
@@ -595,7 +500,9 @@ export default function AdminPage() {
                             <IconButton
                                 aria-label="Close navigation"
                                 variant="ghost"
-                                onClick={() => setMobileOpen(false)}
+                                onClick={() =>
+                                    setMobileOpen(false)
+                                }
                             >
                                 <FiX />
                             </IconButton>
@@ -608,7 +515,7 @@ export default function AdminPage() {
                 </Box>
             )}
 
-            {/* Main area */}
+            {/* Main content */}
             <Flex
                 direction="column"
                 flex="1"
@@ -667,7 +574,7 @@ export default function AdminPage() {
                     </Box>
                 </Flex>
 
-                {/* Page content */}
+                {/* Routed page */}
                 <Box
                     flex="1"
                     minH="0"
@@ -676,29 +583,7 @@ export default function AdminPage() {
                     overflowY="auto"
                     overflowX="hidden"
                 >
-                    <Routes>
-                        <Route index element={<Dashboard />} />
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="users" element={<UserManagement />} />
-                        <Route path="products" element={<ProductManagement />} />
-                        <Route path="products/add" element={<AddProduct />} />
-                        <Route path="products/edit/:id" element={<EditProduct />} />
-                        <Route path="categories" element={<CategoriesManagement />} />
-                        <Route path="register/newuser" element={<UserRegister />} />
-                        <Route
-                            path="register/external/newuser"
-                            element={<ExternalUserRegister />}
-                        />
-                        <Route path="grn" element={<GRNManagement />} />
-                        <Route path="grn/create" element={<CreateGRN />} />
-                        <Route path="grn/edit/:batchNumber" element={<EditGRN />} />
-                        <Route path="po" element={<PurchaseOrderManagement />} />
-                        <Route path="po/create" element={<CreatePO />} />
-                        <Route path="po/purchase-orders/:id" element={<EditPO />} />
-                        <Route path="orders" element={<OrderManagement />} />
-                        <Route path="orders/create" element={<CreateOrder />} />
-                        <Route path="opening-stock" element={<OpeningStock />} />
-                    </Routes>
+                    <Outlet />
                 </Box>
             </Flex>
         </Flex>
