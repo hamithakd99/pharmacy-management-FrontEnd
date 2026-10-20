@@ -9,9 +9,9 @@ import POTable from "@/components/PO/POTable";
 import POViewDialog from "@/components/PO/POViewDialog";
 import DeletePODialog from "@/components/PO/DeletePODialog";
 import POStatusCards from "@/components/PO/POStatsCards";
-import PurchaseOrderPDF from "@/pdf/PurchaseOrderPDF";
-import { pdf } from "@react-pdf/renderer";
 import api from "@/api/axios";
+import DocumentPreviewDialog from "@/components/Documents/DocumentPreviewDialog";
+import PurchaseOrderPDF from "@/pdf/templates/PurchaseOrderPDF";
 
 
 
@@ -39,6 +39,12 @@ export default function PurchaseOrderManagement() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const totalOrders = purchaseOrders.length;
+
+    // const { settings } = useDocumentSettings();
+
+    const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
+    const [printPurchaseOrder, setPrintPurchaseOrder] =
+        useState<PurchaseOrder | null>(null);
 
     const pendingOrders =
         purchaseOrders.filter(
@@ -355,50 +361,15 @@ export default function PurchaseOrderManagement() {
         try {
             setLoading(true);
 
-            const response = await api.get( "/po/purchase-orders/" +
-                purchaseOrder.id
+            const response = await api.get(
+                `/po/purchase-orders/${purchaseOrder.id}`
             );
 
-            const fullPurchaseOrder = response.data;
-
-            const blob = await pdf(
-                <PurchaseOrderPDF
-                    purchaseOrder={fullPurchaseOrder}
-                />
-            ).toBlob();
-
-            const url = URL.createObjectURL(blob);
-
-            const printWindow = window.open(
-                url,
-                "_blank"
-            );
-
-            if (!printWindow) {
-                toast.error(
-                    "Please allow pop-ups to print the Purchase Order."
-                );
-                URL.revokeObjectURL(url);
-                return;
-            }
-
-            printWindow.onload = () => {
-                printWindow.focus();
-                printWindow.print();
-            };
-
-            setTimeout(() => {
-                URL.revokeObjectURL(url);
-            }, 60000);
+            setPrintPurchaseOrder(response.data);
+            setPrintPreviewOpen(true);
         } catch (error) {
-            console.error(
-                "Failed to print purchase order:",
-                error
-            );
-
-            toast.error(
-                "Failed to generate Purchase Order PDF."
-            );
+            console.error("Failed to load purchase order:", error);
+            toast.error("Failed to load purchase order preview.");
         } finally {
             setLoading(false);
         }
@@ -635,6 +606,22 @@ export default function PurchaseOrderManagement() {
 
                 }}
 
+            />
+
+            <DocumentPreviewDialog
+                open={printPreviewOpen}
+                onClose={() => {
+                    setPrintPreviewOpen(false);
+                    setPrintPurchaseOrder(null);
+                }}
+                title="Purchase Order Preview"
+                fileName={`${printPurchaseOrder?.orderNumber ?? "Purchase-Order"}.pdf`}
+                renderDocument={(settings) => (
+                    <PurchaseOrderPDF
+                        purchaseOrder={printPurchaseOrder!}
+                        settings={settings}
+                    />
+                )}
             />
 
         </Box>
