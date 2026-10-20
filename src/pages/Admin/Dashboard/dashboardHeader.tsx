@@ -102,7 +102,7 @@ const getStoredUser = (): LoggedInUser | null => {
 };
 
 const getGreeting = (hour: number) => {
-  if (hour >= 5 && hour < 12) return "Good morning";
+  if (hour >= 0 && hour < 12) return "Good morning";
   if (hour >= 12 && hour < 17) return "Good afternoon";
   if (hour >= 17 && hour < 21) return "Good evening";
 
@@ -183,114 +183,156 @@ export default function DashboardHeader() {
   const greeting = getGreeting(currentTime.getHours());
 
   return (
-    <Flex
-      justify="space-between"
-      align="center"
-      gap="4"
-      flexWrap="wrap"
+    <Box
       w="100%"
+      bg="white"
+      border="1px solid"
+      borderColor="#D9E7E3"
+      rounded="2xl"
+      p={{ base: "4", md: "5", lg: "6" }}
+      boxShadow="0 8px 24px rgba(7, 59, 76, 0.06)"
     >
-      {/* LEFT SIDE */}
-      <Box flex="1" minW={{ base: "100%", lg: "280px" }}>
-        <Text
-          fontSize={{ base: "lg", md: "xl" }}
-          fontWeight="700"
-          color="gray.800"
-          mb="3"
-        >
-          {greeting}, {firstName || fullName}!
-        </Text>
+      <Flex
+        justify="space-between"
+        align={{ base: "start", lg: "center" }}
+        gap="5"
+        flexWrap="wrap"
+      >
+        <Box>
+          <Text
+            fontSize="xs"
+            fontWeight="700"
+            letterSpacing="0.12em"
+            textTransform="uppercase"
+            color="#15966A"
+            mb="2"
+          >
+            Pharmacy overview
+          </Text>
 
-        <InputGroup startElement={<LuSearch />}>
+          <Text
+            fontSize={{ base: "xl", md: "2xl" }}
+            fontWeight="800"
+            letterSpacing="-0.02em"
+            color="#073B4C"
+          >
+            {greeting}, {firstName || fullName}!
+          </Text>
+
+          <Text fontSize="sm" color="#64748B" mt="1">
+            Keep track of your pharmacy operations at a glance.
+          </Text>
+        </Box>
+
+        <Flex
+          gap={{ base: "2", md: "3" }}
+          align="center"
+          flexWrap="wrap"
+          w={{ base: "100%", lg: "auto" }}
+          justify={{ base: "space-between", lg: "flex-end" }}
+        >
+          <Box
+            bg="#EAF5F2"
+            px="3"
+            py="2"
+            rounded="lg"
+            minW="132px"
+            border="1px solid"
+            borderColor="#C9E5DC"
+          >
+            <Text fontSize="xs" color="#64748B">
+              {date}
+            </Text>
+            <Text fontWeight="800" fontSize="sm" color="#073B4C">
+              {time}
+            </Text>
+          </Box>
+
+          <IconButton
+            aria-label="Notifications"
+            variant="outline"
+            rounded="lg"
+            size="lg"
+            bg="white"
+            color="#073B4C"
+            borderColor="#D9E7E3"
+            _hover={{ bg: "#EAF5F2", borderColor: "#15966A" }}
+          >
+            <MdNotificationsNone />
+          </IconButton>
+
+          <HStack
+            bg="#F8FBFA"
+            px="2"
+            py="2"
+            rounded="xl"
+            border="1px solid"
+            borderColor="#D9E7E3"
+            gap="3"
+            minW="0"
+          >
+            <Avatar.Root size="md" bg="#073B4C" color="white">
+              <Avatar.Fallback name={fullName}>{initials}</Avatar.Fallback>
+            </Avatar.Root>
+
+            <VStack align="start" gap="0" minW="0">
+              <Text
+                fontWeight="700"
+                fontSize="sm"
+                color="#073B4C"
+                maxW={{ base: "120px", md: "150px" }}
+                truncate
+              >
+                {fullName}
+              </Text>
+              <Text fontSize="xs" color="#64748B">
+                {role}
+              </Text>
+            </VStack>
+          </HStack>
+        </Flex>
+      </Flex>
+
+      <Flex
+        mt={{ base: "5", md: "6" }}
+        gap="3"
+        align="center"
+        direction={{ base: "column", sm: "row" }}
+      >
+        <InputGroup startElement={<LuSearch />} flex="1" w="100%">
           <Input
             placeholder="Search products by name, barcode or Product ID..."
-            bg="white"
+            bg="#F8FBFA"
+            color="#073B4C"
             border="1px solid"
-            borderColor="gray.200"
+            borderColor="#D9E7E3"
             rounded="lg"
+            h="11"
+            _placeholder={{ color: "#94A3B8" }}
             _focus={{
-              borderColor: "teal.500",
-              boxShadow: "0 0 0 1px var(--chakra-colors-teal-500)",
+              borderColor: "#15966A",
+              boxShadow: "0 0 0 1px #15966A",
+              bg: "white",
             }}
           />
         </InputGroup>
-      </Box>
 
-      {/* RIGHT SIDE */}
-      <Flex
-        gap="3"
-        align="center"
-        flexWrap="wrap"
-        justify={{ base: "space-between", lg: "flex-end" }}
-        w={{ base: "100%", lg: "auto" }}
-      >
         <Button
-          colorPalette="teal"
+          bg="#15966A"
+          color="white"
+          rounded="lg"
+          h="11"
+          px="5"
+          w={{ base: "100%", sm: "auto" }}
+          flexShrink={0}
           onClick={() => navigate("/admin/orders/create")}
+          _hover={{ bg: "#117B58", transform: "translateY(-1px)" }}
+          transition="all 0.2s ease"
         >
           <MdAdd />
           Create Bill
         </Button>
-
-        <Box
-          bg="white"
-          px="3"
-          py="2"
-          rounded="lg"
-          border="1px solid"
-          borderColor="gray.200"
-          flexShrink={0}
-        >
-          <Text fontSize="xs" color="gray.500">
-            {date}
-          </Text>
-
-          <Text fontWeight="bold" fontSize="sm">
-            {time}
-          </Text>
-        </Box>
-
-        <IconButton
-          aria-label="Notifications"
-          variant="outline"
-          bg="white"
-          color="gray.700"
-        >
-          <MdNotificationsNone />
-        </IconButton>
-
-        <HStack
-          bg="white"
-          p="2"
-          rounded="xl"
-          border="1px solid"
-          borderColor="gray.200"
-          gap="3"
-          minW="0"
-        >
-          <Avatar.Root colorPalette="teal" size="md">
-            <Avatar.Fallback name={fullName}>
-              {initials}
-            </Avatar.Fallback>
-          </Avatar.Root>
-
-          <VStack align="start" gap="0" minW="0">
-            <Text
-              fontWeight="bold"
-              fontSize="sm"
-              color="gray.800"
-              maxW="150px"
-              truncate
-            >
-              {fullName}
-            </Text>
-
-            <Text fontSize="xs" color="gray.500">
-              {role}
-            </Text>
-          </VStack>
-        </HStack>
       </Flex>
-    </Flex>
+    </Box>
   );
 }
