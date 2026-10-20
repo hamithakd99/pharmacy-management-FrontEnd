@@ -162,9 +162,9 @@ export default function DashboardHeader() {
 
   const role = user?.role
     ? user.role
-        .toLowerCase()
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, (char) => char.toUpperCase())
+      .toLowerCase()
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase())
     : "User";
 
   const date = currentTime.toLocaleDateString("en-GB", {
@@ -325,7 +325,17 @@ export default function DashboardHeader() {
           px="5"
           w={{ base: "100%", sm: "auto" }}
           flexShrink={0}
-          onClick={() => navigate("/admin/orders/create")}
+          onClick={() => {
+            const user = JSON.parse(
+              localStorage.getItem("user") || "{}"
+            );
+
+            if (user.role === "CASHIER") {
+              navigate("/cashier/orders/create");
+            } else if (user.role === "ADMIN") {
+              navigate("/admin/orders/create");
+            }
+          }}
           _hover={{ bg: "#117B58", transform: "translateY(-1px)" }}
           transition="all 0.2s ease"
         >

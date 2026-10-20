@@ -1,3 +1,4 @@
+import api from "@/api/axios";
 import {
     Box,
     Button,
@@ -9,8 +10,6 @@ import {
     SimpleGrid,
     Text,
 } from "@chakra-ui/react";
-
-import axios from "axios";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -106,11 +105,8 @@ export default function EditProduct() {
 
         setCategoriesLoading(true);
 
-        axios
-            .get(
-                import.meta.env.VITE_BACKEND_URL +
-                "/category/all"
-            )
+        api
+            .get("/category/all" )
 
             .then((response) => {
 
@@ -310,10 +306,7 @@ export default function EditProduct() {
         setSaving(true);
         console.log(product);
 
-        await axios.put(
-
-            import.meta.env.VITE_BACKEND_URL +
-            "/product/update/" + id,
+        await api.put("/product/update/" + id,
 
             {
 

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import {
     Box,
     Button,
@@ -17,6 +16,7 @@ import OrderTable from "@/components/Order/OrderTable";
 import OrderDetailsDialog from "@/components/Order/OrderDetailsDialog";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import api from "@/api/axios";
 
 interface OrderCustomer {
     id: number;
@@ -56,21 +56,21 @@ interface Order {
     customer: OrderCustomer | null;
     cashier: OrderCashier;
     status:
-        | "PENDING"
-        | "CONFIRMED"
-        | "COMPLETED"
-        | "CANCELLED";
+    | "PENDING"
+    | "CONFIRMED"
+    | "COMPLETED"
+    | "CANCELLED";
     paymentStatus:
-        | "PENDING"
-        | "PAID"
-        | "PARTIAL"
-        | "REFUNDED";
+    | "PENDING"
+    | "PAID"
+    | "PARTIAL"
+    | "REFUNDED";
     paymentMethod:
-        | "CASH"
-        | "CARD"
-        | "BANK_TRANSFER"
-        | "OTHER"
-        | null;
+    | "CASH"
+    | "CARD"
+    | "BANK_TRANSFER"
+    | "OTHER"
+    | null;
     subtotal: number;
     discountAmount: number;
     totalAmount: number;
@@ -95,17 +95,16 @@ const OrderManagement = () => {
                 setLoading(true);
             }
 
-            const token = localStorage.getItem("token");
+            // const token = localStorage.getItem("token");
 
-            const response = await axios.get(
-                `${import.meta.env.VITE_BACKEND_URL}/order`,
-                {
-                    headers: token
-                        ? {
-                              Authorization: `Bearer ${token}`,
-                          }
-                        : {},
-                }
+            const response = await api.get(`/order`,
+                // {
+                //     headers: token
+                //         ? {
+                //               Authorization: `Bearer ${token}`,
+                //           }
+                //         : {},
+                // }
             );
 
             const orderData = response.data?.data ?? [];
@@ -143,9 +142,8 @@ const OrderManagement = () => {
 
         return orders.filter((order) => {
             const customerName = order.customer
-                ? `${order.customer.firstName ?? ""} ${
-                      order.customer.lastName ?? ""
-                  }`.trim()
+                ? `${order.customer.firstName ?? ""} ${order.customer.lastName ?? ""
+                    }`.trim()
                 : "walk-in customer";
 
             const customerEmail =
@@ -252,21 +250,20 @@ const OrderManagement = () => {
         }
     ) => {
         try {
-            const token =
-                localStorage.getItem("token");
+            // const token =
+            //     localStorage.getItem("token");
 
-            await axios.patch(
-                `${import.meta.env.VITE_BACKEND_URL}/order/${order.id}/status`,
+            await api.patch(`/order/${order.id}/status`,
                 {
                     status: "CONFIRMED",
                 },
-                {
-                    headers: token
-                        ? {
-                              Authorization: `Bearer ${token}`,
-                          }
-                        : {},
-                }
+                // {
+                //     headers: token
+                //         ? {
+                //               Authorization: `Bearer ${token}`,
+                //           }
+                //         : {},
+                // }
             );
 
             toast.success(
@@ -282,8 +279,8 @@ const OrderManagement = () => {
 
             toast.error(
                 error.response?.data?.message ||
-                    error.response?.data?.error ||
-                    "Failed to confirm order."
+                error.response?.data?.error ||
+                "Failed to confirm order."
             );
 
             throw error;
@@ -297,19 +294,18 @@ const OrderManagement = () => {
         }
     ) => {
         try {
-            const token =
-                localStorage.getItem("token");
+            // const token =
+            //     localStorage.getItem("token");
 
-            await axios.patch(
-                `${import.meta.env.VITE_BACKEND_URL}/order/${order.id}/cancel`,
+            await api.patch(`/order/${order.id}/cancel`,
                 {},
-                {
-                    headers: token
-                        ? {
-                              Authorization: `Bearer ${token}`,
-                          }
-                        : {},
-                }
+                // {
+                //     headers: token
+                //         ? {
+                //               Authorization: `Bearer ${token}`,
+                //           }
+                //         : {},
+                // }
             );
 
             toast.success(
@@ -325,8 +321,8 @@ const OrderManagement = () => {
 
             toast.error(
                 error.response?.data?.message ||
-                    error.response?.data?.error ||
-                    "Failed to cancel order."
+                error.response?.data?.error ||
+                "Failed to cancel order."
             );
 
             throw error;
@@ -397,15 +393,15 @@ const OrderManagement = () => {
                     </Text>
                 </Box>
 
+
                 <HStack gap={3}>
                     <Button
                         variant="outline"
                         bg="white"
                         borderColor="gray.200"
-                        onClick={() =>
-                            fetchOrders(true)
-                        }
+                        onClick={() => fetchOrders(true)}
                         loading={refreshing}
+                        disabled={refreshing}
                     >
                         <FiRefreshCw />
                         Refresh
@@ -413,16 +409,24 @@ const OrderManagement = () => {
 
                     <Button
                         colorPalette="blue"
-                        onClick={() =>
-                            navigate(
-                                "/admin/orders/create"
-                            )
-                        }
+                        onClick={() => {
+                            const user = JSON.parse(
+                                localStorage.getItem("user") || "{}"
+                            );
+
+                            const createOrderPath =
+                                user.role === "CASHIER"
+                                    ? "/cashier/orders/create"
+                                    : "/admin/orders/create";
+
+                            navigate(createOrderPath);
+                        }}
                     >
                         <FiPlus />
                         New Order
                     </Button>
                 </HStack>
+
             </Flex>
 
             <OrderStats
@@ -540,17 +544,17 @@ const OrderManagement = () => {
 
                         {(search ||
                             statusFilter !==
-                                "ALL") && (
-                            <Button
-                                variant="outline"
-                                bg="white"
-                                onClick={
-                                    handleClearFilters
-                                }
-                            >
-                                Clear
-                            </Button>
-                        )}
+                            "ALL") && (
+                                <Button
+                                    variant="outline"
+                                    bg="white"
+                                    onClick={
+                                        handleClearFilters
+                                    }
+                                >
+                                    Clear
+                                </Button>
+                            )}
                     </HStack>
                 </Flex>
 
