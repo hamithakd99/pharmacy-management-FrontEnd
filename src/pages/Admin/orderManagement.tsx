@@ -17,6 +17,8 @@ import OrderDetailsDialog from "@/components/Order/OrderDetailsDialog";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "@/api/axios";
+import OrderInvoicePDF from "@/pdf/templates/OrderInvoicePDF";
+import DocumentPreviewDialog from "@/components/Documents/DocumentPreviewDialog";
 
 interface OrderCustomer {
     id: number;
@@ -84,6 +86,8 @@ const OrderManagement = () => {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
     const [viewOrder, setViewOrder] = useState<Order | null>(null);
+    const [printOrder, setPrintOrder] = useState<Order | null>(null);
+    const [invoicePreviewOpen, setInvoicePreviewOpen] = useState(false);
 
     const navigate = useNavigate();
 
@@ -241,6 +245,20 @@ const OrderManagement = () => {
         orderNumber: string;
     }) => {
         setViewOrder(order as Order);
+    };
+
+    const handlePrintOrder = (order: { id: number }) => {
+        const fullOrder = orders.find(
+            (item) => item.id === order.id
+        );
+
+        if (!fullOrder) {
+            toast.error("Order details not found.");
+            return;
+        }
+
+        setPrintOrder(fullOrder);
+        setInvoicePreviewOpen(true);
     };
 
     const handleConfirmOrder = async (
@@ -594,6 +612,7 @@ const OrderManagement = () => {
                 onCancelOrder={
                     handleCancelOrder
                 }
+                onPrintOrder={handlePrintOrder}
             />
 
             <OrderDetailsDialog
@@ -601,6 +620,26 @@ const OrderManagement = () => {
                 open={viewOrder !== null}
                 onClose={() =>
                     setViewOrder(null)
+                }
+            />
+
+            <DocumentPreviewDialog
+                open={invoicePreviewOpen}
+                onClose={() => {
+                    setInvoicePreviewOpen(false);
+                    setPrintOrder(null);
+                }}
+                title="Order Invoice Preview"
+                fileName={`${printOrder?.orderNumber ?? "Order-Invoice"}.pdf`}
+                renderDocument={(settings) =>
+                    printOrder ? (
+                        <OrderInvoicePDF
+                            order={printOrder}
+                            settings={settings}
+                        />
+                    ) : (
+                        <></>
+                    )
                 }
             />
         </Box>
