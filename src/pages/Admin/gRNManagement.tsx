@@ -8,9 +8,9 @@ import GRNViewDialog from "@/components/GRN/GRNViewDialog";
 import GRNStatsCards from "@/components/GRN/GRNStatsCards";
 import type { StockBatch } from "@/types/stockBatch";
 import toast from "react-hot-toast";
-import GRNPDF from "@/pdf/GRNPDF";
-import { pdf } from "@react-pdf/renderer";
+import GRNPDF from "@/pdf/templates/GRNPDF";
 import api from "@/api/axios";
+import DocumentPreviewDialog from "@/components/Documents/DocumentPreviewDialog";
 
 
 
@@ -22,6 +22,8 @@ export default function GRNManagement() {
   const [selectedBatchNumber, setSelectedBatchNumber] = useState<string>();
   const [paymentStatus, setPaymentStatus] = useState("");
   const navigate = useNavigate();
+  const [printBatch, setPrintBatch] = useState<any | null>(null);
+  const [grnPreviewOpen, setGrnPreviewOpen] = useState(false);
 
 
   function getAllStockBatches() {
@@ -41,42 +43,24 @@ export default function GRNManagement() {
 
   async function handlePrint(batch: StockBatch) {
     try {
-        const response = await api.get( "/stock-batch/" +
-            batch.batchNumber
-        );
+      const response = await api.get(
+        `/stock-batch/${batch.batchNumber}`
+      );
 
-        const fullBatch = response.data.data;
+      const fullBatch = response.data.data;
 
-        const blob = await pdf(
-            <GRNPDF
-                stockBatch={fullBatch}
-            />
-        ).toBlob();
+      if (!fullBatch) {
+        toast.error("GRN details not found.");
+        return;
+      }
 
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${fullBatch.batchNumber}.pdf`;
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        setTimeout(() => {
-            URL.revokeObjectURL(url);
-        }, 60000);
+      setPrintBatch(fullBatch);
+      setGrnPreviewOpen(true);
     } catch (error) {
-        console.error(
-            "Failed to generate GRN PDF:",
-            error
-        );
-
-        toast.error(
-            "Failed to generate GRN PDF."
-        );
+      console.error("Failed to load GRN details:", error);
+      toast.error("Failed to load GRN details.");
     }
-}
+  }
 
 
   useEffect(() => {
@@ -86,56 +70,56 @@ export default function GRNManagement() {
   }, []);
 
 
-    const filteredStockBatches =
+  const filteredStockBatches =
 
-      stockBatches.filter((batch) => {
+    stockBatches.filter((batch) => {
 
-        const keyword =
-          search.toLowerCase();
+      const keyword =
+        search.toLowerCase();
 
-        const matchesSearch =
+      const matchesSearch =
 
-          batch.batchNumber
-            .toLowerCase()
-            .includes(keyword)
+        batch.batchNumber
+          .toLowerCase()
+          .includes(keyword)
 
-          ||
+        ||
 
-          batch.invoiceNumber
-            .toLowerCase()
-            .includes(keyword)
+        batch.invoiceNumber
+          .toLowerCase()
+          .includes(keyword)
 
-          ||
+        ||
 
-          batch.supplier.firstName
-            .toLowerCase()
-            .includes(keyword)
+        batch.supplier.firstName
+          .toLowerCase()
+          .includes(keyword)
 
-          ||
+        ||
 
-          batch.supplier.lastName
-            .toLowerCase()
-            .includes(keyword);
+        batch.supplier.lastName
+          .toLowerCase()
+          .includes(keyword);
 
-        const matchesStatus =
+      const matchesStatus =
 
-          paymentStatus === ""
+        paymentStatus === ""
 
-          ||
+        ||
 
-          batch.paymentStatus ===
+        batch.paymentStatus ===
 
-          paymentStatus;
+        paymentStatus;
 
-        return (
+      return (
 
-          matchesSearch &&
+        matchesSearch &&
 
-          matchesStatus
+        matchesStatus
 
-        );
+      );
 
-      });
+    });
 
   return (
 
@@ -179,7 +163,7 @@ export default function GRNManagement() {
         onEdit={(batch) => {
           navigate(
             `/admin/grn/edit/${batch.batchNumber}`
-        );
+          );
         }}
         onPrint={handlePrint}
       />
@@ -199,6 +183,23 @@ export default function GRNManagement() {
         }}
 
       />
+      {printBatch && (
+        <DocumentPreviewDialog
+          open={grnPreviewOpen}
+          onClose={() => {
+            setGrnPreviewOpen(false);
+            setPrintBatch(null);
+          }}
+          title="GRN Preview"
+          fileName={`${printBatch.batchNumber}.pdf`}
+          renderDocument={(settings) => (
+            <GRNPDF
+              stockBatch={printBatch}
+              settings={settings}
+            />
+          )}
+        />
+      )}
 
     </>
 
