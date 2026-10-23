@@ -1,4 +1,3 @@
-
 import {
     Document,
     Page,
@@ -11,204 +10,171 @@ import type { PurchaseOrder } from "@/components/PO/POTable";
 import DocumentHeader from "../components/DocumentHeader";
 import type { PharmacyDocumentSettings } from "../utils/document.types";
 import DocumentFooter from "../components/DocumentFooter";
+
 const styles = StyleSheet.create({
     page: {
-        paddingTop: 32,
-        paddingHorizontal: 40,
-        paddingBottom: 35,
-        fontSize: 9,
+        paddingTop: 20,
+        paddingHorizontal: 28,
+        paddingBottom: 28,
+        fontSize: 8,
         fontFamily: "Helvetica",
         color: "#202938",
         backgroundColor: "#FFFFFF",
     },
-
     titleSection: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 22,
+        alignItems: "flex-start",
+        marginTop: 8,
+        marginBottom: 14,
     },
-
     title: {
-        fontSize: 20,
+        fontSize: 16,
         fontWeight: "bold",
-        color: "#163A70",
-        marginBottom: 5,
+        color: "#111827",
+        marginBottom: 3,
     },
-
     subtitle: {
-        fontSize: 9,
-        color: "#6B7280",
-    },
-
-    documentInfo: {
-        backgroundColor: "#F1F5F9",
-        padding: 11,
-        borderRadius: 5,
-        minWidth: 175,
-    },
-
-    infoLabel: {
         fontSize: 7,
         color: "#64748B",
+    },
+    invoiceMeta: {
+        width: "38%",
+    },
+    metaRow: {
+        flexDirection: "row",
         marginBottom: 4,
     },
-
-    orderNumber: {
-        fontSize: 11,
-        fontWeight: "bold",
-        color: "#163A70",
-        marginBottom: 6,
+    metaLabel: {
+        width: "34%",
+        fontSize: 7,
+        color: "#475569",
     },
-
-    infoValue: {
-        fontSize: 9,
-        color: "#334155",
-    },
-
-    supplierSection: {
-        backgroundColor: "#F8FAFC",
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-        borderRadius: 5,
-        padding: 12,
-        marginBottom: 22,
-    },
-
-    sectionLabel: {
+    metaValue: {
+        flex: 1,
         fontSize: 8,
         fontWeight: "bold",
-        color: "#64748B",
-        marginBottom: 6,
+        color: "#111827",
     },
-
+    partySection: {
+        marginBottom: 14,
+    },
+    sectionLabel: {
+        fontSize: 7,
+        fontWeight: "bold",
+        color: "#111827",
+        marginBottom: 3,
+    },
     supplierName: {
-        fontSize: 11,
-        fontWeight: "bold",
-        color: "#1E293B",
+        fontSize: 8,
+        color: "#111827",
+        marginBottom: 2,
     },
-
-    sectionTitle: {
-        fontSize: 12,
-        fontWeight: "bold",
-        color: "#163A70",
-        marginBottom: 10,
+    supplierDetail: {
+        fontSize: 7,
+        color: "#374151",
+        marginBottom: 2,
     },
-
     table: {
         width: "100%",
-        borderWidth: 1,
-        borderColor: "#D8E0EA",
-        borderRadius: 3,
+        marginTop: 3,
     },
-
     tableHeader: {
         flexDirection: "row",
         alignItems: "center",
-        minHeight: 32,
-        backgroundColor: "#163A70",
+        minHeight: 22,
+        paddingVertical: 5,
+        backgroundColor: "#E5E7EB",
+        borderTopWidth: 0.7,
+        borderBottomWidth: 0.7,
+        borderColor: "#9CA3AF",
     },
-
     tableRow: {
         flexDirection: "row",
         alignItems: "center",
-        minHeight: 31,
-        borderBottomWidth: 1,
-        borderBottomColor: "#E2E8F0",
+        minHeight: 21,
+        paddingVertical: 4,
+        borderBottomWidth: 0.5,
+        borderBottomColor: "#D1D5DB",
     },
-
-    lastRow: {
-        borderBottomWidth: 0,
-    },
-
     cell: {
-        paddingVertical: 8,
-        paddingHorizontal: 7,
-        fontSize: 8,
+        paddingHorizontal: 4,
+        fontSize: 7,
+        color: "#111827",
     },
-
     headerCell: {
-        color: "#FFFFFF",
+        fontSize: 7,
         fontWeight: "bold",
-        fontSize: 8,
+        color: "#111827",
     },
-
-    productId: {
-        width: "20%",
-    },
-
-    productName: {
-        width: "38%",
-    },
-
-    brand: {
-        width: "24%",
-    },
-
-    quantity: {
+    itemCode: {
         width: "18%",
+    },
+    description: {
+        width: "36%",
+        paddingRight: 5,
+    },
+    brand: {
+        width: "17%",
+    },
+    quantity: {
+        width: "10%",
         textAlign: "right",
     },
-
-    alternateRow: {
-        backgroundColor: "#F8FAFC",
+    unitPrice: {
+        width: "9%",
+        textAlign: "right",
     },
-
+    freeIssue: {
+        width: "5%",
+        textAlign: "right",
+    },
+    price: {
+        width: "13%",
+        textAlign: "right",
+    },
+    alternateRow: {
+        backgroundColor: "#FAFAFA",
+    },
     summaryContainer: {
         alignItems: "flex-end",
-        marginTop: 18,
-        marginBottom: 32,
+        marginTop: 12,
+        marginBottom: 20,
     },
-
     summaryBox: {
-        width: 225,
-        padding: 12,
-        backgroundColor: "#F1F5F9",
-        borderRadius: 5,
-        borderLeftWidth: 3,
-        borderLeftColor: "#2563EB",
+        width: "42%",
     },
-
     summaryRow: {
         flexDirection: "row",
         justifyContent: "space-between",
-        marginBottom: 9,
+        paddingVertical: 4,
+        borderBottomWidth: 0.5,
+        borderBottomColor: "#D1D5DB",
     },
-
-    summaryLastRow: {
-        marginBottom: 0,
-        paddingTop: 8,
-        borderTopWidth: 1,
-        borderTopColor: "#CBD5E1",
-    },
-
     summaryLabel: {
-        fontSize: 9,
-        color: "#475569",
+        fontSize: 8,
+        color: "#374151",
     },
-
     summaryValue: {
-        fontSize: 9,
+        fontSize: 8,
         fontWeight: "bold",
-        color: "#1E293B",
+        color: "#111827",
         textAlign: "right",
     },
-
     signatureSection: {
         flexDirection: "row",
         justifyContent: "space-between",
-        marginTop: 20,
-        marginBottom: 25,
+        marginTop: 24,
+        marginBottom: 16,
     },
-
     signature: {
-        width: 190,
-        paddingTop: 7,
-        borderTopWidth: 1,
-        borderTopColor: "#94A3B8",
+        width: "27%",
+        paddingTop: 5,
+        borderTopWidth: 0.7,
+        borderTopColor: "#6B7280",
         textAlign: "center",
-        fontSize: 8,
-        color: "#475569",
+        fontSize: 7,
+        color: "#374151",
     },
 });
 
@@ -222,114 +188,86 @@ export default function PurchaseOrderPDF({
     settings,
 }: Props) {
     const totalQuantity = purchaseOrder.items.reduce(
-        (total, item) => total + item.quantity,
+        (total, item) => total + Number(item.quantity || 0),
         0
     );
 
     const supplierName = purchaseOrder.supplier
-        ? `${purchaseOrder.supplier.firstName} ${purchaseOrder.supplier.lastName}`
+        ? `${purchaseOrder.supplier.firstName ?? ""} ${purchaseOrder.supplier.lastName ?? ""}`.trim()
         : "-";
 
     const createdDate = new Date(purchaseOrder.createdAt);
-
     const formattedDate = Number.isNaN(createdDate.getTime())
         ? "-"
         : createdDate.toLocaleDateString("en-GB");
 
     return (
-        <Document>
-            <Page size={[684, 792]} style={styles.page}>
-                {/* SHARED PHARMACY HEADER */}
+        <Document
+            title={`Purchase Order ${purchaseOrder.orderNumber}`}
+            author={settings.pharmacyName}
+            subject="Purchase Order"
+        >
+            <Page size={[684, 792]} style={styles.page} wrap>
                 <DocumentHeader settings={settings} />
 
-                {/* PURCHASE ORDER TITLE AND DETAILS */}
                 <View style={styles.titleSection}>
                     <View>
-                        <Text style={styles.title}>
-                            PURCHASE ORDER
-                        </Text>
-
-                        <Text style={styles.subtitle}>
-                            Supplier order document
-                        </Text>
+                        <Text style={styles.title}>PURCHASE ORDER</Text>
+                        <Text style={styles.subtitle}>Supplier order</Text>
                     </View>
 
-                    <View style={styles.documentInfo}>
-                        <Text style={styles.infoLabel}>
-                            PURCHASE ORDER NUMBER
-                        </Text>
-
-                        <Text style={styles.orderNumber}>
-                            {purchaseOrder.orderNumber}
-                        </Text>
-
-                        <Text style={styles.infoLabel}>
-                            ORDER DATE
-                        </Text>
-
-                        <Text style={styles.infoValue}>
-                            {formattedDate}
-                        </Text>
+                    <View style={styles.invoiceMeta}>
+                        <View style={styles.metaRow}>
+                            <Text style={styles.metaLabel}>PO No:</Text>
+                            <Text style={styles.metaValue}>
+                                {purchaseOrder.orderNumber}
+                            </Text>
+                        </View>
+                        <View style={styles.metaRow}>
+                            <Text style={styles.metaLabel}>Date:</Text>
+                            <Text style={styles.metaValue}>{formattedDate}</Text>
+                        </View>
                     </View>
                 </View>
 
-                {/* SUPPLIER */}
-                <View style={styles.supplierSection}>
-                    <Text style={styles.sectionLabel}>
-                        SUPPLIER
-                    </Text>
-
-                    <Text style={styles.supplierName}>
-                        {supplierName}
-                    </Text>
+                <View style={styles.partySection}>
+                    <Text style={styles.sectionLabel}>SUPPLIER</Text>
+                    <Text style={styles.supplierName}>{supplierName}</Text>
+                    {purchaseOrder.supplier?.email ? (
+                        <Text style={styles.supplierDetail}>
+                            Email: {purchaseOrder.supplier.email}
+                        </Text>
+                    ) : null}
+                    {purchaseOrder.supplier?.contactNumber ? (
+                        <Text style={styles.supplierDetail}>
+                            Phone: {purchaseOrder.supplier.contactNumber}
+                        </Text>
+                    ) : null}
                 </View>
-
-                {/* ORDER ITEMS */}
-                <Text style={styles.sectionTitle}>
-                    Order Items
-                </Text>
 
                 <View style={styles.table}>
                     <View style={styles.tableHeader} fixed>
-                        <Text
-                            style={[
-                                styles.cell,
-                                styles.headerCell,
-                                styles.productId,
-                            ]}
-                        >
-                            Product ID
+                        <Text style={[styles.cell, styles.headerCell, styles.itemCode]}>
+                            Item Code
                         </Text>
-
-                        <Text
-                            style={[
-                                styles.cell,
-                                styles.headerCell,
-                                styles.productName,
-                            ]}
-                        >
-                            Product
+                        <Text style={[styles.cell, styles.headerCell, styles.description]}>
+                            Description
                         </Text>
-
-                        <Text
-                            style={[
-                                styles.cell,
-                                styles.headerCell,
-                                styles.brand,
-                            ]}
-                        >
+                        <Text style={[styles.cell, styles.headerCell, styles.brand]}>
                             Brand
                         </Text>
-
-                        <Text
-                            style={[
-                                styles.cell,
-                                styles.headerCell,
-                                styles.quantity,
-                            ]}
-                        >
-                            Quantity
+                        <Text style={[styles.cell, styles.headerCell, styles.quantity]}>
+                            Qty
                         </Text>
+                        {/* <Text style={[styles.cell, styles.headerCell, styles.unitPrice]}>
+                            Unit Price
+                        </Text>
+                        <Text style={[styles.cell, styles.headerCell, styles.freeIssue]}>
+                            Free
+                        </Text>
+                        <Text style={[styles.cell, styles.headerCell, styles.price]}>
+                            Price
+                        </Text> */}
                     </View>
 
                     {purchaseOrder.items.map((item, index) => (
@@ -338,95 +276,50 @@ export default function PurchaseOrderPDF({
                             wrap={false}
                             style={[
                                 styles.tableRow,
-                                ...(index % 2 === 1
-                                    ? [styles.alternateRow]
-                                    : []),
-                                ...(index === purchaseOrder.items.length - 1
-                                    ? [styles.lastRow]
-                                    : []),
+                                ...(index % 2 === 1 ? [styles.alternateRow] : []),
                             ]}
                         >
-                            <Text
-                                style={[
-                                    styles.cell,
-                                    styles.productId,
-                                ]}
-                            >
+                            <Text style={[styles.cell, styles.itemCode]}>
                                 {item.product?.productId || "-"}
                             </Text>
-
-                            <Text
-                                style={[
-                                    styles.cell,
-                                    styles.productName,
-                                ]}
-                            >
+                            <Text style={[styles.cell, styles.description]}>
                                 {item.product?.name || "-"}
                             </Text>
-
-                            <Text
-                                style={[
-                                    styles.cell,
-                                    styles.brand,
-                                ]}
-                            >
+                            <Text style={[styles.cell, styles.brand]}>
                                 {item.product?.brand || "-"}
                             </Text>
-
-                            <Text
-                                style={[
-                                    styles.cell,
-                                    styles.quantity,
-                                ]}
-                            >
+                            <Text style={[styles.cell, styles.quantity]}>
                                 {item.quantity}
                             </Text>
+                            {/* PurchaseOrder type currently exposes no unit-price/price fields. */}
+                            {/* <Text style={[styles.cell, styles.unitPrice]}>-</Text>
+                            <Text style={[styles.cell, styles.freeIssue]}>0</Text>
+                            <Text style={[styles.cell, styles.price]}>-</Text> */}
                         </View>
                     ))}
                 </View>
 
-                {/* TOTALS */}
                 <View style={styles.summaryContainer} wrap={false}>
                     <View style={styles.summaryBox}>
                         <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>
-                                Total Products
-                            </Text>
-
+                            <Text style={styles.summaryLabel}>Total Products</Text>
                             <Text style={styles.summaryValue}>
                                 {purchaseOrder.items.length}
                             </Text>
                         </View>
-
-                        <View
-                            style={[
-                                styles.summaryRow,
-                                styles.summaryLastRow,
-                            ]}
-                        >
-                            <Text style={styles.summaryLabel}>
-                                Total Quantity
-                            </Text>
-
-                            <Text style={styles.summaryValue}>
-                                {totalQuantity}
-                            </Text>
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.summaryLabel}>Total Quantity</Text>
+                            <Text style={styles.summaryValue}>{totalQuantity}</Text>
                         </View>
                     </View>
                 </View>
 
-                {/* SIGNATURES */}
                 <View style={styles.signatureSection} wrap={false}>
-                    <Text style={styles.signature}>
-                        Prepared By
-                    </Text>
-
-                    <Text style={styles.signature}>
-                        Authorized Signature
-                    </Text>
+                    <Text style={styles.signature}>Prepared By</Text>
+                    <Text style={styles.signature}>Authorised By</Text>
+                    <Text style={styles.signature}>Received By</Text>
                 </View>
 
-                {/* SHARED FOOTER */}
                 <DocumentFooter settings={settings} />
             </Page>
         </Document>

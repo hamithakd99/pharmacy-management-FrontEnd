@@ -56,12 +56,12 @@ export type PurchaseOrder = {
     createdAt: string;
     status: string;
     supplier?: {
-
-        id: number;
-        firstName: string;
-        lastName: string;
-
-    };
+    id: number;
+    firstName: string;
+    lastName: string;
+    email?: string | null;
+    contactNumber?: string | null;
+} | null;
 
     items: PurchaseOrderItem[];
     receivingHistory: GRNHistory[];
