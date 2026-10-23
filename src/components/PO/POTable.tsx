@@ -424,7 +424,7 @@ export default function POTable({
 
                                                         >
 
-                                                            Delete
+                                                            Cancel
 
                                                         </Button>
 

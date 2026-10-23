@@ -61,24 +61,33 @@ const ProductStep = ({
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
                 setError("");
 
-                const response = await api.get(
-                    `/product/all`
-                );
+                const response = await api.get("/product/all");
+                const responseData = response.data;
 
-                const data = Array.isArray(response.data)
-                    ? response.data
-                    : response.data.products || [];
+                const data = Array.isArray(responseData)
+                    ? responseData
+                    : Array.isArray(responseData?.data)
+                        ? responseData.data
+                        : Array.isArray(responseData?.products)
+                            ? responseData.products
+                            : [];
 
                 setProducts(data);
+
+                if (!Array.isArray(data)) {
+                    setError("Unable to load products.");
+                }
             } catch (err) {
                 console.error("Failed to fetch products:", err);
                 setError("Unable to load products. Please try again.");
+                setProducts([]);
             } finally {
                 setLoading(false);
             }
@@ -86,6 +95,7 @@ const ProductStep = ({
 
         fetchProducts();
     }, []);
+
 
     const getAvailableStock = (product: Product) => {
         if (product.stockBatchItems?.length) {
@@ -102,6 +112,15 @@ const ProductStep = ({
 
         return 0;
     };
+
+
+    const getRemainingStock = (product: Product) => {
+        const availableStock = getAvailableStock(product);
+        const selectedQuantity = getSelectedQuantity(product.id);
+
+        return Math.max(0, availableStock - selectedQuantity);
+    };
+
 
     const filteredProducts = useMemo(() => {
         const keyword = search.trim().toLowerCase();
@@ -210,15 +229,23 @@ const ProductStep = ({
             return;
         }
 
-        onProductsChange(
-            [
-                ...selectedProducts.filter(
-                    (item) =>
-                        item.productId !== product.id
-                ),
-                ...allocations
-            ]
+        // Keep this product in its original position when its allocations change.
+        const existingItems = [...selectedProducts];
+        const firstIndex = existingItems.findIndex(
+            (item) => item.productId === product.id
         );
+        const itemsBefore = existingItems
+            .slice(0, firstIndex === -1 ? existingItems.length : firstIndex)
+            .filter((item) => item.productId !== product.id);
+        const remainingItems = existingItems.filter(
+            (item) => item.productId !== product.id
+        );
+        const insertIndex = firstIndex === -1
+            ? remainingItems.length
+            : itemsBefore.length;
+
+        remainingItems.splice(insertIndex, 0, ...allocations);
+        onProductsChange(remainingItems);
     };
 
     const updateQuantity = (
@@ -306,12 +333,26 @@ const ProductStep = ({
             remaining -= allocatedQuantity;
         }
 
-        onProductsChange([
-            ...selectedProducts.filter(
-                (item) => item.productId !== productId
-            ),
-            ...allocations
-        ]);
+        // Replace the product's batch allocations in place so its rows
+        // don't jump to the bottom when quantity changes.
+        const firstIndex = selectedProducts.findIndex(
+            (item) => item.productId === productId
+        );
+
+        const itemsBefore = selectedProducts
+            .slice(0, firstIndex === -1 ? selectedProducts.length : firstIndex)
+            .filter((item) => item.productId !== productId);
+
+        const remainingItems = selectedProducts.filter(
+            (item) => item.productId !== productId
+        );
+
+        const insertIndex = firstIndex === -1
+            ? remainingItems.length
+            : itemsBefore.length;
+
+        remainingItems.splice(insertIndex, 0, ...allocations);
+        onProductsChange(remainingItems);
     };
 
     const removeProduct = (productId: number) => {
@@ -495,14 +536,12 @@ const ProductStep = ({
                         gap={4}
                     >
                         {filteredProducts.map((product) => {
-                            const availableStock =
-                                getAvailableStock(product);
-
-                            const selectedQuantity =
-                                getSelectedQuantity(product.id);
+                            const availableStock = getAvailableStock(product);
+                            const selectedQuantity = getSelectedQuantity(product.id);
+                            const remainingStock = getRemainingStock(product);
 
                             const isSelected = selectedQuantity > 0;
-                            const isOutOfStock = availableStock <= 0;
+                            const isOutOfStock = remainingStock <= 0;
 
                             return (
                                 <Box
@@ -627,7 +666,7 @@ const ProductStep = ({
                                                             : "green.600"
                                                 }
                                             >
-                                                {availableStock}
+                                                {remainingStock}
                                             </Text>
                                         </Box>
                                     </Flex>
@@ -794,10 +833,8 @@ const ProductStep = ({
                                 key={item.allocationId}
                                 px={5}
                                 py={4}
-                                align={{
-                                    base: "flex-start",
-                                    md: "center",
-                                }}
+                                minH="120px"
+                                align="center"
                                 justify="space-between"
                                 gap={4}
                                 direction={{
@@ -881,11 +918,11 @@ const ProductStep = ({
                                         <Button
                                             size="xs"
                                             variant="ghost"
-                                            disabled={item.quantity <= 1}
+                                            disabled={getSelectedQuantity(item.productId) <= 1}
                                             onClick={() =>
                                                 updateQuantity(
                                                     item.productId,
-                                                    item.quantity - 1
+                                                    getSelectedQuantity(item.productId) - 1
                                                 )
                                             }
                                         >
@@ -905,12 +942,10 @@ const ProductStep = ({
                                             size="xs"
                                             variant="ghost"
                                             disabled={
-                                                item.quantity >=
+                                                getSelectedQuantity(item.productId) >=
                                                 getAvailableStock(
                                                     products.find(
-                                                        (product) =>
-                                                            product.id ===
-                                                            item.productId
+                                                        (product) => product.id === item.productId
                                                     ) || {
                                                         id: item.productId,
                                                         productId: item.productCode,
@@ -922,7 +957,7 @@ const ProductStep = ({
                                             onClick={() =>
                                                 updateQuantity(
                                                     item.productId,
-                                                    item.quantity + 1
+                                                    getSelectedQuantity(item.productId) + 1
                                                 )
                                             }
                                         >

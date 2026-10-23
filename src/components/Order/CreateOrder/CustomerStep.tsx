@@ -51,36 +51,29 @@ const CustomerStep = ({
     const [error, setError] = useState("");
 
     useEffect(() => {
-        const loadCustomers = async () => {
-            try {
-                setLoading(true);
-                setError("");
+    const loadCustomers = async () => {
+        try {
+            setLoading(true);
+            setError("");
 
-                const response = await api.get(
-                    `/external/all-external-users`
-                );
+            const response = await api.get("/external/customers");
 
-                const data = Array.isArray(response.data)
-                    ? response.data
-                    : response.data?.users ||
-                      response.data?.externalUsers ||
-                      [];
+            const data = Array.isArray(response.data)
+                ? response.data
+                : [];
 
-                const customerList = data.filter(
-                    (user: Customer) => user.role === "CUSTOMER"
-                );
+            setCustomers(data);
+        } catch (error) {
+            console.error("Failed to load customers:", error);
+            setError("Unable to load registered customers.");
+            setCustomers([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-                setCustomers(customerList);
-            } catch (error) {
-                console.error("Failed to load customers:", error);
-                setError("Unable to load registered customers.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadCustomers();
-    }, []);
+    loadCustomers();
+}, []);
 
     const filteredCustomers = useMemo(() => {
         const value = search.trim().toLowerCase();

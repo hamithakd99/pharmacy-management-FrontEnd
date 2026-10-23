@@ -1,148 +1,216 @@
-
 import DeleteProductDialog from "@/components/Products/DeleteProductDialog";
-import ProductStatsCards from "@/components/Products/ProductStatsCards";
-import ProductTable, { type Product } from "@/components/Products/ProductTable";
+import ProductStatsCards, {
+    type ProductStats,
+} from "@/components/Products/ProductStatsCards";
+import ProductTable, {
+    type Product,
+} from "@/components/Products/ProductTable";
 import ProductViewDialog from "@/components/Products/ProductViewDialog";
 import ProductSearchBar from "@/components/Products/ProductSearchBar";
-import { Box } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import api from "@/api/axios";
 
+import api from "@/api/axios";
+import { Box, Button, Spinner, Text, VStack } from "@chakra-ui/react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import type { PaginationInfo } from "@/components/Pagination";
+import Pagination from "@/components/Pagination";
+
+const initialPagination: PaginationInfo = {
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+};
+
+const initialStats: ProductStats = {
+    totalProducts: 0,
+    totalStock: 0,
+    inventoryValue: 0,
+    lowStockProducts: 0,
+};
 
 export default function ProductManagement() {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [pagination, setPagination] =
+        useState<PaginationInfo>(initialPagination);
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const navigate = useNavigate();
+    const [stats, setStats] =
+        useState<ProductStats>(initialStats);
 
-  const [deleteDialogOpen, setDeleteDialogOpen] =
-    useState(false);
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(20);
+    const [search, setSearch] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-  const [selectedProduct, setSelectedProduct] =
-    useState<any>(null);
+    const navigate = useNavigate();
 
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] =
+        useState(false);
 
-  const [viewProductId, setViewProductId] = useState<number>();
+    const [selectedProduct, setSelectedProduct] =
+        useState<Product | null>(null);
 
-  const [search, setSearch] = useState("");
+    const [viewDialogOpen, setViewDialogOpen] =
+        useState(false);
 
-  const filteredProducts = products.filter((product) => {
-        const keyword = search.toLowerCase();
+    const [viewProductId, setViewProductId] =
+        useState<number | undefined>();
 
-        return (
-            product.productId.toLowerCase().includes(keyword) ||
-            product.name.toLowerCase().includes(keyword) ||
-            (product.brand ?? "").toLowerCase().includes(keyword)
-        );
-    });
+    const getAllProducts = useCallback(async () => {
+        setLoading(true);
+        setError("");
 
-  function getAllProducts() {
+        try {
+            const response = await api.get("/product/all", {
+                params: {
+                    page,
+                    limit,
+                    search: search.trim(),
+                },
+            });
 
-    api
-      .get(
-        "/product/all",
-        
-      )
+            const result = response.data;
 
-      .then((response) => {
+            setProducts(
+                Array.isArray(result.data) ? result.data : []
+            );
 
-        setProducts(response.data);
-
-      });
-
-  }
-
-  useEffect(() => {
-    getAllProducts();
-  }, [])
-
-  return (
-    <>
-      <Box backgroundColor="blue.500"
-        p={4} rounded="md" textAlign="center" fontWeight="bold" mb="50px">
-        Product Management
-      </Box>
-
-      <ProductStatsCards products={products} />
-
-      <ProductSearchBar
-        search={search}
-        setSearch={setSearch}
-        onAddProduct={() => navigate("/admin/products/add")}
-      />
-
-      <ProductTable
-
-        products={filteredProducts}
-
-        onView={(product) => {
-
-          setViewProductId(product.id);
-
-          setViewDialogOpen(true);
-
-        }}
-
-        onEdit={(product) => {
-
-          navigate(
-
-            `/admin/products/edit/${product.id}`,
-
-            {
-
-              state: {
-
-                item: product
-
-              }
-
+            if (result.pagination) {
+                setPagination(result.pagination);
             }
 
-          );
+            // Global stats from the backend, independent of the page
+            if (result.stats) {
+                setStats(result.stats);
+            }
 
-        }}
+            // If the last product was deleted, go to the last page
+            if (
+                result.pagination?.totalPages > 0 &&
+                page > result.pagination.totalPages
+            ) {
+                setPage(result.pagination.totalPages);
+            }
+        } catch (error) {
+            console.error("Failed to load products:", error);
+            setError("Failed to load products. Please try again.");
 
-        onDelete={(product) => {
+            setProducts([]);
+            // Preserve the last successfully loaded stats on failure.
+        } finally {
+            setLoading(false);
+        }
+    }, [page, limit, search]);
 
-          setSelectedProduct(product);
+    useEffect(() => {
+        void getAllProducts();
+    }, [getAllProducts]);
 
-          setDeleteDialogOpen(true);
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        setPage(1);
+    };
 
-        }}
+    const handleLimitChange = (value: number) => {
+        setLimit(value);
+        setPage(1);
+    };
 
-      />
-      <ProductViewDialog
-        open={viewDialogOpen}
-        onClose={() => {
+    return (
+        <>
+            <Box
+                backgroundColor="blue.500"
+                color="white"
+                p={4}
+                rounded="md"
+                textAlign="center"
+                fontWeight="bold"
+                mb={6}
+            >
+                Product Management
+            </Box>
 
-          setViewDialogOpen(false);
+            <ProductStatsCards stats={stats} />
 
-          setViewProductId(undefined);
+            <ProductSearchBar
+                search={search}
+                setSearch={handleSearchChange}
+                onAddProduct={() =>
+                    navigate("/admin/products/add")
+                }
+            />
 
-        }}
-        productId={viewProductId}
-      />
-      <DeleteProductDialog
+            {loading ? (
+                <VStack py={12} gap={3}>
+                    <Spinner size="lg" color="blue.500" />
+                    <Text color="gray.500" fontSize="sm">
+                        Loading products...
+                    </Text>
+                </VStack>
+            ) : error ? (
+                <VStack py={10} gap={3}>
+                    <Text color="red.500">{error}</Text>
 
-        open={deleteDialogOpen}
+                    <Button
+                        onClick={() => void getAllProducts()}
+                        colorPalette="blue"
+                    >
+                        Retry
+                    </Button>
+                </VStack>
+            ) : (
+                <>
+                    <ProductTable
+                        products={products}
+                        onView={(product) => {
+                            setViewProductId(product.id);
+                            setViewDialogOpen(true);
+                        }}
+                        onEdit={(product) => {
+                            navigate(
+                                `/admin/products/edit/${product.id}`,
+                                {
+                                    state: {
+                                        item: product,
+                                    },
+                                }
+                            );
+                        }}
+                        onDelete={(product) => {
+                            setSelectedProduct(product);
+                            setDeleteDialogOpen(true);
+                        }}
+                    />
 
-        onClose={() => {
+                    <Pagination
+                        pagination={pagination}
+                        onPageChange={setPage}
+                        onLimitChange={handleLimitChange}
+                    />
+                </>
+            )}
 
-          setDeleteDialogOpen(false);
+            <ProductViewDialog
+                open={viewDialogOpen}
+                onClose={() => {
+                    setViewDialogOpen(false);
+                    setViewProductId(undefined);
+                }}
+                productId={viewProductId}
+            />
 
-          setSelectedProduct(null);
-
-        }}
-
-        product={selectedProduct}
-
-        onDeleted={getAllProducts}
-
-      />
-      
-    </>
-  )
-
+            <DeleteProductDialog
+                open={deleteDialogOpen}
+                onClose={() => {
+                    setDeleteDialogOpen(false);
+                    setSelectedProduct(null);
+                }}
+                product={selectedProduct}
+                onDeleted={getAllProducts}
+            />
+        </>
+    );
 }

@@ -1,346 +1,199 @@
-import { Box, Button, Flex, Input, InputGroup, Text, } from "@chakra-ui/react";
 
-import { useEffect, useState } from "react";
+import {
+    Box,
+    Button,
+    Flex,
+    Input,
+    InputGroup,
+    Text,
+    Spinner,
+    VStack,
+} from "@chakra-ui/react";
+
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { LuPlus, LuSearch } from "react-icons/lu";
+
 import type { PurchaseOrder } from "@/components/PO/POTable";
 import POTable from "@/components/PO/POTable";
 import POViewDialog from "@/components/PO/POViewDialog";
 import DeletePODialog from "@/components/PO/DeletePODialog";
 import POStatusCards from "@/components/PO/POStatsCards";
+
 import api from "@/api/axios";
 import DocumentPreviewDialog from "@/components/Documents/DocumentPreviewDialog";
 import PurchaseOrderPDF from "@/pdf/templates/PurchaseOrderPDF";
+import type { PaginationInfo } from "@/components/Pagination";
+import Pagination from "@/components/Pagination";
 
+const initialPagination: PaginationInfo = {
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+};
 
 
 export default function PurchaseOrderManagement() {
-
     const navigate = useNavigate();
 
-
-    /*
-    =====================================================
-    STATE
-    =====================================================
-    */
+    // =====================================================
+    // STATE
+    // =====================================================
 
     const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
 
-    const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(20);
+    const [pagination, setPagination] =
+        useState<PaginationInfo>(initialPagination);
 
+    const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
-
-    const [viewDialogOpen, setViewDialogOpen] = useState(false);
-
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-    const totalOrders = purchaseOrders.length;
-
-    // const { settings } = useDocumentSettings();
-
-    const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
-    const [printPurchaseOrder, setPrintPurchaseOrder] =
+    const [selectedPO, setSelectedPO] =
         useState<PurchaseOrder | null>(null);
 
-    const pendingOrders =
-        purchaseOrders.filter(
-            (po) => po.status === "PENDING"
-        ).length;
+    const [viewDialogOpen, setViewDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-    const partiallyReceivedOrders =
-        purchaseOrders.filter(
-            (po) => po.status === "PARTIALLY_RECEIVED"
-        ).length;
+    const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
 
-    const completedOrders =
-        purchaseOrders.filter(
-            (po) => po.status === "COMPLETED"
-        ).length;
+    const [printPurchaseOrder, setPrintPurchaseOrder] = useState<PurchaseOrder | null>(null);
 
-    const cancelledOrders =
-        purchaseOrders.filter(
-            (po) => po.status === "CANCELLED"
-        ).length;
+    type POStats = {
+        totalOrders: number;
+        pendingOrders: number;
+        partiallyReceivedOrders: number;
+        completedOrders: number;
+        cancelledOrders: number;
+    };
 
-    /*
-    =====================================================
-    LOAD PURCHASE ORDERS
-    =====================================================
-    */
+    const [stats, setStats] = useState<POStats>({
+        totalOrders: 0,
+        pendingOrders: 0,
+        partiallyReceivedOrders: 0,
+        completedOrders: 0,
+        cancelledOrders: 0,
+    });
+
+    // =====================================================
+    // LOAD PURCHASE ORDERS
+    // =====================================================
+
+    const getPurchaseOrders = useCallback(async () => {
+        try {
+            setLoading(true);
+
+            const response = await api.get("/po/all", {
+                params: {
+                    page,
+                    limit,
+                    search: search.trim(),
+                },
+            });
+
+            const result = response.data;
+
+            setPurchaseOrders(result.data);
+            setPagination(result.pagination);
+
+            setStats({
+                totalOrders: result.stats?.totalOrders ?? 0,
+                pendingOrders: result.stats?.pendingOrders ?? 0,
+                partiallyReceivedOrders:
+                    result.stats?.partiallyReceivedOrders ?? 0,
+                completedOrders: result.stats?.completedOrders ?? 0,
+                cancelledOrders: result.stats?.cancelledOrders ?? 0,
+            });
+
+            // Handle the case where the current page no longer exists.
+            if (
+                result.pagination.totalPages > 0 &&
+                page > result.pagination.totalPages
+            ) {
+                setPage(result.pagination.totalPages);
+            } else if (
+                result.pagination.totalPages === 0 &&
+                page !== 1
+            ) {
+                setPage(1);
+            }
+        } catch (error) {
+            console.error("Failed to load purchase orders:", error);
+            toast.error("Failed to load purchase orders");
+        } finally {
+            setLoading(false);
+        }
+    }, [page, limit, search]);
 
     useEffect(() => {
-        getPurchaseOrders();
-    }, []);
+        void getPurchaseOrders();
+    }, [getPurchaseOrders]);
 
+    // =====================================================
+    // SEARCH AND PAGINATION
+    // =====================================================
 
-    async function getPurchaseOrders() {
+    function handleSearchChange(value: string) {
+        setSearch(value);
+        setPage(1);
+    }
+
+    function handleLimitChange(value: number) {
+        setLimit(value);
+        setPage(1);
+    }
+
+    // =====================================================
+    // VIEW
+    // =====================================================
+
+    async function handleView(purchaseOrder: PurchaseOrder) {
         try {
             setLoading(true);
+
             const response = await api.get(
-                "/po/all",
+                `/po/purchase-orders/${purchaseOrder.id}`
             );
 
-            setPurchaseOrders(
-                response.data
-            );
-
-        }
-
-        catch (error) {
-            console.error(error);
-            toast.error("Failed to load purchase orders");
-        }
-
-        finally {
+            setSelectedPO(response.data);
+            setViewDialogOpen(true);
+        } catch (error) {
+            console.error("Failed to load purchase order:", error);
+            toast.error("Failed to load purchase order");
+        } finally {
             setLoading(false);
         }
-
     }
 
+    // =====================================================
+    // EDIT
+    // =====================================================
 
-
-    /*
-    =====================================================
-    SEARCH
-    =====================================================
-    */
-
-    const filteredPurchaseOrders =
-        purchaseOrders.filter(
-            (purchaseOrder) => {
-
-                const keyword =
-                    search
-                        .toLowerCase()
-                        .trim();
-
-
-                if (!keyword) {
-                    return true;
-                }
-
-
-                const poNumber =
-                    purchaseOrder.orderNumber
-                        .toLowerCase();
-
-
-                const supplierName =
-                    purchaseOrder.supplier
-
-                        ? `${purchaseOrder.supplier.firstName} ${purchaseOrder.supplier.lastName}`
-                            .toLowerCase()
-
-                        : "";
-
-
-                return (
-
-                    poNumber.includes(keyword) ||
-                    supplierName.includes(keyword)
-
-                );
-
-            }
-        );
-
-
-    /*
-    =====================================================
-    VIEW
-    =====================================================
-    */
-
-    // function handleView(
-    //     purchaseOrder: PurchaseOrder
-    // ) {
-
-    //     setSelectedPO(
-    //         purchaseOrder
-    //     );
-
-    //     setViewDialogOpen(true);
-
-    // }
-
-    async function handleView(
-        purchaseOrder: PurchaseOrder
-    ) {
-
-        try {
-
-            setLoading(true);
-
-            const response =
-                await api.get(
-
-                    "/po/purchase-orders/" +
-
-                    purchaseOrder.id
-
-                );
-
-
-            const fullPurchaseOrder =
-                response.data;
-
-
-            setSelectedPO(
-                fullPurchaseOrder
-            );
-
-
-            setViewDialogOpen(
-                true
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Failed to load purchase order:",
-                error
-            );
-
-            toast.error(
-                "Failed to load purchase order"
-            );
-
-        }
-
-        finally {
-
-            setLoading(false);
-
-        }
-
-    }
-
-
-    /*
-    =====================================================
-    EDIT
-    =====================================================
-    */
-
-    function handleEdit(
-        purchaseOrder: PurchaseOrder
-    ) {
-
+    function handleEdit(purchaseOrder: PurchaseOrder) {
         navigate(
-
             `/admin/po/purchase-orders/${purchaseOrder.id}`
-
         );
-
     }
 
+    // =====================================================
+    // DELETE
+    // =====================================================
 
-    /*
-    =====================================================
-    DELETE
-    =====================================================
-    */
-
-    // async function handleDelete(
-    //     purchaseOrder: PurchaseOrder
-    // ) {
-
-    //     const confirmed =
-    //         window.confirm(
-
-    //             `Are you sure you want to delete ${purchaseOrder.orderNumber}?`
-
-    //         );
-
-
-    //     if (!confirmed) {
-    //         return;
-    //     }
-
-
-    //     try {
-
-    //         await axios.delete(
-
-    //             import.meta.env.VITE_BACKEND_URL +
-
-    //             "/po/purchase-orders/" +
-
-    //             purchaseOrder.id,
-
-    //             {
-
-    //                 headers: {
-
-    //                     Authorization:
-
-    //                         "Bearer " +
-
-    //                         localStorage.getItem(
-    //                             "token"
-    //                         ),
-
-    //                 },
-
-    //             }
-
-    //         );
-
-
-    //         toast.success(
-    //             "Purchase order deleted successfully"
-    //         );
-
-
-    //         /*
-    //         Refresh table
-    //         */
-
-    //         getPurchaseOrders();
-
-    //     }
-
-    //     catch (error: any) {
-
-    //         console.error(error);
-
-
-    //         toast.error(
-
-    //             error.response?.data?.error ??
-
-    //             "Failed to delete purchase order"
-
-    //         );
-
-    //     }
-
-    // }
-
-    function handleDelete(
-        purchaseOrder: PurchaseOrder
-    ) {
-
-        setSelectedPO(
-            purchaseOrder
-        );
-
-        setDeleteDialogOpen(
-            true
-        );
-
+    function handleDelete(purchaseOrder: PurchaseOrder) {
+        setSelectedPO(purchaseOrder);
+        setDeleteDialogOpen(true);
     }
 
-    function handleCreateGRN(
-        purchaseOrder: PurchaseOrder
-    ) {
+    // =====================================================
+    // CREATE GRN
+    // =====================================================
 
+    function handleCreateGRN(purchaseOrder: PurchaseOrder) {
         if (
             purchaseOrder.status === "COMPLETED" ||
             purchaseOrder.status === "CANCELLED"
@@ -348,7 +201,6 @@ export default function PurchaseOrderManagement() {
             toast.error(
                 "GRN cannot be created for this Purchase Order."
             );
-
             return;
         }
 
@@ -356,6 +208,10 @@ export default function PurchaseOrderManagement() {
             `/admin/grn/create?purchaseOrderId=${purchaseOrder.id}`
         );
     }
+
+    // =====================================================
+    // PRINT
+    // =====================================================
 
     async function handlePrint(purchaseOrder: PurchaseOrder) {
         try {
@@ -376,16 +232,13 @@ export default function PurchaseOrderManagement() {
     }
 
 
-    /*
-    =====================================================
-    UI
-    =====================================================
-    */
+
+    // =====================================================
+    // UI
+    // =====================================================
 
     return (
-
         <Box>
-
             {/* PAGE HEADER */}
 
             <Box
@@ -397,19 +250,18 @@ export default function PurchaseOrderManagement() {
                 fontWeight="bold"
                 mb={6}
             >
-
                 Purchase Order Management
-
             </Box>
 
-            <POStatusCards
-                totalOrders={totalOrders}
-                pendingOrders={pendingOrders}
-                partiallyReceivedOrders={partiallyReceivedOrders}
-                completedOrders={completedOrders}
-                cancelledOrders={cancelledOrders}
-            />
+            {/* SUMMARY CARDS */}
 
+            <POStatusCards
+                totalOrders={stats.totalOrders}
+                pendingOrders={stats.pendingOrders}
+                partiallyReceivedOrders={stats.partiallyReceivedOrders}
+                completedOrders={stats.completedOrders}
+                cancelledOrders={stats.cancelledOrders}
+            />
 
             {/* SEARCH + CREATE */}
 
@@ -420,55 +272,29 @@ export default function PurchaseOrderManagement() {
                 mb={5}
                 wrap="wrap"
             >
-
-                {/* SEARCH */}
-
                 <InputGroup
                     startElement={<LuSearch />}
                     maxW="450px"
                 >
-
                     <Input
-
                         placeholder="Search by PO number or supplier..."
-
-                        value={
-                            search
-                        }
-
+                        value={search}
                         onChange={(e) =>
-                            setSearch(
-                                e.target.value
-                            )
+                            handleSearchChange(e.target.value)
                         }
-
                     />
-
                 </InputGroup>
 
-
-                {/* CREATE */}
-
                 <Button
-
                     colorPalette="blue"
-
                     onClick={() =>
-                        navigate(
-                            "/admin/po/create"
-                        )
+                        navigate("/admin/po/create")
                     }
-
                 >
-
                     <LuPlus />
-
                     Create Purchase Order
-
                 </Button>
-
             </Flex>
-
 
             {/* RESULTS COUNT */}
 
@@ -477,136 +303,76 @@ export default function PurchaseOrderManagement() {
                 color="gray.600"
                 fontSize="sm"
             >
-
                 Showing{" "}
-
                 <strong>
-                    {
-                        filteredPurchaseOrders.length
-                    }
-                </strong>{" "}
-
-                of{" "}
-
-                <strong>
-                    {
-                        purchaseOrders.length
-                    }
-                </strong>{" "}
-
-                purchase orders
-
+                    {pagination.total === 0
+                        ? 0
+                        : (page - 1) * limit + 1}
+                    {"–"}
+                    {Math.min(page * limit, pagination.total)}
+                </strong>
+                {" "}of{" "}
+                <strong>{pagination.total}</strong>
+                {" "}purchase orders
             </Text>
 
-
-            {/* TABLE */}
+            {/* TABLE + PAGINATION */}
 
             {loading ? (
-
-                <Box
-                    textAlign="center"
-                    py={10}
-                >
-
-                    <Text>
+                <VStack py={10} gap={3}>
+                    <Spinner size="lg" color="blue.500" />
+                    <Text color="gray.500" fontSize="sm">
                         Loading purchase orders...
                     </Text>
-
-                </Box>
-
+                </VStack>
             ) : (
+                <>
+                    <POTable
+                        purchaseOrders={purchaseOrders}
+                        onView={handleView}
+                        onCreateGRN={handleCreateGRN}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onPrint={handlePrint}
+                    />
 
-                <POTable
-
-                    purchaseOrders={
-                        filteredPurchaseOrders
-                    }
-
-                    onView={
-                        handleView
-                    }
-
-                    onCreateGRN={
-                        handleCreateGRN
-                    }
-
-                    onEdit={
-                        handleEdit
-                    }
-
-                    onDelete={
-                        handleDelete
-                    }
-                    onPrint={handlePrint}
-
-                />
-
+                    <Pagination
+                        pagination={pagination}
+                        onPageChange={setPage}
+                        onLimitChange={handleLimitChange}
+                    />
+                </>
             )}
-
 
             {/* VIEW DIALOG */}
 
             <POViewDialog
-
-                open={
-                    viewDialogOpen
-                }
-
+                open={viewDialogOpen}
                 onClose={() => {
-
-                    setViewDialogOpen(
-                        false
-                    );
-
-                    setSelectedPO(
-                        null
-                    );
-
+                    setViewDialogOpen(false);
+                    setSelectedPO(null);
                 }}
-
-                purchaseOrder={
-                    selectedPO
-                }
-
+                purchaseOrder={selectedPO}
             />
+
+            {/* DELETE DIALOG */}
 
             <DeletePODialog
-
-                open={
-                    deleteDialogOpen
-                }
-
+                open={deleteDialogOpen}
                 onClose={() => {
-
-                    setDeleteDialogOpen(
-                        false
-                    );
-
-                    setSelectedPO(
-                        null
-                    );
-
+                    setDeleteDialogOpen(false);
+                    setSelectedPO(null);
                 }}
+                purchaseOrder={selectedPO}
+                onDeleted={async () => {
+                    setDeleteDialogOpen(false);
+                    setSelectedPO(null);
 
-                purchaseOrder={
-                    selectedPO
-                }
-
-                onDeleted={() => {
-
-                    setDeleteDialogOpen(
-                        false
-                    );
-
-                    setSelectedPO(
-                        null
-                    );
-
-                    getPurchaseOrders();
-
+                    await getPurchaseOrders();
                 }}
-
             />
+
+            {/* PRINT PREVIEW */}
 
             <DocumentPreviewDialog
                 open={printPreviewOpen}
@@ -615,7 +381,8 @@ export default function PurchaseOrderManagement() {
                     setPrintPurchaseOrder(null);
                 }}
                 title="Purchase Order Preview"
-                fileName={`${printPurchaseOrder?.orderNumber ?? "Purchase-Order"}.pdf`}
+                fileName={`${printPurchaseOrder?.orderNumber ?? "Purchase-Order"
+                    }.pdf`}
                 renderDocument={(settings) => (
                     <PurchaseOrderPDF
                         purchaseOrder={printPurchaseOrder!}
@@ -623,9 +390,6 @@ export default function PurchaseOrderManagement() {
                     />
                 )}
             />
-
         </Box>
-
     );
-
 }

@@ -99,32 +99,35 @@ export default function CreatePO() {
     =====================================================
     */
 
+
     async function getSuppliers() {
-
         try {
-
             const response = await api.get("/external/all-external-users");
 
+            // Supports both a direct array and a wrapped API response.
+            const responseData = response.data;
+
+            const supplierList = Array.isArray(responseData)
+                ? responseData
+                : Array.isArray(responseData?.data)
+                    ? responseData.data
+                    : Array.isArray(responseData?.suppliers)
+                        ? responseData.suppliers
+                        : [];
+
             setSuppliers(
-                response.data.filter(
+                supplierList.filter(
                     (user: Supplier & { role?: string }) =>
                         user.role === "SUPPLIER"
                 )
             );
-
+        } catch (error) {
+            console.error("Failed to load suppliers:", error);
+            toast.error("Failed to load suppliers");
+            setSuppliers([]);
         }
-
-        catch (error) {
-
-            console.error(error);
-
-            toast.error(
-                "Failed to load suppliers"
-            );
-
-        }
-
     }
+
 
 
     /*
@@ -133,29 +136,30 @@ export default function CreatePO() {
     =====================================================
     */
 
+
     async function getProducts() {
-
         try {
+            const response = await api.get("/product/all");
 
-            const response = await api.get( "/product/all" );
+            // Backend returns { data, pagination, stats }.
+            const responseData = response.data;
 
-            setProducts(
-                response.data
-            );
+            const productList = Array.isArray(responseData)
+                ? responseData
+                : Array.isArray(responseData?.data)
+                    ? responseData.data
+                    : Array.isArray(responseData?.products)
+                        ? responseData.products
+                        : [];
 
+            setProducts(productList);
+        } catch (error) {
+            console.error("Failed to load products:", error);
+            toast.error("Failed to load products");
+            setProducts([]);
         }
-
-        catch (error) {
-
-            console.error(error);
-
-            toast.error(
-                "Failed to load products"
-            );
-
-        }
-
     }
+
 
 
     /*

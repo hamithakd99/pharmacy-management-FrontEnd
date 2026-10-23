@@ -1,47 +1,41 @@
 import { SimpleGrid, Stat, Card, Text } from "@chakra-ui/react";
-import { LuBoxes, LuPackage, LuTriangleAlert, LuWallet } from "react-icons/lu";
-import type { Product } from "./ProductTable";
+import {
+  LuBoxes,
+  LuPackage,
+  LuTriangleAlert,
+  LuWallet,
+} from "react-icons/lu";
+
+export type ProductStats = {
+  totalProducts: number;
+  totalStock: number;
+  inventoryValue: number;
+  lowStockProducts: number;
+};
 
 type ProductStatsCardsProps = {
-  products: Product[];
+  stats: ProductStats;
 };
 
 export default function ProductStatsCards({
-  products,
+  stats,
 }: ProductStatsCardsProps) {
-  const totalProducts = products.length;
-
-  const totalStock = products.reduce(
-    (sum, product) => sum + product.totalStock,
-    0
-  );
-
-  const inventoryValue = products.reduce(
-    (sum, product) =>
-      sum + product.buyingPrice * product.totalStock,
-    0
-  );
-
-  const lowStockProducts = products.filter(
-    (product) => product.totalStock <= product.reorderLevel
-  ).length;
-
-  const stats = [
+  const cards = [
     {
       title: "Total Products",
-      value: totalProducts,
+      value: stats.totalProducts.toLocaleString(),
       icon: LuBoxes,
       color: "blue",
     },
     {
       title: "Current Stock",
-      value: totalStock,
+      value: stats.totalStock.toLocaleString(),
       icon: LuPackage,
       color: "green",
     },
     {
       title: "Inventory Value",
-      value: `Rs. ${inventoryValue.toLocaleString(undefined, {
+      value: `Rs. ${stats.inventoryValue.toLocaleString("en-LK", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })}`,
@@ -50,31 +44,39 @@ export default function ProductStatsCards({
     },
     {
       title: "Low Stock Products",
-      value: lowStockProducts,
+      value: stats.lowStockProducts.toLocaleString(),
       icon: LuTriangleAlert,
       color: "red",
     },
   ];
 
   return (
-    <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} gap={5} mb={6}>
-      {stats.map((stat) => (
+    <SimpleGrid
+      columns={{ base: 1, md: 2, xl: 4 }}
+      gap={5}
+      mb={6}
+    >
+      {cards.map((card) => (
         <Card.Root
-          key={stat.title}
+          key={card.title}
           borderTopWidth="4px"
-          borderTopColor={`${stat.color}.500`}
+          borderTopColor={`${card.color}.500`}
           shadow="sm"
         >
           <Card.Body>
             <Stat.Root>
               <Stat.Label>
-                <Text fontWeight="medium">{stat.title}</Text>
+                <Text fontWeight="medium">
+                  {card.title}
+                </Text>
               </Stat.Label>
 
-              <Stat.ValueText mt={2}>{stat.value}</Stat.ValueText>
+              <Stat.ValueText mt={2}>
+                {card.value}
+              </Stat.ValueText>
 
               <Stat.HelpText mt={4}>
-                <stat.icon size={22} />
+                <card.icon size={22} />
               </Stat.HelpText>
             </Stat.Root>
           </Card.Body>
