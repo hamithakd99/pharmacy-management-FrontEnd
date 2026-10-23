@@ -233,14 +233,16 @@ export default function StatCards() {
                     }
                 }
 
-                const completedOrders = orders.filter(
-                    (order) => order.status === "COMPLETED"
+
+                const validOrders = orders.filter(
+                    (order) =>
+                        order.status === "CONFIRMED" ||
+                        order.status === "COMPLETED"
                 );
 
-                const todayOrders = completedOrders.filter(
+                const todayOrders = validOrders.filter(
                     (order) =>
-                        getLocalDateKey(new Date(order.createdAt)) ===
-                        todayKey
+                        getLocalDateKey(new Date(order.createdAt)) === todayKey
                 );
 
                 const todaySales = todayOrders.reduce(
@@ -248,6 +250,7 @@ export default function StatCards() {
                         total + (Number(order.totalAmount) || 0),
                     0
                 );
+
 
                 setStats({
                     totalProducts: activeProducts.length,
