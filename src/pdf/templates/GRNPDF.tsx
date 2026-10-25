@@ -389,7 +389,7 @@ export default function GRNPDF({ stockBatch, settings }: Props) {
               ["Product ID", styles.productId],
               ["Product", styles.product],
               ["Brand", styles.brand],
-              ["Batch", styles.batch],
+              // ["Batch", styles.batch],
               ["Expiry", styles.expiry],
               ["Qty", styles.quantity],
               ["Buying Price", styles.price],
@@ -432,9 +432,9 @@ export default function GRNPDF({ stockBatch, settings }: Props) {
                 <Text style={[styles.cell, styles.brand]}>
                   {item.product?.brand ?? "-"}
                 </Text>
-                <Text style={[styles.cell, styles.batch]}>
+                {/* <Text style={[styles.cell, styles.batch]}>
                   {stockBatch.batchNumber}
-                </Text>
+                </Text> */}
                 <Text style={[styles.cell, styles.expiry]}>
                   {formatDate(item.expiryDate)}
                 </Text>

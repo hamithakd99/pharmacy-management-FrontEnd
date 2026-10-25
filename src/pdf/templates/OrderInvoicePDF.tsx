@@ -21,13 +21,20 @@ interface OrderInvoice {
     sellingPrice: number;
     lineTotal: number;
     freeIssue?: number;
-    product?: { productId?: string; name?: string } | null;
+    expiryDate?: string | null;
+    stockBatchItem?: {
+      expiryDate?: string | null;
+    } | null;
+    product?: {
+      productId?: string;
+      name?: string;
+    } | null;
   }[];
   subtotal: number;
   discountAmount: number;
   totalAmount: number;
   paymentStatus: "PENDING" | "PAID" | "PARTIAL" | "REFUNDED";
-  paymentMethod: "CASH" | "CARD" | "BANK_TRANSFER" | "OTHER" | null;
+  paymentMethod: "CASH" | "CARD" | "BANK_TRANSFER" | "CHEQUE" | null;
 }
 
 interface OrderInvoicePDFProps {
@@ -41,11 +48,20 @@ const money = (amount: number) =>
     maximumFractionDigits: 2,
   });
 
-const formatDate = (value: string) => {
+const formatDate = (value?: string | null) => {
+  if (!value) return "-";
+
   const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? value || "-"
-    : date.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const year = date.getUTCFullYear();
+
+  return `${day}/${month}/${year}`;
 };
 
 const paymentMethodLabel = (method: OrderInvoice["paymentMethod"]) => {
@@ -53,7 +69,7 @@ const paymentMethodLabel = (method: OrderInvoice["paymentMethod"]) => {
     case "CASH": return "Cash";
     case "CARD": return "Card";
     case "BANK_TRANSFER": return "Bank Transfer";
-    case "OTHER": return "Other";
+    case "CHEQUE": return "Cheque";
     default: return "-";
   }
 };
@@ -117,11 +133,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.35,
     borderBottomColor: "#B8B8B8",
   },
-  codeCol: { width: "17%", paddingRight: 3 },
-  descCol: { width: "34%", paddingRight: 4 },
-  qtyCol: { width: "10%", textAlign: "right", paddingRight: 4 },
-  unitCol: { width: "17%", textAlign: "right", paddingRight: 4 },
-  freeCol: { width: "9%", textAlign: "right", paddingRight: 4 },
+  codeCol: { width: "14%", paddingRight: 3 },
+  descCol: { width: "27%", paddingRight: 4 },
+  expiryCol: { width: "15%", paddingRight: 3 },
+  qtyCol: { width: "8%", textAlign: "right", paddingRight: 4 },
+  unitCol: { width: "16%", textAlign: "right", paddingRight: 4 },
+  freeCol: { width: "7%", textAlign: "right", paddingRight: 4 },
   priceCol: { width: "13%", textAlign: "right" },
   cell: { fontSize: 7.2, lineHeight: 1.15 },
   productName: { fontSize: 7.2, lineHeight: 1.15 },
@@ -184,6 +201,7 @@ export default function OrderInvoicePDF({ order, settings }: OrderInvoicePDFProp
           <View style={styles.tableHeader} fixed>
             <Text style={styles.codeCol}>Item Code</Text>
             <Text style={styles.descCol}>Description</Text>
+            <Text style={styles.expiryCol}>Expiry Date</Text>
             <Text style={styles.qtyCol}>Qty</Text>
             <Text style={styles.unitCol}>Unit Price</Text>
             <Text style={styles.freeCol}>Free</Text>
@@ -193,6 +211,13 @@ export default function OrderInvoicePDF({ order, settings }: OrderInvoicePDFProp
             <View key={item.id} style={styles.tableRow} wrap={false}>
               <Text style={[styles.codeCol, styles.cell]}>{item.product?.productId ?? "-"}</Text>
               <Text style={[styles.descCol, styles.productName]}>{item.product?.name ?? "Product"}</Text>
+              <Text style={[styles.expiryCol, styles.cell]}>
+                {formatDate(
+                  item.stockBatchItem?.expiryDate ??
+                  item.expiryDate ??
+                  null
+                )}
+              </Text>
               <Text style={[styles.qtyCol, styles.cell]}>{item.quantity}</Text>
               <Text style={[styles.unitCol, styles.cell]}>{money(item.sellingPrice)}</Text>
               <Text style={[styles.freeCol, styles.cell]}>{Number(item.freeIssue ?? 0)}</Text>
