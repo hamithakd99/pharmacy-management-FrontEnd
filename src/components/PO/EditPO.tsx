@@ -10,10 +10,10 @@ import {
     Text,
 } from "@chakra-ui/react";
 
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import api from "@/api/axios";
 
 
 type Supplier = {
@@ -123,152 +123,87 @@ export default function EditPO() {
     =====================================================
     */
 
+
     async function loadData() {
-
         try {
-
             setLoading(true);
-
 
             const [
                 supplierResponse,
                 productResponse,
                 poResponse,
             ] = await Promise.all([
-
-                axios.get(
-
-                    import.meta.env.VITE_BACKEND_URL +
-                    "/external/all-external-users"
-
-                ),
-
-                axios.get(
-
-                    import.meta.env.VITE_BACKEND_URL +
-                    "/product/all"
-
-                ),
-
-                axios.get(
-
-                    import.meta.env.VITE_BACKEND_URL +
-                    "/po/purchase-orders/" +
-                    id
-
-                ),
-
+                api.get("/external/suppliers"),
+                api.get("/product/all"),
+                api.get("/po/purchase-orders/" + id),
             ]);
 
+            // Load supplier list
+            const supplierResponseData = supplierResponse.data;
 
-            /*
-            ---------------------------------------------
-            SUPPLIERS
-            ---------------------------------------------
-            */
+            const supplierList = Array.isArray(supplierResponseData)
+                ? supplierResponseData
+                : Array.isArray(supplierResponseData?.data)
+                    ? supplierResponseData.data
+                    : [];
 
-            setSuppliers(
-                supplierResponse.data
-            );
+            const po = poResponse.data?.data ?? poResponse.data;
 
+            // Make sure the PO's existing supplier is available in the dropdown.
+            const existingSupplier = po.supplier;
 
-            /*
-            ---------------------------------------------
-            PRODUCTS
-            ---------------------------------------------
-            */
+            const completeSupplierList =
+                existingSupplier &&
+                    !supplierList.some(
+                        (supplier: Supplier) =>
+                            Number(supplier.id) === Number(po.supplierId)
+                    )
+                    ? [...supplierList, existingSupplier]
+                    : supplierList;
 
-            setProducts(
-                productResponse.data
-            );
+            setSuppliers(completeSupplierList);
 
+            // Set existing PO details
+            setOrderNumber(po.orderNumber);
+            setSupplierId(String(po.supplierId));
+            setStatus(po.status);
 
-            /*
-            ---------------------------------------------
-            PURCHASE ORDER
-            ---------------------------------------------
-            */
+            // Load products
+            const productResponseData = productResponse.data;
 
-            const po =
-                poResponse.data;
+            const productList = Array.isArray(productResponseData)
+                ? productResponseData
+                : Array.isArray(productResponseData?.data)
+                    ? productResponseData.data
+                    : Array.isArray(productResponseData?.products)
+                        ? productResponseData.products
+                        : [];
 
+            setProducts(productList);
 
-            setOrderNumber(
-                po.orderNumber
-            );
-
-
-            setSupplierId(
-                String(
-                    po.supplierId
-                )
-            );
-
-
-            setStatus(
-                po.status
-            );
-
-
-            /*
-            ---------------------------------------------
-            EXISTING ITEMS
-            ---------------------------------------------
-            */
-
+            // Load existing PO items
             setItems(
-
-                po.items.map(
-                    (item: any) => ({
-
-                        id:
-                            item.id,
-
-                        productId:
-                            item.productId,
-
-                        productCode:
-                            item.product?.productId ??
-                            "-",
-
-                        productName:
-                            item.product?.name ??
-                            "-",
-
-                        brand:
-                            item.product?.brand ??
-                            "-",
-
-                        quantity:
-                            item.quantity,
-
-                    })
-                )
-
+                (po.items ?? []).map((item: any) => ({
+                    id: item.id,
+                    productId: item.productId,
+                    productCode: item.product?.productId ?? "-",
+                    productName: item.product?.name ?? "-",
+                    brand: item.product?.brand ?? "-",
+                    quantity: item.quantity,
+                }))
             );
-
-        }
-
-        catch (error: any) {
-
-            console.error(error);
+        } catch (error: any) {
+            console.error("Failed to load purchase order:", error);
 
             toast.error(
-
                 error.response?.data?.error ??
                 "Failed to load purchase order"
-
             );
-
-        }
-
-        finally {
-
+        } finally {
             setLoading(false);
-
         }
-
     }
+
 
 
     /*
@@ -413,7 +348,7 @@ export default function EditPO() {
                 (item) =>
 
                     item.productId ===
-                    productId
+                        productId
 
                         ? {
 
@@ -527,13 +462,7 @@ export default function EditPO() {
 
 
             const response =
-                await axios.put(
-
-                    import.meta.env.VITE_BACKEND_URL +
-
-                    "/po/update/purchase-orders/" +
-
-                    id,
+                await api.put("/po/update/purchase-orders/" + id,
 
                     {
 
@@ -742,49 +671,19 @@ export default function EditPO() {
                             <NativeSelect.Root>
 
                                 <NativeSelect.Field
-
-                                    value={
-                                        supplierId
-                                    }
-
-                                    onChange={(e) =>
-                                        setSupplierId(
-                                            e.target.value
-                                        )
-                                    }
-
+                                    value={supplierId}
+                                    onChange={(e) => setSupplierId(e.target.value)}
                                 >
+                                    <option value="">Select Supplier</option>
 
-                                    <option value="">
-                                        Select Supplier
-                                    </option>
-
-
-                                    {suppliers.map(
-                                        (supplier) => (
-
-                                            <option
-                                                key={
-                                                    supplier.id
-                                                }
-                                                value={
-                                                    supplier.id
-                                                }
-                                            >
-
-                                                {
-                                                    supplier.firstName
-                                                }{" "}
-
-                                                {
-                                                    supplier.lastName
-                                                }
-
-                                            </option>
-
-                                        )
-                                    )}
-
+                                    {suppliers.map((supplier) => (
+                                        <option
+                                            key={supplier.id}
+                                            value={String(supplier.id)}
+                                        >
+                                            {supplier.firstName} {supplier.lastName}
+                                        </option>
+                                    ))}
                                 </NativeSelect.Field>
 
 
