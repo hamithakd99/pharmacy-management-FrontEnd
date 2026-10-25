@@ -60,6 +60,8 @@ const CreateOrder = () => {
         paymentMethod: null,
     });
 
+    const [saleType, setSaleType] = useState<"WHOLESALE" | "RETAIL">("WHOLESALE");
+
     const [creatingOrder, setCreatingOrder] = useState(false);
     // const [createdOrder, setCreatedOrder] = useState<any>(null);
 
@@ -120,6 +122,8 @@ const CreateOrder = () => {
                     : selectedCustomer?.id ?? null,
 
                 status: "PENDING",
+
+                saleType,
 
                 paymentStatus:
                     orderDetails.paymentStatus,
@@ -408,6 +412,8 @@ const CreateOrder = () => {
                         <ProductStep
                             selectedProducts={selectedProducts}
                             onProductsChange={setSelectedProducts}
+                            saleType={saleType}
+                            onSaleTypeChange={setSaleType}
 
                         />
                     )}

@@ -3,7 +3,6 @@ import {
     Button,
     Flex,
     Heading,
-    HStack,
     Input,
     SimpleGrid,
     Text,
@@ -22,7 +21,7 @@ import type { Customer } from "./CustomerStep";
 export interface OrderDetails {
     discountAmount: number;
     paymentStatus: "PENDING" | "PAID" | "PARTIAL";
-    paymentMethod: "CASH" | "CARD" | "BANK_TRANSFER" | "OTHER" | null;
+    paymentMethod: "CASH" | "CARD" | "BANK_TRANSFER" | "CHEQUE" | null;
 }
 
 interface OrderDetailsStepProps {
@@ -102,8 +101,8 @@ const OrderDetailsStep = ({
                     overflow="hidden"
                 >
                     <Flex
-                        px={5}
-                        py={4}
+                        px={4}
+                        py={3}
                         bg="gray.50"
                         borderBottom="1px solid"
                         borderColor="gray.200"
@@ -303,11 +302,11 @@ const OrderDetailsStep = ({
                     gap={3}
                 >
                     <Flex
-                        w="38px"
-                        h="38px"
+                        w="32px"
+                        h="32px"
                         align="center"
                         justify="center"
-                        borderRadius="lg"
+                        borderRadius="md"
                         bg="purple.50"
                         color="purple.600"
                     >
@@ -322,7 +321,7 @@ const OrderDetailsStep = ({
                         >
                             Order Items
                         </Text>
-                        <Text fontSize="xs" color="gray.500">
+                        <Text fontSize="xs" color="gray.500" mt={0.5}>
                             {totalItems}{" "}
                             {totalItems === 1 ? "item" : "items"} selected
                         </Text>
@@ -331,88 +330,108 @@ const OrderDetailsStep = ({
 
                 <Box>
                     {selectedProducts.map((item, index) => (
-                        <Flex
+                        <Box
                             key={item.allocationId}
-                            px={5}
-                            py={4}
-                            align={{ base: "flex-start", md: "center" }}
-                            justify="space-between"
-                            gap={4}
-                            direction={{ base: "column", md: "row" }}
+                            px={4}
+                            py={{ base: 3, md: 2.5 }}
                             borderBottom={
                                 index < selectedProducts.length - 1
                                     ? "1px solid"
                                     : "none"
                             }
                             borderColor="gray.100"
+                            _hover={{ bg: "gray.50" }}
+                            transition="background-color 0.2s"
                         >
-                            <Box flex={1}>
-                                <Text
-                                    fontSize="sm"
-                                    fontWeight="600"
-                                    color="blue.600"
-                                >
-                                    {item.productCode}
-                                </Text>
+                            <SimpleGrid
+                                columns={{ base: 2, md: 4 }}
+                                templateColumns={{
+                                    base: "minmax(0, 1fr) minmax(0, 1fr)",
+                                    md: "minmax(0, 1fr) 85px 125px 125px",
+                                }}
+                                alignItems="center"
+                                gap={{ base: 3, md: 4 }}
+                            >
+                                <Box minW={0} gridColumn={{ base: "1 / -1", md: "auto" }}>
+                                    <Flex align="center" gap={2} minW={0}>
+                                        <Text
+                                            fontSize="xs"
+                                            fontWeight="700"
+                                            color="blue.600"
+                                            whiteSpace="nowrap"
+                                        >
+                                            {item.productCode}
+                                        </Text>
+                                        <Text
+                                            fontSize="sm"
+                                            fontWeight="600"
+                                            color="gray.800"
+                                            truncate
+                                        >
+                                            {item.name}
+                                        </Text>
+                                    </Flex>
+                                    <Flex
+                                        align="center"
+                                        gap={2}
+                                        mt={0.5}
+                                        wrap="wrap"
+                                    >
+                                        <Text fontSize="xs" color="gray.500">
+                                            {item.brand || "No brand"}
+                                        </Text>
+                                        {/* <Text fontSize="xs" color="gray.300">
+                                            |
+                                        </Text> */}
+                                        {/* <Text
+                                            fontSize="xs"
+                                            color="purple.600"
+                                            fontWeight="600"
+                                        >
+                                            Batch: {item.batchNumber || "-"}
+                                        </Text> */}
+                                        <Text fontSize="xs" color="gray.300">
+                                            |
+                                        </Text>
+                                        <Text fontSize="xs" color="gray.500">
+                                            Expiry:{" "}
+                                            {new Date(
+                                                item.expiryDate
+                                            ).toLocaleDateString("en-GB")}
+                                        </Text>
+                                    </Flex>
+                                </Box>
 
-                                <Text
-                                    fontSize="sm"
-                                    fontWeight="600"
+                                <Box
+                                    textAlign={{ base: "left", md: "right" }}
                                 >
-                                    {item.name}
-                                </Text>
-
-                                <Text
-                                    fontSize="xs"
-                                    color="gray.500"
-                                >
-                                    {item.brand || "-"}
-                                </Text>
-
-                                <Text
-                                    fontSize="xs"
-                                    color="purple.600"
-                                    fontWeight="600"
-                                    mt={1}
-                                >
-                                    Batch: {item.batchNumber || "-"}
-                                </Text>
-
-                                <Text
-                                    fontSize="xs"
-                                    color="gray.500"
-                                >
-                                    Expiry: {new Date(item.expiryDate).toLocaleDateString("en-GB")}
-                                </Text>
-                            </Box>
-
-                            <HStack gap={8}>
-                                <Box textAlign="right">
                                     <Text
                                         fontSize="xs"
-                                        color="gray.400"
+                                        color="gray.500"
                                     >
                                         Quantity
                                     </Text>
                                     <Text
-                                        mt={1}
-                                        fontSize="sm"
-                                        fontWeight="600"
+                                        mt={0.5}
+                                        fontSize="md"
+                                        fontWeight="700"
                                         color="gray.700"
                                     >
                                         {item.quantity}
                                     </Text>
                                 </Box>
 
-                                <Box textAlign="right">
+                                <Box
+                                    textAlign={{ base: "left", md: "right" }}
+                                >
                                     <Text
                                         fontSize="xs"
-                                        color="gray.400"
+                                        color="gray.500"
                                     >
                                         Unit Price
                                     </Text>
                                     <Text
-                                        mt={1}
+                                        mt={0.5}
                                         fontSize="sm"
                                         fontWeight="600"
                                         color="gray.700"
@@ -424,31 +443,28 @@ const OrderDetailsStep = ({
                                 </Box>
 
                                 <Box
-                                    minW={{
-                                        base: "auto",
-                                        md: "110px",
-                                    }}
-                                    textAlign="right"
+                                    minW={0}
+                                    textAlign={{ base: "left", md: "right" }}
                                 >
                                     <Text
                                         fontSize="xs"
-                                        color="gray.400"
+                                        color="gray.500"
                                     >
                                         Total
                                     </Text>
                                     <Text
-                                        mt={1}
+                                        mt={0.5}
                                         fontSize="sm"
                                         fontWeight="700"
-                                        color="gray.800"
+                                        color="blue.700"
                                     >
                                         {formatCurrency(
                                             item.lineTotal
                                         )}
                                     </Text>
                                 </Box>
-                            </HStack>
-                        </Flex>
+                            </SimpleGrid>
+                        </Box>
                     ))}
                 </Box>
             </Box>
@@ -563,7 +579,7 @@ const OrderDetailsStep = ({
                                     ["CASH", "Cash"],
                                     ["CARD", "Card"],
                                     ["BANK_TRANSFER", "Bank Transfer"],
-                                    ["OTHER", "Other"],
+                                    ["CHEQUE", "Cheque"],
                                 ] as const
                             ).map(([value, label]) => {
                                 const isActive =

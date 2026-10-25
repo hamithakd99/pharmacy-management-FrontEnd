@@ -18,7 +18,8 @@ interface StockBatch {
 interface StockBatchItem {
     id: number;
     availableQuantity: number;
-    sellingPrice: number;
+    sellingPrice: number; // Wholesale price
+    retailPrice?: number | null; // Retail price
     expiryDate: string;
     stockBatch?: StockBatch;
 }
@@ -50,16 +51,21 @@ export interface SelectedProduct {
 interface ProductStepProps {
     selectedProducts: SelectedProduct[];
     onProductsChange: (products: SelectedProduct[]) => void;
+    saleType: "WHOLESALE" | "RETAIL";
+    onSaleTypeChange: (saleType: "WHOLESALE" | "RETAIL") => void;
 }
 
 const ProductStep = ({
     selectedProducts,
     onProductsChange,
+    saleType,
+    onSaleTypeChange,
 }: ProductStepProps) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [quantityDrafts, setQuantityDrafts] = useState<Record<number, string>>({});
 
 
     useEffect(() => {
@@ -147,8 +153,18 @@ const ProductStep = ({
             );
     };
 
-    const addProduct = (product: Product) => {
-        const availableBatches = (product.stockBatchItems || [])
+    // StockBatchItem.sellingPrice is the wholesale price.
+    // retailPrice must be returned by the backend for retail sales.
+    const getBatchPrice = (batch: StockBatchItem) => {
+        if (saleType === "RETAIL") {
+            return Number(batch.retailPrice ?? 0);
+        }
+
+        return Number(batch.sellingPrice ?? 0);
+    };
+
+    const getAvailableBatches = (product: Product) =>
+        (product.stockBatchItems || [])
             .filter(
                 (batch) =>
                     Number(batch.availableQuantity || 0) > 0 &&
@@ -159,6 +175,36 @@ const ProductStep = ({
                     new Date(a.expiryDate).getTime() -
                     new Date(b.expiryDate).getTime()
             );
+
+    const handleSaleTypeChange = (nextSaleType: "WHOLESALE" | "RETAIL") => {
+        onSaleTypeChange(nextSaleType);
+
+        // Recalculate the prices of products that have already been selected.
+        const updatedProducts = selectedProducts.map((item) => {
+            const product = products.find((p) => p.id === item.productId);
+            const batch = product?.stockBatchItems?.find(
+                (b) => b.id === item.batchId
+            );
+
+            if (!batch) return item;
+
+            const nextPrice =
+                nextSaleType === "RETAIL"
+                    ? Number(batch.retailPrice ?? 0)
+                    : Number(batch.sellingPrice ?? 0);
+
+            return {
+                ...item,
+                sellingPrice: nextPrice,
+                lineTotal: item.quantity * nextPrice,
+            };
+        });
+
+        onProductsChange(updatedProducts);
+    };
+
+    const addProduct = (product: Product) => {
+        const availableBatches = getAvailableBatches(product);
 
         const availableStock = availableBatches.reduce(
             (total, batch) =>
@@ -214,12 +260,8 @@ const ProductStep = ({
                     batch.stockBatch?.batchNumber,
                 expiryDate: batch.expiryDate,
                 quantity: allocatedQuantity,
-                sellingPrice: Number(
-                    batch.sellingPrice || 0
-                ),
-                lineTotal:
-                    allocatedQuantity *
-                    Number(batch.sellingPrice || 0)
+                sellingPrice: getBatchPrice(batch),
+                lineTotal: allocatedQuantity * getBatchPrice(batch)
             });
 
             remaining -= allocatedQuantity;
@@ -265,17 +307,7 @@ const ProductStep = ({
             return;
         }
 
-        const availableBatches = (product.stockBatchItems || [])
-            .filter(
-                (batch) =>
-                    Number(batch.availableQuantity || 0) > 0 &&
-                    new Date(batch.expiryDate) > new Date()
-            )
-            .sort(
-                (a, b) =>
-                    new Date(a.expiryDate).getTime() -
-                    new Date(b.expiryDate).getTime()
-            );
+        const availableBatches = getAvailableBatches(product);
 
         const totalAvailable = availableBatches.reduce(
             (total, batch) =>
@@ -322,12 +354,8 @@ const ProductStep = ({
                     batch.stockBatch?.batchNumber,
                 expiryDate: batch.expiryDate,
                 quantity: allocatedQuantity,
-                sellingPrice: Number(
-                    batch.sellingPrice || 0
-                ),
-                lineTotal:
-                    allocatedQuantity *
-                    Number(batch.sellingPrice || 0)
+                sellingPrice: getBatchPrice(batch),
+                lineTotal: allocatedQuantity * getBatchPrice(batch)
             });
 
             remaining -= allocatedQuantity;
@@ -393,6 +421,29 @@ const ProductStep = ({
                     <Heading size="md" color="gray.800">
                         Add Products
                     </Heading>
+                    <Flex gap={3} mt={4} mb={5} align="center" wrap="wrap">
+                        <Text fontSize="sm" fontWeight="600">
+                            Sale Type:
+                        </Text>
+
+                        <Button
+                            size="sm"
+                            colorPalette={saleType === "WHOLESALE" ? "blue" : "gray"}
+                            variant={saleType === "WHOLESALE" ? "solid" : "outline"}
+                            onClick={() => handleSaleTypeChange("WHOLESALE")}
+                        >
+                            Wholesale
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            colorPalette={saleType === "RETAIL" ? "blue" : "gray"}
+                            variant={saleType === "RETAIL" ? "solid" : "outline"}
+                            onClick={() => handleSaleTypeChange("RETAIL")}
+                        >
+                            Retail
+                        </Button>
+                    </Flex>
                     <Text mt={1} fontSize="sm" color="gray.500">
                         Search and add products to this customer order.
                     </Text>
@@ -632,19 +683,30 @@ const ProductStep = ({
                                                 fontSize="xs"
                                                 color="gray.500"
                                             >
-                                                Selling Price
+                                                {saleType === "RETAIL"
+                                                    ? "Retail Price"
+                                                    : "Wholesale Price"}
                                             </Text>
                                             <Text
                                                 fontSize="md"
                                                 fontWeight="700"
                                                 color="gray.800"
                                             >
-                                                {formatCurrency(
-                                                    Number(
-                                                        product.sellingPrice ||
-                                                        0
-                                                    )
-                                                )}
+                                                {(() => {
+                                                    const firstAvailableBatch =
+                                                        getAvailableBatches(product)[0];
+
+                                                    if (!firstAvailableBatch) {
+                                                        return "N/A";
+                                                    }
+
+                                                    const price = getBatchPrice(firstAvailableBatch);
+
+                                                    return saleType === "RETAIL" &&
+                                                        firstAvailableBatch.retailPrice == null
+                                                        ? "Retail price not set"
+                                                        : formatCurrency(price);
+                                                })()}
                                             </Text>
                                         </Box>
 
@@ -763,40 +825,40 @@ const ProductStep = ({
                 </Box>
             )}
 
+            
             <Box
-                mt={8}
+                mt={6}
                 border="1px solid"
                 borderColor="gray.200"
                 borderRadius="lg"
                 overflow="hidden"
                 bg="white"
             >
+                {/* Header */}
                 <Flex
-                    px={5}
-                    py={4}
+                    px={4}
+                    py={3}
                     bg="gray.50"
                     borderBottom="1px solid"
                     borderColor="gray.200"
                     justify="space-between"
                     align="center"
+                    gap={3}
                 >
                     <Box>
-                        <Text
-                            fontSize="sm"
-                            fontWeight="700"
-                            color="gray.800"
-                        >
+                        <Heading size="sm" color="gray.800">
                             Selected Products
-                        </Text>
+                        </Heading>
                         <Text fontSize="xs" color="gray.500" mt={1}>
-                            Products included in this order
+                            {selectedProducts.length} batch allocation(s)
                         </Text>
                     </Box>
 
                     <Text
-                        fontSize="sm"
+                        fontSize={{ base: "sm", md: "md" }}
                         fontWeight="700"
                         color="blue.600"
+                        whiteSpace="nowrap"
                     >
                         {formatCurrency(subtotal)}
                     </Text>
@@ -804,206 +866,330 @@ const ProductStep = ({
 
                 {selectedProducts.length === 0 ? (
                     <Flex
-                        minH="150px"
+                        minH="110px"
                         align="center"
                         justify="center"
                         direction="column"
                         gap={2}
-                        px={5}
+                        p={4}
                     >
                         <FiShoppingCart
-                            size={28}
+                            size={24}
                             style={{ color: "#9CA3AF" }}
                         />
-                        <Text
-                            fontSize="sm"
-                            fontWeight="600"
-                            color="gray.500"
-                        >
+                        <Text fontSize="sm" color="gray.500">
                             No products selected
-                        </Text>
-                        <Text fontSize="xs" color="gray.400">
-                            Add products from the list above.
                         </Text>
                     </Flex>
                 ) : (
                     <Box>
-                        {selectedProducts.map((item, index) => (
-                            <Flex
-                                key={item.allocationId}
-                                px={5}
-                                py={4}
-                                minH="120px"
-                                align="center"
-                                justify="space-between"
-                                gap={4}
-                                direction={{
-                                    base: "column",
-                                    md: "row",
-                                }}
-                                borderBottom={
-                                    index <
-                                        selectedProducts.length - 1
-                                        ? "1px solid"
-                                        : "none"
-                                }
-                                borderColor="gray.100"
-                            >
-                                <Box flex={1}>
-                                    <Text
-                                        fontSize="sm"
-                                        fontWeight="600"
-                                        color="blue.600"
-                                    >
-                                        {item.productCode}
-                                    </Text>
+                        {selectedProducts.map((item, index) => {
+                            const product = products.find(
+                                (p) => p.id === item.productId
+                            );
 
-                                    <Text
-                                        fontSize="sm"
-                                        fontWeight="600"
-                                    >
-                                        {item.name}
-                                    </Text>
+                            const batch = product?.stockBatchItems?.find(
+                                (b) => b.id === item.batchId
+                            );
 
-                                    <Text
-                                        fontSize="xs"
-                                        color="gray.500"
-                                    >
-                                        {item.brand || "-"}
-                                    </Text>
+                            const maxBatchStock = Number(
+                                batch?.availableQuantity ?? item.quantity
+                            );
 
-                                    <Text
-                                        fontSize="xs"
-                                        color="purple.600"
-                                        fontWeight="600"
-                                        mt={1}
-                                    >
-                                        Batch: {item.batchNumber || "-"}
-                                    </Text>
+                            const firstProductRow =
+                                selectedProducts.findIndex(
+                                    (p) => p.productId === item.productId
+                                ) === index;
 
-                                    <Text
-                                        fontSize="xs"
-                                        color="gray.500"
-                                    >
-                                        Expiry: {new Date(item.expiryDate).toLocaleDateString("en-GB")}
-                                    </Text>
-                                </Box>
+                            const totalProductStock = product
+                                ? getAvailableBatches(product).reduce(
+                                      (total, b) =>
+                                          total +
+                                          Number(b.availableQuantity || 0),
+                                      0
+                                  )
+                                : item.quantity;
 
-                                <HStack gap={6}>
-                                    <Box textAlign="right">
-                                        <Text
-                                            fontSize="xs"
-                                            color="gray.400"
+                            const currentProductQuantity =
+                                getSelectedQuantity(item.productId);
+
+                            return (
+                                <Box
+                                    key={item.allocationId}
+                                    px={3}
+                                    py={3}
+                                    borderBottom={
+                                        index < selectedProducts.length - 1
+                                            ? "1px solid"
+                                            : "none"
+                                    }
+                                    borderColor="gray.100"
+                                >
+                                    <Flex
+                                        align="center"
+                                        gap={{ base: 3, md: 4 }}
+                                        direction={{
+                                            base: "column",
+                                            md: "row",
+                                        }}
+                                    >
+                                        {/* Product details */}
+                                        <Box flex="1" minW={0} w="100%">
+                                            <Text
+                                                fontSize="xs"
+                                                color="gray.500"
+                                            >
+                                                Expiry:{" "}
+                                                {new Date(
+                                                    item.expiryDate
+                                                ).toLocaleDateString("en-GB")}
+                                            </Text>
+
+                                            <Text
+                                                fontSize="sm"
+                                                fontWeight="600"
+                                                color="gray.800"
+                                                mt={1}
+                                                lineHeight="1.3"
+                                            >
+                                                {item.name}
+                                            </Text>
+
+                                            <Text
+                                                fontSize="xs"
+                                                color="blue.600"
+                                                mt={1}
+                                            >
+                                                {item.productCode}
+                                                {item.brand
+                                                    ? ` • ${item.brand}`
+                                                    : ""}
+                                            </Text>
+
+                                            <Text
+                                                fontSize="xs"
+                                                color="purple.600"
+                                                mt={1}
+                                            >
+                                                Batch: {item.batchNumber || "-"}
+                                                {" · "}
+                                                Batch max: {maxBatchStock}
+                                            </Text>
+                                        </Box>
+
+                                        {/* Price */}
+                                        <Box
+                                            minW={{ base: "100%", md: "115px" }}
+                                            textAlign={{
+                                                base: "left",
+                                                md: "right",
+                                            }}
                                         >
-                                            Unit Price
-                                        </Text>
-                                        <Text
-                                            fontSize="sm"
-                                            fontWeight="600"
-                                            color="gray.700"
-                                        >
-                                            {formatCurrency(
-                                                item.sellingPrice
-                                            )}
-                                        </Text>
-                                    </Box>
+                                            <Text
+                                                fontSize="xs"
+                                                color="gray.500"
+                                            >
+                                                {saleType === "RETAIL"
+                                                    ? "Retail Price"
+                                                    : "Wholesale Price"}
+                                            </Text>
 
-                                    <HStack
-                                        gap={1}
-                                        border="1px solid"
-                                        borderColor="gray.200"
-                                        borderRadius="md"
-                                        p={1}
-                                    >
-                                        <Button
-                                            size="xs"
-                                            variant="ghost"
-                                            disabled={getSelectedQuantity(item.productId) <= 1}
-                                            onClick={() =>
-                                                updateQuantity(
-                                                    item.productId,
-                                                    getSelectedQuantity(item.productId) - 1
-                                                )
-                                            }
-                                        >
-                                            <FiMinus />
-                                        </Button>
+                                            <Text
+                                                fontSize="sm"
+                                                fontWeight="600"
+                                                color="gray.800"
+                                            >
+                                                {formatCurrency(
+                                                    item.sellingPrice
+                                                )}
+                                            </Text>
+                                        </Box>
 
-                                        <Text
-                                            minW="28px"
-                                            textAlign="center"
-                                            fontSize="sm"
-                                            fontWeight="700"
+                                        {/* Quantity */}
+                                        <Box
+                                            minW={{ base: "100%", md: "100px" }}
+                                            textAlign={{
+                                                base: "left",
+                                                md: "center",
+                                            }}
                                         >
-                                            {item.quantity}
-                                        </Text>
+                                            <Text
+                                                fontSize="xs"
+                                                color="gray.500"
+                                                mb={1}
+                                            >
+                                                {firstProductRow
+                                                    ? "Total Quantity"
+                                                    : "Batch Quantity"}
+                                            </Text>
 
-                                        <Button
-                                            size="xs"
-                                            variant="ghost"
-                                            disabled={
-                                                getSelectedQuantity(item.productId) >=
-                                                getAvailableStock(
-                                                    products.find(
-                                                        (product) => product.id === item.productId
-                                                    ) || {
-                                                        id: item.productId,
-                                                        productId: item.productCode,
-                                                        name: item.name,
-                                                        totalStock: 0,
+                                            {firstProductRow ? (
+                                                <Input
+                                                    type="number"
+                                                    size="sm"
+                                                    min={1}
+                                                    max={totalProductStock}
+                                                    width={{
+                                                        base: "100%",
+                                                        md: "100px",
+                                                    }}
+                                                    value={
+                                                        quantityDrafts[
+                                                            item.productId
+                                                        ] ??
+                                                        String(
+                                                            currentProductQuantity
+                                                        )
                                                     }
-                                                )
-                                            }
-                                            onClick={() =>
-                                                updateQuantity(
-                                                    item.productId,
-                                                    getSelectedQuantity(item.productId) + 1
-                                                )
-                                            }
+                                                    onChange={(event) => {
+                                                        const raw =
+                                                            event.target.value;
+
+                                                        setQuantityDrafts(
+                                                            (previous) => ({
+                                                                ...previous,
+                                                                [item.productId]:
+                                                                    raw,
+                                                            })
+                                                        );
+
+                                                        if (raw === "") return;
+
+                                                        const parsed =
+                                                            Number.parseInt(
+                                                                raw,
+                                                                10
+                                                            );
+
+                                                        if (
+                                                            !Number.isFinite(
+                                                                parsed
+                                                            ) ||
+                                                            parsed < 1
+                                                        ) {
+                                                            return;
+                                                        }
+
+                                                        const safeQuantity =
+                                                            Math.min(
+                                                                parsed,
+                                                                totalProductStock
+                                                            );
+
+                                                        updateQuantity(
+                                                            item.productId,
+                                                            safeQuantity
+                                                        );
+                                                    }}
+                                                    onBlur={(event) => {
+                                                        const parsed =
+                                                            Number.parseInt(
+                                                                event.target
+                                                                    .value,
+                                                                10
+                                                            );
+
+                                                        const safeQuantity =
+                                                            !Number.isFinite(
+                                                                parsed
+                                                            ) ||
+                                                            parsed < 1
+                                                                ? 1
+                                                                : Math.min(
+                                                                      parsed,
+                                                                      totalProductStock
+                                                                  );
+
+                                                        setQuantityDrafts(
+                                                            (previous) => ({
+                                                                ...previous,
+                                                                [item.productId]:
+                                                                    String(
+                                                                        safeQuantity
+                                                                    ),
+                                                            })
+                                                        );
+
+                                                        updateQuantity(
+                                                            item.productId,
+                                                            safeQuantity
+                                                        );
+                                                    }}
+                                                />
+                                            ) : (
+                                                <Text
+                                                    fontSize="sm"
+                                                    fontWeight="600"
+                                                    color="gray.700"
+                                                >
+                                                    {item.quantity}
+                                                </Text>
+                                            )}
+                                        </Box>
+
+                                        {/* Line total */}
+                                        <Box
+                                            minW={{ base: "100%", md: "100px" }}
+                                            textAlign={{
+                                                base: "left",
+                                                md: "right",
+                                            }}
                                         >
-                                            <FiPlus />
+                                            <Text
+                                                fontSize="xs"
+                                                color="gray.500"
+                                            >
+                                                Batch Total
+                                            </Text>
+
+                                            <Text
+                                                fontSize="sm"
+                                                fontWeight="700"
+                                                color="gray.800"
+                                            >
+                                                {formatCurrency(item.lineTotal)}
+                                            </Text>
+                                        </Box>
+
+                                        {/* Remove product */}
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            colorPalette="red"
+                                            alignSelf={{
+                                                base: "flex-end",
+                                                md: "center",
+                                            }}
+                                            onClick={() => {
+                                                removeProduct(item.productId);
+                                                setQuantityDrafts(
+                                                    (previous) => {
+                                                        const next = {
+                                                            ...previous,
+                                                        };
+                                                        delete next[
+                                                            item.productId
+                                                        ];
+                                                        return next;
+                                                    }
+                                                );
+                                            }}
+                                            aria-label={`Remove ${item.name}`}
+                                        >
+                                            <FiTrash2 />
                                         </Button>
-                                    </HStack>
-
-                                    <Box
-                                        minW={{ base: "auto", md: "110px" }}
-                                        textAlign="right"
-                                    >
-                                        <Text
-                                            fontSize="xs"
-                                            color="gray.400"
-                                        >
-                                            Total
-                                        </Text>
-                                        <Text
-                                            fontSize="sm"
-                                            fontWeight="700"
-                                            color="gray.800"
-                                        >
-                                            {formatCurrency(item.lineTotal)}
-                                        </Text>
-                                    </Box>
-
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        colorPalette="red"
-                                        onClick={() =>
-                                            removeProduct(item.productId)
-                                        }
-                                    >
-                                        <FiTrash2 />
-                                    </Button>
-                                </HStack>
-                            </Flex>
-                        ))}
+                                    </Flex>
+                                </Box>
+                            );
+                        })}
                     </Box>
                 )}
 
+                {/* Subtotal */}
                 {selectedProducts.length > 0 && (
                     <Flex
-                        px={5}
-                        py={4}
+                        px={4}
+                        py={3}
                         bg="gray.50"
                         borderTop="1px solid"
                         borderColor="gray.200"
@@ -1024,6 +1210,7 @@ const ProductStep = ({
                     </Flex>
                 )}
             </Box>
+
         </Box>
     );
 };
