@@ -40,7 +40,7 @@ export interface ExternalUser {
     userId: string;
     firstName: string;
     lastName: string;
-    email: string;
+    email?: string | null;
     role: ExternalUserRole;
     contactNumber: string;
     nickName?: string | null;

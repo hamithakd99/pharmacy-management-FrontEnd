@@ -1,4 +1,4 @@
-import {Box, Button, Field, Flex, Heading, Input, NativeSelect, SimpleGrid, Text, Textarea } from "@chakra-ui/react";
+import { Box, Button, Field, Flex, Heading, Input, NativeSelect, SimpleGrid, Text, Textarea } from "@chakra-ui/react";
 import { useState } from "react";
 
 import type { ExternalUser, ExternalUserRole, Province } from "./user.types";
@@ -88,10 +88,6 @@ export default function ExternalUserForm({
             return;
         }
 
-        if (!formData.email.trim()) {
-            return;
-        }
-
         if (!formData.contactNumber.trim()) {
             return;
         }
@@ -112,7 +108,7 @@ export default function ExternalUserForm({
                 formData.lastName.trim(),
 
             email:
-                formData.email.trim(),
+                formData.email.trim() || null,
 
             role:
                 formData.role,
@@ -284,7 +280,7 @@ export default function ExternalUserForm({
                                             value={role}
                                         >
                                             {role ===
-                                            "CUSTOMER"
+                                                "CUSTOMER"
                                                 ? "Customer"
                                                 : "Supplier"}
                                         </option>
@@ -298,21 +294,15 @@ export default function ExternalUserForm({
 
                     {/* EMAIL */}
 
-                    <Field.Root required>
-                        <Field.Label>
-                            Email
-                        </Field.Label>
+                    <Field.Root>
+                        <Field.Label>Email (Optional)</Field.Label>
 
                         <Input
                             type="email"
-                            value={
-                                formData.email
-                            }
+                            name="email"
+                            value={formData.email}
                             onChange={(e) =>
-                                handleChange(
-                                    "email",
-                                    e.target.value
-                                )
+                                handleChange("email", e.target.value)
                             }
                             placeholder="Enter email address"
                         />
