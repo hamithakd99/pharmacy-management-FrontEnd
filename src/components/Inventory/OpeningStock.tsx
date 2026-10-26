@@ -9,7 +9,7 @@ import {
     HStack,
     Input,
     Spinner,
-    Table,
+    SimpleGrid,
     Text,
     VStack,
 } from "@chakra-ui/react";
@@ -34,6 +34,7 @@ type OpeningStockItem = {
     receivedQuantity: string;
     buyingPrice: string;
     sellingPrice: string;
+    retailPrice: string;
     expiryDate: string;
     manufacturingDate: string;
 };
@@ -58,6 +59,7 @@ const createEmptyItem = (rowId: number): OpeningStockItem => ({
     receivedQuantity: "",
     buyingPrice: "",
     sellingPrice: "",
+    retailPrice: "",
     expiryDate: "",
     manufacturingDate: "",
 });
@@ -202,6 +204,15 @@ export default function OpeningStock() {
                 return;
             }
 
+            if (
+                item.retailPrice.trim() !== "" &&
+                (!Number.isFinite(Number(item.retailPrice)) ||
+                    Number(item.retailPrice) < 0)
+            ) {
+                toast.error(`Row ${row}: Enter a valid retail price.`);
+                return;
+            }
+
             if (!item.expiryDate) {
                 toast.error(`Row ${row}: Please select an expiry date.`);
                 return;
@@ -231,6 +242,10 @@ export default function OpeningStock() {
                 receivedQuantity: Number(item.receivedQuantity),
                 buyingPrice: Number(item.buyingPrice),
                 sellingPrice: Number(item.sellingPrice),
+                retailPrice:
+                    item.retailPrice.trim() === ""
+                        ? null
+                        : Number(item.retailPrice),
                 expiryDate: item.expiryDate,
                 manufacturingDate: item.manufacturingDate || null,
             })),
@@ -240,7 +255,7 @@ export default function OpeningStock() {
             setSaving(true);
 
             const response = await api.post(
-                "/stock/opening-stock/bulk",
+                "/stock-batch/opening-stock/bulk",
                 payload,
                 {
                     headers: {
@@ -377,201 +392,268 @@ export default function OpeningStock() {
                         </Text>
                     </Box>
                 ) : (
-                    <Box overflowX="auto">
-                        <Table.Root size="sm" variant="outline">
-                            <Table.Header>
-                                <Table.Row>
-                                    <Table.ColumnHeader minW="220px">
-                                        Product
-                                    </Table.ColumnHeader>
-                                    <Table.ColumnHeader minW="110px">
-                                        Quantity
-                                    </Table.ColumnHeader>
-                                    <Table.ColumnHeader minW="130px">
-                                        Buying Price (Rs.)
-                                    </Table.ColumnHeader>
-                                    <Table.ColumnHeader minW="130px">
-                                        Selling Price (Rs.)
-                                    </Table.ColumnHeader>
-                                    <Table.ColumnHeader minW="155px">
-                                        Expiry Date
-                                    </Table.ColumnHeader>
-                                    <Table.ColumnHeader minW="165px">
-                                        Manufacturing Date
-                                    </Table.ColumnHeader>
-                                    <Table.ColumnHeader>
-                                        Action
-                                    </Table.ColumnHeader>
-                                </Table.Row>
-                            </Table.Header>
+                    <Box spaceY={3}>
+                        {items.map((item, index) => {
+                            const selectedProduct = products.find(
+                                (product) =>
+                                    product.id === Number(item.productId)
+                            );
 
-                            <Table.Body>
-                                {items.map((item, index) => {
-                                    const selectedProduct = products.find(
-                                        (product) =>
-                                            product.id === Number(item.productId)
-                                    );
-
-                                    return (
-                                        <Table.Row key={item.rowId}>
-                                            <Table.Cell>
-                                                <VStack align="stretch" gap={1}>
-                                                    <select
-                                                        value={item.productId}
-                                                        onChange={(event) =>
-                                                            updateItem(
-                                                                item.rowId,
-                                                                "productId",
-                                                                event.target.value
-                                                            )
-                                                        }
-                                                        style={{
-                                                            width: "100%",
-                                                            minWidth: "200px",
-                                                            padding: "9px",
-                                                            border: "1px solid #CBD5E0",
-                                                            borderRadius: "6px",
-                                                            background: "white",
-                                                        }}
-                                                    >
-                                                        <option value="">
-                                                            Select product
-                                                        </option>
-
-                                                        {filteredProducts.map(
-                                                            (product) => (
-                                                                <option
-                                                                    key={product.id}
-                                                                    value={product.id}
-                                                                >
-                                                                    {product.productId} - {product.name}
-                                                                    {product.brand
-                                                                        ? ` (${product.brand})`
-                                                                        : ""}
-                                                                </option>
-                                                            )
-                                                        )}
-                                                    </select>
-
-                                                    {selectedProduct && (
-                                                        <Text
-                                                            fontSize="xs"
-                                                            color="gray.600"
-                                                        >
-                                                            {selectedProduct.dosageForm || ""}
-                                                            {selectedProduct.strengthValue != null
-                                                                ? ` · ${selectedProduct.strengthValue} ${selectedProduct.strengthUnit || ""}`
-                                                                : ""}
-                                                        </Text>
-                                                    )}
-                                                </VStack>
-                                            </Table.Cell>
-
-                                            <Table.Cell>
-                                                <Input
-                                                    size="sm"
-                                                    type="number"
-                                                    min={1}
-                                                    step={1}
-                                                    placeholder="0"
-                                                    value={item.receivedQuantity}
-                                                    onChange={(event) =>
-                                                        updateItem(
-                                                            item.rowId,
-                                                            "receivedQuantity",
-                                                            event.target.value
-                                                        )
-                                                    }
-                                                />
-                                            </Table.Cell>
-
-                                            <Table.Cell>
-                                                <Input
-                                                    size="sm"
-                                                    type="number"
-                                                    min={0}
-                                                    step="0.01"
-                                                    placeholder="0.00"
-                                                    value={item.buyingPrice}
-                                                    onChange={(event) =>
-                                                        updateItem(
-                                                            item.rowId,
-                                                            "buyingPrice",
-                                                            event.target.value
-                                                        )
-                                                    }
-                                                />
-                                            </Table.Cell>
-
-                                            <Table.Cell>
-                                                <Input
-                                                    size="sm"
-                                                    type="number"
-                                                    min={0}
-                                                    step="0.01"
-                                                    placeholder="0.00"
-                                                    value={item.sellingPrice}
-                                                    onChange={(event) =>
-                                                        updateItem(
-                                                            item.rowId,
-                                                            "sellingPrice",
-                                                            event.target.value
-                                                        )
-                                                    }
-                                                />
-                                            </Table.Cell>
-
-                                            <Table.Cell>
-                                                <Input
-                                                    size="sm"
-                                                    type="date"
-                                                    min={today()}
-                                                    value={item.expiryDate}
-                                                    onChange={(event) =>
-                                                        updateItem(
-                                                            item.rowId,
-                                                            "expiryDate",
-                                                            event.target.value
-                                                        )
-                                                    }
-                                                />
-                                            </Table.Cell>
-
-                                            <Table.Cell>
-                                                <Input
-                                                    size="sm"
-                                                    type="date"
-                                                    max={receivedDate || today()}
-                                                    value={item.manufacturingDate}
-                                                    onChange={(event) =>
-                                                        updateItem(
-                                                            item.rowId,
-                                                            "manufacturingDate",
-                                                            event.target.value
-                                                        )
-                                                    }
-                                                />
-                                            </Table.Cell>
-
-                                            <Table.Cell>
-                                                <Button
-                                                    size="sm"
-                                                    colorPalette="red"
-                                                    variant="ghost"
-                                                    aria-label={`Remove row ${index + 1}`}
-                                                    disabled={items.length === 1}
-                                                    onClick={() =>
-                                                        removeItem(item.rowId)
-                                                    }
+                            return (
+                                <Box
+                                    key={item.rowId}
+                                    border="1px solid"
+                                    borderColor="gray.200"
+                                    borderRadius="lg"
+                                    p={{ base: 3, md: 4 }}
+                                    _hover={{
+                                        borderColor: "teal.200",
+                                        bg: "teal.50",
+                                    }}
+                                    transition="all 0.2s"
+                                >
+                                    <Flex
+                                        justify="space-between"
+                                        align="flex-start"
+                                        gap={3}
+                                        mb={4}
+                                    >
+                                        <Flex align="flex-start" gap={3} minW={0}>
+                                            <Flex
+                                                w="36px"
+                                                h="36px"
+                                                flexShrink={0}
+                                                align="center"
+                                                justify="center"
+                                                borderRadius="md"
+                                                bg="teal.50"
+                                                color="teal.600"
+                                            >
+                                                <FiPackage />
+                                            </Flex>
+                                            <Box minW={0}>
+                                                <Text
+                                                    fontSize="sm"
+                                                    fontWeight="700"
+                                                    color="gray.800"
                                                 >
-                                                    <FiTrash2 />
-                                                </Button>
-                                            </Table.Cell>
-                                        </Table.Row>
-                                    );
-                                })}
-                            </Table.Body>
-                        </Table.Root>
+                                                    Stock item {index + 1}
+                                                </Text>
+                                                <Text
+                                                    fontSize="xs"
+                                                    color="gray.500"
+                                                    mt={0.5}
+                                                >
+                                                    Add product, quantity, pricing,
+                                                    and batch dates
+                                                </Text>
+                                            </Box>
+                                        </Flex>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            colorPalette="red"
+                                            aria-label={`Remove row ${index + 1}`}
+                                            disabled={items.length === 1}
+                                            onClick={() => removeItem(item.rowId)}
+                                        >
+                                            <FiTrash2 />
+                                            <Text display={{ base: "none", md: "block" }}>
+                                                Remove
+                                            </Text>
+                                        </Button>
+                                    </Flex>
+
+                                    <SimpleGrid
+                                        columns={{ base: 1, sm: 2, xl: 4 }}
+                                        gap={4}
+                                        alignItems="end"
+                                    >
+                                        <Box gridColumn={{ base: "auto", xl: "span 2" }}>
+                                            <Text
+                                                fontSize="xs"
+                                                fontWeight="600"
+                                                color="gray.600"
+                                                mb={1}
+                                            >
+                                                Product
+                                            </Text>
+                                            <select
+                                                value={item.productId}
+                                                onChange={(event) =>
+                                                    updateItem(
+                                                        item.rowId,
+                                                        "productId",
+                                                        event.target.value
+                                                    )
+                                                }
+                                                style={{
+                                                    width: "100%",
+                                                    height: "40px",
+                                                    padding: "0 12px",
+                                                    border: "1px solid #CBD5E0",
+                                                    borderRadius: "8px",
+                                                    background: "white",
+                                                    color: "#1A202C",
+                                                }}
+                                            >
+                                                <option value="">
+                                                    Select a product
+                                                </option>
+                                                {filteredProducts.map((product) => (
+                                                    <option
+                                                        key={product.id}
+                                                        value={product.id}
+                                                    >
+                                                        {product.productId} - {product.name}
+                                                        {product.brand
+                                                            ? ` (${product.brand})`
+                                                            : ""}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {selectedProduct && (
+                                                <Text
+                                                    fontSize="xs"
+                                                    color="teal.700"
+                                                    mt={1}
+                                                >
+                                                    {selectedProduct.brand || "No brand"}
+                                                    {selectedProduct.dosageForm
+                                                        ? ` · ${selectedProduct.dosageForm}`
+                                                        : ""}
+                                                    {selectedProduct.strengthValue != null
+                                                        ? ` · ${selectedProduct.strengthValue} ${selectedProduct.strengthUnit || ""}`
+                                                        : ""}
+                                                </Text>
+                                            )}
+                                        </Box>
+
+                                        <Box>
+                                            <Text fontSize="xs" fontWeight="600" color="gray.600" mb={1}>
+                                                Quantity
+                                            </Text>
+                                            <Input
+                                                size="sm"
+                                                type="number"
+                                                min={1}
+                                                step={1}
+                                                placeholder="0"
+                                                value={item.receivedQuantity}
+                                                onChange={(event) =>
+                                                    updateItem(
+                                                        item.rowId,
+                                                        "receivedQuantity",
+                                                        event.target.value
+                                                    )
+                                                }
+                                            />
+                                        </Box>
+
+                                        <Box>
+                                            <Text fontSize="xs" fontWeight="600" color="gray.600" mb={1}>
+                                                Buying price (Rs.)
+                                            </Text>
+                                            <Input
+                                                size="sm"
+                                                type="number"
+                                                min={0}
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                value={item.buyingPrice}
+                                                onChange={(event) =>
+                                                    updateItem(
+                                                        item.rowId,
+                                                        "buyingPrice",
+                                                        event.target.value
+                                                    )
+                                                }
+                                            />
+                                        </Box>
+
+                                        <Box>
+                                            <Text fontSize="xs" fontWeight="600" color="gray.600" mb={1}>
+                                                Wholesale price (Rs.)
+                                            </Text>
+                                            <Input
+                                                size="sm"
+                                                type="number"
+                                                min={0}
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                value={item.sellingPrice}
+                                                onChange={(event) =>
+                                                    updateItem(
+                                                        item.rowId,
+                                                        "sellingPrice",
+                                                        event.target.value
+                                                    )
+                                                }
+                                            />
+                                        </Box>
+
+                                        <Box>
+                                            <Text fontSize="xs" fontWeight="600" color="gray.600" mb={1}>
+                                                Retail price (Rs.)
+                                            </Text>
+                                            <Input
+                                                size="sm"
+                                                type="number"
+                                                min={0}
+                                                step="0.01"
+                                                placeholder="Optional"
+                                                value={item.retailPrice}
+                                                onChange={(event) =>
+                                                    updateItem(
+                                                        item.rowId,
+                                                        "retailPrice",
+                                                        event.target.value
+                                                    )
+                                                }
+                                            />
+                                        </Box>
+
+                                        <Box>
+                                            <Text fontSize="xs" fontWeight="600" color="gray.600" mb={1}>
+                                                Expiry date
+                                            </Text>
+                                            <Input
+                                                size="sm"
+                                                type="date"
+                                                min={today()}
+                                                value={item.expiryDate}
+                                                onChange={(event) =>
+                                                    updateItem(
+                                                        item.rowId,
+                                                        "expiryDate",
+                                                        event.target.value
+                                                    )
+                                                }
+                                            />
+                                        </Box>
+
+                                        <Box>
+                                            <Text fontSize="xs" fontWeight="600" color="gray.600" mb={1}>
+                                                Manufacturing date
+                                            </Text>
+                                            <Input
+                                                size="sm"
+                                                type="date"
+                                                max={receivedDate || today()}
+                                                value={item.manufacturingDate}
+                                                onChange={(event) =>
+                                                    updateItem(
+                                                        item.rowId,
+                                                        "manufacturingDate",
+                                                        event.target.value
+                                                    )
+                                                }
+                                            />
+                                        </Box>
+                                    </SimpleGrid>
+                                </Box>
+                            );
+                        })}
                     </Box>
                 )}
 

@@ -41,7 +41,7 @@ export default function GRNViewDialog({
 
         if (!batchNumber) return;
 
-        api.get( "/stock-batch/" + batchNumber
+        api.get("/stock-batch/" + batchNumber
 
         ).then((response) => {
 
@@ -307,9 +307,11 @@ export default function GRNViewDialog({
                                                         </Table.ColumnHeader>
 
                                                         <Table.ColumnHeader>
+                                                            Wholesale Price
+                                                        </Table.ColumnHeader>
 
-                                                            Selling
-
+                                                        <Table.ColumnHeader>
+                                                            Retail Price
                                                         </Table.ColumnHeader>
 
                                                         <Table.ColumnHeader>
@@ -372,17 +374,13 @@ export default function GRNViewDialog({
                                                                     </Table.Cell>
 
                                                                     <Table.Cell>
+                                                                        Rs. {Number(item.sellingPrice ?? 0).toFixed(2)}
+                                                                    </Table.Cell>
 
-                                                                        Rs.
-
-                                                                        {
-
-                                                                            item.sellingPrice.toFixed(
-                                                                                2
-                                                                            )
-
-                                                                        }
-
+                                                                    <Table.Cell>
+                                                                        {item.retailPrice != null
+                                                                            ? `Rs. ${Number(item.retailPrice).toFixed(2)}`
+                                                                            : "-"}
                                                                     </Table.Cell>
 
                                                                     <Table.Cell>

@@ -110,7 +110,7 @@ export default function CreateGRN() {
 
 
             const response =
-                await api.get( "/po/purchase-orders/" +
+                await api.get("/po/purchase-orders/" +
                     purchaseOrderId
 
                 );
@@ -167,6 +167,7 @@ export default function CreateGRN() {
                             receivedQuantity: remainingQuantity,
                             buyingPrice: 0,
                             sellingPrice: 0,
+                            retailPrice: "",
                             expiryDate: "",
                             manufacturingDate: "",
                         };
@@ -348,20 +349,20 @@ export default function CreateGRN() {
             }
 
 
-            if (
-                Number(item.receivedQuantity) > 0 &&
-                Number(item.sellingPrice) <= 0
-            ) {
+            // if (
+            //     Number(item.receivedQuantity) > 0 &&
+            //     Number(item.sellingPrice) <= 0
+            // ) {
 
-                toast.error(
+            //     toast.error(
 
-                    `Please enter selling price for ${item.productName}`
+            //         `Please enter selling price for ${item.productName}`
 
-                );
+            //     );
 
-                return;
+            //     return;
 
-            }
+            // }
 
 
             if (
@@ -417,11 +418,6 @@ export default function CreateGRN() {
                 await api.post("/stock-batch/create",
 
                     {
-
-                        /*
-                        Link GRN with PO
-                        */
-
                         purchaseOrderId:
                             Number(selectedPOId),
 
@@ -441,19 +437,12 @@ export default function CreateGRN() {
 
                         items:
 
-                            items
-
-                                /*
-                                Don't send zero
-                                quantity items
-                                */
-
-                                .filter(
-                                    (item) =>
-                                        Number(
-                                            item.receivedQuantity
-                                        ) > 0
-                                )
+                            items.filter(
+                                (item) =>
+                                    Number(
+                                        item.receivedQuantity
+                                    ) > 0
+                            )
 
                                 .map(
                                     (item) => ({
@@ -471,10 +460,13 @@ export default function CreateGRN() {
                                                 item.buyingPrice
                                             ),
 
-                                        sellingPrice:
-                                            Number(
-                                                item.sellingPrice
-                                            ),
+                                        sellingPrice: Number(item.sellingPrice),
+
+                                        retailPrice:
+                                            item.retailPrice === "" ||
+                                                item.retailPrice == null
+                                                ? null
+                                                : Number(item.retailPrice),
 
                                         expiryDate:
                                             item.expiryDate,

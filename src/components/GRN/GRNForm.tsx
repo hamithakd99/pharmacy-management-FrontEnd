@@ -1,4 +1,5 @@
 import {
+    Badge,
     Box,
     Button,
     Field,
@@ -6,14 +7,15 @@ import {
     Heading,
     Input,
     NativeSelect,
+    SimpleGrid,
     Spinner,
     Text,
-    VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "@/api/axios";
+import { FiCalendar, FiPackage } from "react-icons/fi";
 
 type GRNFormProps = {
 
@@ -38,6 +40,8 @@ type GRNItem = {
     buyingPrice: number;
 
     sellingPrice: number;
+
+    retailPrice?: number | string | null;
 
     expiryDate: string;
 
@@ -105,7 +109,7 @@ export default function GRNForm({
 
             setLoading(true);
 
-            const response = await api.get("/stock-batch/" + batchNumber );
+            const response = await api.get("/stock-batch/" + batchNumber);
 
             const batch = response.data.data;
 
@@ -174,6 +178,8 @@ export default function GRNForm({
                     sellingPrice:
 
                         item.sellingPrice,
+
+                    retailPrice: item.retailPrice ?? "",
 
                     expiryDate:
 
@@ -368,7 +374,7 @@ export default function GRNForm({
 
             setSaving(true);
 
-            await api.put( "/stock-batch/" + batchNumber,
+            await api.put("/stock-batch/" + batchNumber,
 
                 {
 
@@ -389,6 +395,8 @@ export default function GRNForm({
 
                         sellingPrice:
                             item.sellingPrice,
+
+                        retailPrice: item.retailPrice ?? "",
 
                         expiryDate:
                             item.expiryDate,
@@ -725,352 +733,243 @@ export default function GRNForm({
                 bg="white"
                 borderWidth="1px"
                 rounded="lg"
-                p={6}
+                overflow="hidden"
             >
 
-                <Heading
-                    size="md"
-                    mb={5}
+                <Flex
+                    px={{ base: 4, md: 5 }}
+                    py={4}
+                    bg="gray.50"
+                    borderBottom="1px solid"
+                    borderColor="gray.200"
+                    align="center"
+                    gap={3}
                 >
-
-                    GRN Items
-
-                </Heading>
-
-                <Box
-                    overflowX="auto"
-                >
-
-                    <table
-                        style={{
-                            width: "100%",
-                            borderCollapse:
-                                "collapse",
-                        }}
+                    <Flex
+                        w="36px"
+                        h="36px"
+                        align="center"
+                        justify="center"
+                        borderRadius="lg"
+                        bg="blue.50"
+                        color="blue.600"
                     >
+                        <FiPackage />
+                    </Flex>
+                    <Box>
+                        <Heading size="sm" color="gray.800">
+                            GRN Items
+                        </Heading>
+                        <Text fontSize="xs" color="gray.500" mt={1}>
+                            Review quantities, prices, and batch dates
+                        </Text>
+                    </Box>
+                    <Badge
+                        ml="auto"
+                        colorPalette="blue"
+                        variant="subtle"
+                        borderRadius="full"
+                        px={3}
+                    >
+                        {items.length} {items.length === 1 ? "item" : "items"}
+                    </Badge>
+                </Flex>
 
-                        <thead>
+                <Box p={{ base: 3, md: 4 }}>
+                    <Box
+                        display={{ base: "none", xl: "grid" }}
+                        gridTemplateColumns="minmax(220px, 1.6fr) 120px repeat(3, minmax(125px, 1fr)) repeat(2, minmax(145px, 1fr))"
+                        gap={3}
+                        px={3}
+                        py={2}
+                        bg="gray.50"
+                        borderRadius="md"
+                        color="gray.500"
+                        fontSize="xs"
+                        fontWeight="700"
+                        textTransform="uppercase"
+                        letterSpacing="wide"
+                    >
+                        <Text>Product</Text>
+                        <Text>Received</Text>
+                        <Text>Buying price</Text>
+                        <Text>Wholesale</Text>
+                        <Text>Retail</Text>
+                        <Text>Expiry date</Text>
+                        <Text>Manufactured</Text>
+                    </Box>
 
-                            <tr>
-
-                                <th
-                                    style={{
-                                        textAlign:
-                                            "left",
-                                        padding:
-                                            "12px",
-                                    }}
+                    <Box spaceY={3} mt={{ base: 0, xl: 3 }}>
+                        {items.map((item, index) => (
+                            <Box
+                                key={item.id ?? index}
+                                border="1px solid"
+                                borderColor="gray.200"
+                                borderRadius="lg"
+                                p={{ base: 3, md: 4 }}
+                                _hover={{ borderColor: "blue.200", bg: "blue.50" }}
+                                transition="all 0.2s"
+                            >
+                                <SimpleGrid
+                                    columns={{ base: 1, sm: 2, xl: 7 }}
+                                    gap={{ base: 3, xl: 4 }}
+                                    alignItems="end"
                                 >
-                                    Product
-                                </th>
-
-                                <th
-                                    style={{
-                                        textAlign:
-                                            "left",
-                                        padding:
-                                            "12px",
-                                    }}
-                                >
-                                    Received Qty
-                                </th>
-
-                                <th
-                                    style={{
-                                        textAlign:
-                                            "left",
-                                        padding:
-                                            "12px",
-                                    }}
-                                >
-                                    Buying Price
-                                </th>
-
-                                <th
-                                    style={{
-                                        textAlign:
-                                            "left",
-                                        padding:
-                                            "12px",
-                                    }}
-                                >
-                                    Selling Price
-                                </th>
-
-                                <th
-                                    style={{
-                                        textAlign:
-                                            "left",
-                                        padding:
-                                            "12px",
-                                    }}
-                                >
-                                    Expiry Date
-                                </th>
-
-                                <th
-                                    style={{
-                                        textAlign:
-                                            "left",
-                                        padding:
-                                            "12px",
-                                    }}
-                                >
-                                    Manufacturing Date
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-
-                            {
-
-                                items.map(
-                                    (item, index) => (
-
-                                        <tr
-                                            key={
-                                                item.id ??
-                                                index
-                                            }
+                                    <Flex
+                                        align="flex-start"
+                                        gap={3}
+                                        minW={0}
+                                    >
+                                        <Flex
+                                            w="32px"
+                                            h="32px"
+                                            flexShrink={0}
+                                            align="center"
+                                            justify="center"
+                                            borderRadius="md"
+                                            bg="white"
+                                            color="blue.600"
+                                            border="1px solid"
+                                            borderColor="blue.100"
                                         >
-
-                                            <td
-                                                style={{
-                                                    padding:
-                                                        "12px",
-                                                }}
+                                            <FiPackage />
+                                        </Flex>
+                                        <Box minW={0}>
+                                            <Text
+                                                fontSize="sm"
+                                                fontWeight="700"
+                                                color="gray.800"
+                                                lineHeight="1.3"
                                             >
-
-                                                <VStack
-                                                    align="start"
-                                                >
-
-                                                    <Text
-                                                        fontWeight="bold"
-                                                    >
-
-                                                        {
-                                                            item.productName
-                                                        }
-
-                                                    </Text>
-
-                                                    <Text
-                                                        fontSize="sm"
-                                                        color="gray.500"
-                                                    >
-
-                                                        {item.productCode}
-
-                                                    </Text>
-
-                                                </VStack>
-
-                                            </td>
-
-
-                                            <td
-                                                style={{
-                                                    padding:
-                                                        "12px",
-                                                }}
+                                                {item.productName}
+                                            </Text>
+                                            <Text
+                                                fontSize="xs"
+                                                color="blue.600"
+                                                mt={1}
                                             >
-
-                                                <Input
-
-                                                    type="number"
-
-                                                    min={0}
-
-                                                    value={
-                                                        item.receivedQuantity
-                                                    }
-
-                                                    onChange={(e) =>
-
-                                                        updateItem(
-
-                                                            index,
-
-                                                            "receivedQuantity",
-
-                                                            Number(
-                                                                e.target.value
-                                                            )
-
-                                                        )
-
-                                                    }
-
-                                                    width="120px"
-
-                                                />
-
-                                            </td>
-
-
-                                            <td
-                                                style={{
-                                                    padding:
-                                                        "12px",
-                                                }}
-                                            >
-
-                                                <Input
-
-                                                    type="number"
-
-                                                    min={0}
-
-                                                    value={
-                                                        item.buyingPrice
-                                                    }
-
-                                                    onChange={(e) =>
-
-                                                        updateItem(
-
-                                                            index,
-
-                                                            "buyingPrice",
-
-                                                            Number(
-                                                                e.target.value
-                                                            )
-
-                                                        )
-
-                                                    }
-
-                                                    width="140px"
-
-                                                />
-
-                                            </td>
-
-
-                                            <td
-                                                style={{
-                                                    padding:
-                                                        "12px",
-                                                }}
-                                            >
-
-                                                <Input
-
-                                                    type="number"
-
-                                                    min={0}
-
-                                                    value={
-                                                        item.sellingPrice
-                                                    }
-
-                                                    onChange={(e) =>
-
-                                                        updateItem(
-
-                                                            index,
-
-                                                            "sellingPrice",
-
-                                                            Number(
-                                                                e.target.value
-                                                            )
-
-                                                        )
-
-                                                    }
-
-                                                    width="140px"
-
-                                                />
-
-                                            </td>
-
-
-                                            <td
-                                                style={{
-                                                    padding:
-                                                        "12px",
-                                                }}
-                                            >
-
-                                                <Input
-
-                                                    type="date"
-
-                                                    value={
-                                                        item.expiryDate
-                                                    }
-
-                                                    onChange={(e) =>
-
-                                                        updateItem(
-
-                                                            index,
-
-                                                            "expiryDate",
-
-                                                            e.target.value
-
-                                                        )
-
-                                                    }
-
-                                                />
-
-                                            </td>
-
-
-                                            <td
-                                                style={{
-                                                    padding:
-                                                        "12px",
-                                                }}
-                                            >
-
-                                                <Input
-
-                                                    type="date"
-
-                                                    value={
-                                                        item.manufacturingDate
-                                                    }
-
-                                                    onChange={(e) =>
-
-                                                        updateItem(
-
-                                                            index,
-
-                                                            "manufacturingDate",
-
-                                                            e.target.value
-
-                                                        )
-
-                                                    }
-
-                                                />
-
-                                            </td>
-
-                                        </tr>
-
-                                    )
-
-                                )
-
-                            }
-
-                        </tbody>
-
-                    </table>
-
+                                                {item.productCode}
+                                            </Text>
+                                        </Box>
+                                    </Flex>
+
+                                    <Field.Root>
+                                        <Field.Label fontSize="xs" color="gray.500">
+                                            Received quantity
+                                        </Field.Label>
+                                        <Input
+                                            type="number"
+                                            min={0}
+                                            size="sm"
+                                            value={item.receivedQuantity}
+                                            onChange={(e) =>
+                                                updateItem(
+                                                    index,
+                                                    "receivedQuantity",
+                                                    Number(e.target.value)
+                                                )
+                                            }
+                                        />
+                                    </Field.Root>
+
+                                    {[
+                                        {
+                                            label: "Buying price",
+                                            field: "buyingPrice" as const,
+                                            value: item.buyingPrice,
+                                        },
+                                        {
+                                            label: "Wholesale price",
+                                            field: "sellingPrice" as const,
+                                            value: item.sellingPrice,
+                                        },
+                                        {
+                                            label: "Retail price",
+                                            field: "retailPrice" as const,
+                                            value: item.retailPrice ?? "",
+                                        },
+                                    ].map((price) => (
+                                        <Field.Root key={price.field}>
+                                            <Field.Label fontSize="xs" color="gray.500">
+                                                {price.label}
+                                            </Field.Label>
+                                            <Input
+                                                type="number"
+                                                min={0}
+                                                step="0.01"
+                                                size="sm"
+                                                placeholder={
+                                                    price.field === "retailPrice"
+                                                        ? "Optional"
+                                                        : "0.00"
+                                                }
+                                                value={price.value}
+                                                onChange={(e) =>
+                                                    updateItem(
+                                                        index,
+                                                        price.field,
+                                                        price.field === "retailPrice"
+                                                            ? e.target.value
+                                                            : Number(e.target.value)
+                                                    )
+                                                }
+                                            />
+                                        </Field.Root>
+                                    ))}
+
+                                    {[
+                                        {
+                                            label: "Expiry date",
+                                            field: "expiryDate" as const,
+                                            value: item.expiryDate,
+                                        },
+                                        {
+                                            label: "Manufactured",
+                                            field: "manufacturingDate" as const,
+                                            value: item.manufacturingDate,
+                                        },
+                                    ].map((date) => (
+                                        <Field.Root key={date.field}>
+                                            <Field.Label fontSize="xs" color="gray.500">
+                                                <Flex align="center" gap={1}>
+                                                    <FiCalendar />
+                                                    {date.label}
+                                                </Flex>
+                                            </Field.Label>
+                                            <Input
+                                                type="date"
+                                                size="sm"
+                                                value={date.value}
+                                                onChange={(e) =>
+                                                    updateItem(
+                                                        index,
+                                                        date.field,
+                                                        e.target.value
+                                                    )
+                                                }
+                                            />
+                                        </Field.Root>
+                                    ))}
+                                </SimpleGrid>
+
+                                <Flex
+                                    mt={3}
+                                    pt={2}
+                                    borderTop="1px solid"
+                                    borderColor="gray.100"
+                                    justify="space-between"
+                                    align="center"
+                                >
+                                    <Text fontSize="xs" color="gray.500">
+                                        Product ID: {item.productCode}
+                                    </Text>
+                                    <Text fontSize="xs" color="gray.500">
+                                        Required batch date details
+                                    </Text>
+                                </Flex>
+                            </Box>
+                        ))}
+                    </Box>
                 </Box>
 
             </Box>

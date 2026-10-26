@@ -44,6 +44,10 @@ export default function POViewDialog({
                 return status;
         }
     }
+    console.log(
+    "PO Receiving History:",
+    purchaseOrder?.receivingHistory
+);
 
     return (
         <Dialog.Root
