@@ -1,1232 +1,656 @@
+
 import api from "@/api/axios";
 import {
-    Box,
-    Button,
-    Flex,
-    GridItem,
-    Heading,
-    Input,
-    NativeSelect,
-    SimpleGrid,
-    Text,
+  Box,
+  Button,
+  Flex,
+  GridItem,
+  Heading,
+  Input,
+  NativeSelect,
+  SimpleGrid,
+  Text,
+  Textarea,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-
-// ================================
-// CATEGORY TYPE
-// ================================
-
 type Category = {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
 };
-
-
-// ================================
-// PRODUCT FORM TYPE
-// ================================
 
 type ProductForm = {
-    name: string;
-    brand: string;
-    categoryId: string;
-    description: string;
-    dosageForm: string;
-    strengthValue: string;
-    strengthUnit: string;
-    packSize: string;
+  name: string;
+  brand: string;
+  categoryId: string;
+  description: string;
+  dosageForm: string;
+  strengthValue: string;
+  strengthUnit: string;
+  dimensionsValue: string;
+  dimensionsUnit: string;
+  packSize: string;
 };
-
-
-// ================================
-// INITIAL PRODUCT STATE
-// ================================
 
 const initialProductState: ProductForm = {
-    name: "",
-    brand: "",
-    categoryId: "",
-    description: "",
-    dosageForm: "",
-    strengthValue: "",
-    strengthUnit: "",
-    packSize: "",
+  name: "",
+  brand: "",
+  categoryId: "",
+  description: "",
+  dosageForm: "",
+  strengthValue: "",
+  strengthUnit: "",
+  dimensionsValue: "",
+  dimensionsUnit: "",
+  packSize: "",
 };
 
+const dosageForms = [
+  ["TABLET", "Tablet"],
+  ["CAPSULE", "Capsule"],
+  ["SYRUP", "Syrup"],
+  ["INJECTION", "Injection"],
+  ["CREAM", "Cream"],
+  ["OINTMENT", "Ointment"],
+  ["DROPS", "Drops"],
+  ["SOLUTION", "Solution"],
+  ["SERUM", "Serum"],
+  ["SACHET", "Sachet"],
+  ["GEL", "Gel"],
+  ["LOTION", "Lotion"],
+  ["POWDER", "Powder"],
+  ["MOUTHWASH", "Mouthwash"],
+  ["SURGICAL_ITEMS", "Surgical Items"],
+  ["OTHER", "Other"],
+];
+
+const strengthUnits = [
+  ["MCG", "mcg"],
+  ["MG", "mg"],
+  ["G", "g"],
+  ["KG", "kg"],
+  ["ML", "ml"],
+  ["L", "L"],
+];
+
+const dimensionUnits = [
+  ["MM", "Millimetres (mm)"],
+  ["CM", "Centimetres (cm)"],
+  ["M", "Metres (m)"],
+  ["INCH", "Inches"],
+  ["FEET", "Feet"],
+  ["YARDS", "Yards"],
+];
+
+const inputStyles = {
+  borderRadius: "lg",
+  borderColor: "gray.200",
+  bg: "white",
+  _hover: { borderColor: "teal.400" },
+  _focusVisible: {
+    borderColor: "teal.500",
+    boxShadow: "0 0 0 1px var(--chakra-colors-teal-500)",
+  },
+};
+
+function SectionHeader({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Flex align="start" gap={3} mb={5}>
+      <Flex
+        w="38px"
+        h="38px"
+        flexShrink={0}
+        align="center"
+        justify="center"
+        rounded="xl"
+        bg="teal.50"
+        color="teal.700"
+        fontWeight="bold"
+      >
+        {number}
+      </Flex>
+
+      <Box>
+        <Heading size="md" color="gray.800">
+          {title}
+        </Heading>
+        <Text mt={1} fontSize="sm" color="gray.500">
+          {description}
+        </Text>
+      </Box>
+    </Flex>
+  );
+}
+
+function FieldLabel({
+  children,
+  optional = false,
+}: {
+  children: React.ReactNode;
+  optional?: boolean;
+}) {
+  return (
+    <Flex align="center" gap={2} mb={2} wrap="wrap">
+      <Text fontSize="sm" fontWeight="semibold" color="gray.700">
+        {children}
+      </Text>
+      {optional && (
+        <Text fontSize="xs" color="gray.400">
+          Optional
+        </Text>
+      )}
+    </Flex>
+  );
+}
 
 export default function AddProduct() {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  const [product, setProduct] =
+    useState<ProductForm>(initialProductState);
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
     const token = localStorage.getItem("token");
+
     if (!token) {
-        toast.error("You are not logged in. Please log in to continue.");
-        window.location.href = "/login";
+      toast.error("Please log in to continue.");
+      navigate("/login", { replace: true });
+      return;
     }
 
+    let cancelled = false;
 
-    // ================================
-    // STATES
-    // ================================
+    async function loadCategories() {
+      setCategoriesLoading(true);
 
-    const [product, setProduct] =
-        useState<ProductForm>(initialProductState);
+      try {
+        const response = await api.get("/category/all");
 
-
-    const [categories, setCategories] =
-        useState<Category[]>([]);
-
-
-    const [categoriesLoading, setCategoriesLoading] =
-        useState(false);
-
-
-    const [saving, setSaving] =
-        useState(false);
-
-
-
-    // ================================
-    // FETCH ALL CATEGORIES
-    // ================================
-
-    function getAllCategories() {
-
-        setCategoriesLoading(true);
-
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            toast.error("Please log in to continue.");
-            setCategoriesLoading(false);
-            navigate("/login");
-            return;
+        if (!cancelled) {
+          setCategories(response.data);
         }
+      } catch (error) {
+        console.error("Failed to load categories:", error);
 
-        api
-            .get("/category/all")
-            .then((response) => {
-
-                setCategories(response.data);
-
-                console.log(
-                    "Categories:",
-                    response.data
-                );
-
-            })
-
-            .catch((error) => {
-
-                console.log(
-                    "Failed to fetch categories:",
-                    error
-                );
-
-                toast.error(
-                    "Failed to load categories"
-                );
-
-            })
-
-            .finally(() => {
-
-                setCategoriesLoading(false);
-
-            });
-
+        if (!cancelled) {
+          toast.error("Failed to load categories.");
+        }
+      } finally {
+        if (!cancelled) {
+          setCategoriesLoading(false);
+        }
+      }
     }
 
+    loadCategories();
 
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
-    // ================================
-    // LOAD CATEGORIES ON PAGE LOAD
-    // ================================
+  function handleChange(
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) {
+    const { name, value } = e.target;
 
-    useEffect(() => {
+    setProduct((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  }
 
-        getAllCategories();
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
 
-    }, []);
+    if (saving) return;
 
+    if (!product.name.trim()) {
+      toast.error("Product name is required.");
+      return;
+    }
 
+    const parsedPackSize =
+      product.packSize.trim() === ""
+        ? null
+        : Number(product.packSize);
 
-    // ================================
-    // HANDLE INPUT CHANGE
-    // ================================
-
-    function handleChange(
-        e: React.ChangeEvent<
-            HTMLInputElement |
-            HTMLTextAreaElement |
-            HTMLSelectElement
-        >
+    if (
+      parsedPackSize !== null &&
+      (!Number.isInteger(parsedPackSize) || parsedPackSize <= 0)
     ) {
-
-        const {
-            name,
-            value
-        } = e.target;
-
-
-        setProduct((prev) => ({
-
-            ...prev,
-
-            [name]: value
-
-        }));
-
+      toast.error("Pack size must be a positive whole number.");
+      return;
     }
 
-
-
-    // ================================
-    // RESET FORM
-    // ================================
-
-    // function handleDiscard() {
-
-    //     setProduct(
-    //         initialProductState
-    //     );
-
-    // }
-
-
-
-    // ================================
-    // CREATE PRODUCT
-    // ================================
-
-    async function handleSubmit() {
-
-
-        // ============================
-        // VALIDATION
-        // ============================
-
-
-        if (
-            product.name.trim() === ""
-        ) {
-
-            toast.error(
-                "Product name is required"
-            );
-
-            return;
-
-        }
-
-
-        if (
-            product.categoryId === ""
-        ) {
-
-            toast.error(
-                "Please select a category"
-            );
-
-            return;
-
-        }
-
-
-        if (
-            product.dosageForm === ""
-        ) {
-
-            toast.error(
-                "Please select a dosage form"
-            );
-
-            return;
-
-        }
-
-
-        if (
-            product.strengthValue === ""
-        ) {
-
-            toast.error(
-                "Please enter product strength"
-            );
-
-            return;
-
-        }
-
-
-        if (
-            product.strengthUnit === ""
-        ) {
-
-            toast.error(
-                "Please select a strength unit"
-            );
-
-            return;
-
-        }
-
-
-
-        // ============================
-        // CREATE REQUEST
-        // ============================
-
-
-        setSaving(true);
-
-        await api.post("/product/create",
-
-            {
-
-                // Product ID is NOT sent.
-                // Backend generates productId.
-
-                name:
-                    product.name.trim(),
-
-
-                brand:
-                    product.brand.trim() !== ""
-                        ? product.brand.trim()
-                        : null,
-
-
-                categoryId:
-                    Number(
-                        product.categoryId
-                    ),
-
-
-                description:
-                    product.description.trim() !== ""
-                        ? product.description.trim()
-                        : null,
-
-
-                dosageForm:
-                    product.dosageForm,
-
-
-                strengthValue:
-                    Number(
-                        product.strengthValue
-                    ),
-
-
-                strengthUnit:
-                    product.strengthUnit,
-
-
-                packSize:
-                    product.packSize !== ""
-                        ? Number(
-                            product.packSize
-                        )
-                        : null
-
-            },
-            {
-                headers: {
-                    Authorization: "Bearer " + token
-                }
-            }
-
-        ).then((response) => {
-
-
-            console.log(
-                "Created Product:",
-                response.data
-            );
-
-
-            toast.success(
-                "Product created successfully"
-            );
-            navigate("/admin/products");
-
-
-
-            // Clear form
-            setProduct(
-                initialProductState
-            );
-
-
-        }).catch((error: any) => {
-
-
-            console.log(
-                "Create Product Error:",
-                error
-            );
-
-
-            console.log(
-                "Backend Error:",
-                error.response?.data
-            );
-
-
-            toast.error(
-
-                error.response?.data?.error
-                ||
-                error.response?.data?.message
-                ||
-                "Failed to create product"
-
-            );
-
-        }).finally(() => {
-
-            setSaving(false);
-
-        });
-
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error("Your session has expired. Please log in again.");
+      navigate("/login");
+      return;
     }
 
+    setSaving(true);
 
+    try {
+      const payload = {
+        name: product.name.trim(),
+        brand: product.brand.trim() || null,
+        categoryId: product.categoryId
+          ? Number(product.categoryId)
+          : null,
+        description: product.description.trim() || null,
 
-    // ================================
-    // UI
-    // ================================
+        dosageForm: product.dosageForm || null,
 
-    return (
+        // Schema uses String?, so do not convert this to Number.
+        strengthValue: product.strengthValue.trim() || null,
+        strengthUnit: product.strengthUnit || null,
 
-        <Box
+        dimensionsValue: product.dimensionsValue.trim() || null,
+        dimensionsUnit: product.dimensionsUnit || null,
 
-            bg="white"
+        packSize: parsedPackSize,
+      };
 
-            border="1px solid"
+      const response = await api.post("/product/create", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-            borderColor="gray.200"
+      toast.success(
+        response.data?.message || "Product created successfully."
+      );
 
-            rounded="xl"
+      navigate("/admin/products");
+    } catch (error: any) {
+      console.error("Create product error:", error);
 
-            p={{
-                base: "4",
-                md: "6"
-            }}
+      const status = error.response?.status;
 
-            boxShadow="sm"
+      if (status === 401 || status === 403) {
+        toast.error("You are not authorized. Please log in again.");
+      } else {
+        toast.error(
+          error.response?.data?.error ||
+            error.response?.data?.message ||
+            "Failed to create product."
+        );
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
 
+  return (
+    <Box
+      minH="100%"
+      bg="gray.50"
+      px={{ base: 3, md: 6, xl: 8 }}
+      py={{ base: 4, md: 7 }}
+    >
+      <Box maxW="1100px" mx="auto">
+        {/* Page heading */}
+        <Flex
+          justify="space-between"
+          align={{ base: "start", md: "center" }}
+          direction={{ base: "column", md: "row" }}
+          gap={4}
+          mb={6}
         >
-
-
-            {/* ======================== */}
-            {/* HEADER */}
-            {/* ======================== */}
-
-
-            <Flex
-
-                justifyContent=
-                "space-between"
-
-                alignItems={{
-                    base: "start",
-                    md: "center"
-                }}
-
-                direction={{
-                    base: "column",
-                    md: "row"
-                }}
-
-                gap="4"
-
-                mb="8"
-
-            >
-
-
-                <Box>
-
-
-                    <Heading
-
-                        size="lg"
-
-                        color="gray.800"
-
-                    >
-
-                        Add New Product
-
-                    </Heading>
-
-
-                    <Text
-
-                        color="gray.500"
-
-                        fontSize="sm"
-
-                        mt="1"
-
-                    >
-
-                        Add a new product to the pharmacy inventory.
-                        Product ID will be generated automatically.
-
-                    </Text>
-
-
-                </Box>
-
-
-
-                <Flex
-                    gap="3"
-                >
-
-
-                    <Button
-
-                        variant="outline"
-
-                        onClick={() =>
-
-                            navigate("/admin/products")
-
-                        }
-
-                        disabled={
-                            saving
-                        }
-
-                    >
-
-                        Cancel
-
-                    </Button>
-
-
-
-                    <Button
-
-                        colorPalette="teal"
-
-                        onClick={
-                            handleSubmit
-                        }
-
-                        loading={
-                            saving
-                        }
-
-                    >
-
-                        Save Product
-
-                    </Button>
-
-
-                </Flex>
-
-
+          <Box>
+            <Flex align="center" gap={2} mb={2}>
+              <Text
+                fontSize="xs"
+                fontWeight="bold"
+                color="teal.700"
+                letterSpacing="1.5px"
+              >
+                INVENTORY MANAGEMENT
+              </Text>
             </Flex>
 
-
-
-            {/* ======================== */}
-            {/* BASIC INFORMATION */}
-            {/* ======================== */}
-
-
-            <Box
-                mb="8"
+            <Heading
+              size={{ base: "xl", md: "2xl" }}
+              color="gray.900"
+              letterSpacing="-0.7px"
             >
-
-
-                <Box
-                    mb="4"
-                >
-
-
-                    <Text
-
-                        fontSize="md"
-
-                        fontWeight=
-                        "semibold"
-
-                        color="gray.800"
-
-                    >
-
-                        Basic Information
-
-                    </Text>
-
-
-                    <Text
-
-                        fontSize="sm"
-
-                        color="gray.500"
-
-                    >
-
-                        Enter the basic details of the product
-
-                    </Text>
-
-
-                </Box>
-
-
-
-                <SimpleGrid
-
-                    columns={{
-                        base: 1,
-                        md: 2
-                    }}
-
-                    gap="5"
-
-                >
-
-
-
-                    {/* PRODUCT NAME */}
-
-
-                    <GridItem>
-
-
-                        <Text
-
-                            fontSize="sm"
-
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
-
-                        >
-
-                            Product Name
-
-                            <Text
-
-                                as="span"
-
-                                color="red.500"
-
-                                ml="1"
-
-                            >
-
-                                *
-
-                            </Text>
-
-                        </Text>
-
-
-                        <Input
-
-                            name="name"
-
-                            placeholder=
-                            "e.g. Panadol"
-
-                            value={
-                                product.name
-                            }
-
-                            onChange={
-                                handleChange
-                            }
-
-                        />
-
-
-                    </GridItem>
-
-
-
-                    {/* BRAND */}
-
-
-                    <GridItem>
-
-
-                        <Text
-
-                            fontSize="sm"
-
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
-
-                        >
-
-                            Brand
-
-                        </Text>
-
-
-                        <Input
-
-                            name="brand"
-
-                            placeholder=
-                            "e.g. GSK"
-
-                            value={
-                                product.brand
-                            }
-
-                            onChange={
-                                handleChange
-                            }
-
-                        />
-
-
-                    </GridItem>
-
-
-
-                    {/* CATEGORY */}
-
-
-                    <GridItem>
-                        <Text
-                            fontSize="sm"
-                            fontWeight="medium"
-                            mb="2"
-                        >
-                            Category
-
-                            <Text
-                                as="span"
-                                color="red.500"
-                                ml="1"
-                            >
-                                *
-                            </Text>
-                        </Text>
-
-                        <NativeSelect.Root
-                            disabled={categoriesLoading}
-                        >
-                            <NativeSelect.Field
-                                name="categoryId"
-                                value={product.categoryId}
-                                onChange={handleChange}
-                            >
-                                <option value="">
-                                    {categoriesLoading
-                                        ? "Loading categories..."
-                                        : "Select Category"}
-                                </option>
-
-                                {categories.map((category) => (
-                                    <option
-                                        key={category.id}
-                                        value={category.id}
-                                    >
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </NativeSelect.Field>
-
-                            <NativeSelect.Indicator />
-                        </NativeSelect.Root>
-
-                        {!categoriesLoading &&
-                            categories.length === 0 && (
-                                <Text
-                                    fontSize="xs"
-                                    color="orange.600"
-                                    mt="2"
-                                >
-                                    No categories available. Create a category before adding a product.
-                                </Text>
-                            )}
-                    </GridItem>
-
-
-
-                    {/* PACK SIZE */}
-
-
-                    <GridItem>
-
-
-                        <Text
-
-                            fontSize="sm"
-
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
-
-                        >
-
-                            Pack Size
-
-                        </Text>
-
-
-                        <Input
-
-                            name="packSize"
-
-                            type="number"
-
-                            min="1"
-
-                            placeholder=
-                            "e.g. 20"
-
-                            value={
-                                product.packSize
-                            }
-
-                            onChange={
-                                handleChange
-                            }
-
-                        />
-
-
-                        <Text
-
-                            fontSize="xs"
-
-                            color="gray.500"
-
-                            mt="1"
-
-                        >
-
-                            Number of units in one pack
-
-                        </Text>
-
-
-                    </GridItem>
-
-
-                </SimpleGrid>
-
-
-            </Box>
-
-
-
-            {/* ======================== */}
-            {/* DIVIDER */}
-            {/* ======================== */}
-
-
+              Add New Product
+            </Heading>
+
+            <Text mt={2} color="gray.500" fontSize="sm">
+              Add a product to your pharmacy inventory.
+            </Text>
+          </Box>
+
+          <Flex
+            bg="white"
+            border="1px solid"
+            borderColor="gray.200"
+            rounded="xl"
+            px={4}
+            py={3}
+            gap={3}
+            align="center"
+            w={{ base: "100%", md: "auto" }}
+          >
             <Box
-
-                borderTop=
-                "1px solid"
-
-                borderColor=
-                "gray.200"
-
-                mb="8"
-
-            />
-
-
-
-            {/* ======================== */}
-            {/* MEDICINE INFORMATION */}
-            {/* ======================== */}
-
-
+              w="40px"
+              h="40px"
+              rounded="lg"
+              bg="teal.50"
+              color="teal.700"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              fontSize="xl"
+              fontWeight="bold"
+            >
+              +
+            </Box>
             <Box>
+              <Text fontSize="sm" fontWeight="semibold" color="gray.800">
+                Automatic Product ID
+              </Text>
+              <Text fontSize="xs" color="gray.500">
+                Generated when saved
+              </Text>
+            </Box>
+          </Flex>
+        </Flex>
 
+        <form onSubmit={handleSubmit}>
+          <Flex direction="column" gap={5}>
+            {/* Basic information */}
+            <Box
+              bg="white"
+              border="1px solid"
+              borderColor="gray.200"
+              rounded="2xl"
+              p={{ base: 4, md: 6 }}
+              boxShadow="sm"
+            >
+              <SectionHeader
+                number="01"
+                title="Basic Information"
+                description="Enter the product identity and category."
+              />
 
-                <Box
-                    mb="4"
-                >
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={5}>
+                <GridItem>
+                  <FieldLabel>Product Name *</FieldLabel>
+                  <Input
+                    {...inputStyles}
+                    name="name"
+                    placeholder="e.g. Paracetamol"
+                    value={product.name}
+                    onChange={handleChange}
+                    required
+                    autoFocus
+                  />
+                </GridItem>
 
+                <GridItem>
+                  <FieldLabel optional>Brand</FieldLabel>
+                  <Input
+                    {...inputStyles}
+                    name="brand"
+                    placeholder="e.g. Panadol"
+                    value={product.brand}
+                    onChange={handleChange}
+                  />
+                </GridItem>
 
-                    <Text
-
-                        fontSize="md"
-
-                        fontWeight=
-                        "semibold"
-
-                        color="gray.800"
-
+                <GridItem>
+                  <FieldLabel optional>Category</FieldLabel>
+                  <NativeSelect.Root disabled={categoriesLoading}>
+                    <NativeSelect.Field
+                      {...inputStyles}
+                      name="categoryId"
+                      value={product.categoryId}
+                      onChange={handleChange}
                     >
+                      <option value="">
+                        {categoriesLoading
+                          ? "Loading categories..."
+                          : "Select a category"}
+                      </option>
 
-                        Medicine Information
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
 
+                  {!categoriesLoading && categories.length === 0 && (
+                    <Text mt={2} fontSize="xs" color="orange.600">
+                      No categories found. You can add one later if needed.
                     </Text>
-
-
-                    <Text
-
-                        fontSize="sm"
-
-                        color="gray.500"
-
-                    >
-
-                        Enter dosage form and strength information
-
-                    </Text>
-
-
-                </Box>
-
-
-
-                <SimpleGrid
-
-                    columns={{
-                        base: 1,
-                        md: 3
-                    }}
-
-                    gap="5"
-
-                >
-
-
-
-                    {/* DOSAGE FORM */}
-
-
-                    <GridItem>
-
-
-                        <Text
-
-                            fontSize="sm"
-
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
-
-                        >
-
-                            Dosage Form
-
-                            <Text
-
-                                as="span"
-
-                                color="red.500"
-
-                                ml="1"
-
-                            >
-
-                                *
-
-                            </Text>
-
-                        </Text>
-
-
-
-                        <NativeSelect.Root>
-
-
-                            <NativeSelect.Field
-
-                                name=
-                                "dosageForm"
-
-                                value={
-                                    product.dosageForm
-                                }
-
-                                onChange={
-                                    handleChange
-                                }
-
-                            >
-
-
-                                <option
-                                    value=""
-                                >
-
-                                    Select Dosage Form
-
-                                </option>
-
-
-                                <option
-                                    value="TABLET"
-                                >
-
-                                    Tablet
-
-                                </option>
-
-
-                                <option
-                                    value="CAPSULE"
-                                >
-
-                                    Capsule
-
-                                </option>
-
-
-                                <option
-                                    value="SYRUP"
-                                >
-
-                                    Syrup
-
-                                </option>
-
-
-                                <option
-                                    value="INJECTION"
-                                >
-
-                                    Injection
-
-                                </option>
-
-
-                                <option
-                                    value="CREAM"
-                                >
-
-                                    Cream
-
-                                </option>
-
-
-                                <option
-                                    value="OINTMENT"
-                                >
-
-                                    Ointment
-
-                                </option>
-
-
-                                <option
-                                    value="DROPS"
-                                >
-
-                                    Drops
-
-                                </option>
-
-
-                            </NativeSelect.Field>
-
-
-                            <NativeSelect.Indicator />
-
-
-                        </NativeSelect.Root>
-
-
-                    </GridItem>
-
-
-
-                    {/* STRENGTH VALUE */}
-
-
-                    <GridItem>
-
-
-                        <Text
-
-                            fontSize="sm"
-
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
-
-                        >
-
-                            Strength
-
-                            <Text
-
-                                as="span"
-
-                                color="red.500"
-
-                                ml="1"
-
-                            >
-
-                                *
-
-                            </Text>
-
-                        </Text>
-
-
-                        <Input
-
-                            name=
-                            "strengthValue"
-
-                            type="number"
-
-                            min="0"
-
-                            step="any"
-
-                            placeholder=
-                            "e.g. 500"
-
-                            value={
-                                product.strengthValue
-                            }
-
-                            onChange={
-                                handleChange
-                            }
-
-                        />
-
-
-                    </GridItem>
-
-
-
-                    {/* STRENGTH UNIT */}
-
-
-                    <GridItem>
-
-
-                        <Text
-
-                            fontSize="sm"
-
-                            fontWeight=
-                            "medium"
-
-                            mb="2"
-
-                        >
-
-                            Strength Unit
-
-                            <Text
-
-                                as="span"
-
-                                color="red.500"
-
-                                ml="1"
-
-                            >
-
-                                *
-
-                            </Text>
-
-                        </Text>
-
-
-
-                        <NativeSelect.Root>
-
-
-                            <NativeSelect.Field
-
-                                name=
-                                "strengthUnit"
-
-                                value={
-                                    product.strengthUnit
-                                }
-
-                                onChange={
-                                    handleChange
-                                }
-
-                            >
-
-
-                                <option
-                                    value=""
-                                >
-
-                                    Select Unit
-
-                                </option>
-
-
-                                <option
-                                    value="MG"
-                                >
-
-                                    mg
-
-                                </option>
-
-
-                                <option
-                                    value="ML"
-                                >
-
-                                    ml
-
-                                </option>
-
-
-                                <option
-                                    value="G"
-                                >
-
-                                    g
-
-                                </option>
-
-
-                            </NativeSelect.Field>
-
-
-                            <NativeSelect.Indicator />
-
-
-                        </NativeSelect.Root>
-
-
-                    </GridItem>
-
-
-                </SimpleGrid>
-
-
+                  )}
+                </GridItem>
+
+                <GridItem>
+                  <FieldLabel optional>Pack Size</FieldLabel>
+                  <Input
+                    {...inputStyles}
+                    name="packSize"
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="e.g. 20"
+                    value={product.packSize}
+                    onChange={handleChange}
+                  />
+                  <Text mt={1} fontSize="xs" color="gray.400">
+                    Number of units per pack
+                  </Text>
+                </GridItem>
+
+                <GridItem colSpan={{ base: 1, md: 2 }}>
+                  <FieldLabel optional>Description</FieldLabel>
+                  <Textarea
+                    {...inputStyles}
+                    name="description"
+                    placeholder="Enter product details, notes or other relevant information..."
+                    value={product.description}
+                    onChange={handleChange}
+                    rows={3}
+                    resize="vertical"
+                  />
+                </GridItem>
+              </SimpleGrid>
             </Box>
 
+            {/* Medicine information */}
+            <Box
+              bg="white"
+              border="1px solid"
+              borderColor="gray.200"
+              rounded="2xl"
+              p={{ base: 4, md: 6 }}
+              boxShadow="sm"
+            >
+              <SectionHeader
+                number="02"
+                title="Medicine Information"
+                description="Dosage form and strength are optional for products that do not need them."
+              />
 
-        </Box>
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={5}>
+                <GridItem>
+                  <FieldLabel optional>Dosage Form</FieldLabel>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      {...inputStyles}
+                      name="dosageForm"
+                      value={product.dosageForm}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select dosage form</option>
+                      {dosageForms.map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                </GridItem>
 
-    );
+                <GridItem>
+                  <FieldLabel optional>Strength Value</FieldLabel>
+                  <Input
+                    {...inputStyles}
+                    name="strengthValue"
+                    type="text"
+                    placeholder="e.g. 500, 5 mg/5 ml"
+                    value={product.strengthValue}
+                    onChange={handleChange}
+                  />
+                  <Text mt={1} fontSize="xs" color="gray.400">
+                    Text input supports flexible strength formats.
+                  </Text>
+                </GridItem>
 
+                <GridItem>
+                  <FieldLabel optional>Strength Unit</FieldLabel>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      {...inputStyles}
+                      name="strengthUnit"
+                      value={product.strengthUnit}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select strength unit</option>
+                      {strengthUnits.map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                </GridItem>
+              </SimpleGrid>
+            </Box>
+
+            {/* Dimensions */}
+            <Box
+              bg="white"
+              border="1px solid"
+              borderColor="gray.200"
+              rounded="2xl"
+              p={{ base: 4, md: 6 }}
+              boxShadow="sm"
+            >
+              <SectionHeader
+                number="03"
+                title="Dimensions"
+                description="For non-medicine items and products with physical measurements."
+              />
+
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={5}>
+                <GridItem>
+                  <FieldLabel optional>Dimensions Value</FieldLabel>
+                  <Input
+                    {...inputStyles}
+                    name="dimensionsValue"
+                    placeholder="e.g. 10 x 20 or 15"
+                    value={product.dimensionsValue}
+                    onChange={handleChange}
+                  />
+                </GridItem>
+
+                <GridItem>
+                  <FieldLabel optional>Dimensions Unit</FieldLabel>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      {...inputStyles}
+                      name="dimensionsUnit"
+                      value={product.dimensionsUnit}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select measurement unit</option>
+                      {dimensionUnits.map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                </GridItem>
+              </SimpleGrid>
+            </Box>
+
+            {/* Footer actions */}
+            <Flex
+              bg="white"
+              border="1px solid"
+              borderColor="gray.200"
+              rounded="2xl"
+              p={{ base: 4, md: 5 }}
+              justify="space-between"
+              align={{ base: "stretch", md: "center" }}
+              direction={{ base: "column", md: "row" }}
+              gap={4}
+              boxShadow="sm"
+            >
+              <Box>
+                <Text fontSize="sm" fontWeight="semibold" color="gray.700">
+                  Ready to add this product?
+                </Text>
+                <Text fontSize="xs" color="gray.500" mt={1}>
+                  The product code will be generated automatically.
+                </Text>
+              </Box>
+
+              <Flex gap={3} direction={{ base: "column-reverse", sm: "row" }}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  borderColor="gray.300"
+                  onClick={() => navigate("/admin/products")}
+                  disabled={saving}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  type="submit"
+                  colorPalette="teal"
+                  loading={saving}
+                  disabled={saving}
+                  minW={{ base: "100%", sm: "160px" }}
+                >
+                  Save Product
+                </Button>
+              </Flex>
+            </Flex>
+          </Flex>
+        </form>
+      </Box>
+    </Box>
+  );
 }
