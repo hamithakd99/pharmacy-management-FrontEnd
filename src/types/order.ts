@@ -15,7 +15,7 @@ export type PaymentMethod =
   | "CASH"
   | "CARD"
   | "BANK_TRANSFER"
-  | "OTHER"
+  | "CHEQUE"
   | null;
 
 export interface OrderCustomer {
