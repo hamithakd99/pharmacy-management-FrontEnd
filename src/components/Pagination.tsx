@@ -28,15 +28,16 @@ export default function Pagination({
 
     return (
         <Flex
-            justify="space-between"
-            align="center"
+            justify={{ base: "center", sm: "space-between" }}
+            align={{ base: "stretch", sm: "center" }}
+            direction={{ base: "column", sm: "row" }}
             flexWrap="wrap"
-            gap={3}
-            mt={4}
-            py={3}
+            gap={{ base: 2, sm: 3 }}
+            mt={{ base: 3, md: 4 }}
+            py={{ base: 2, md: 3 }}
         >
-            <HStack gap={2}>
-                <Text fontSize="sm" color="gray.600">
+            <HStack gap={2} justify="center" flexWrap="wrap">
+                <Text fontSize="xs" color="gray.600">
                     Rows:
                 </Text>
 
@@ -59,12 +60,12 @@ export default function Pagination({
                     ))}
                 </select>
 
-                <Text fontSize="sm" color="gray.600">
+                <Text fontSize="xs" color="gray.600" whiteSpace="nowrap">
                     Showing {start}–{end} of {total}
                 </Text>
             </HStack>
 
-            <HStack gap={2}>
+            <HStack gap={2} justify="center">
                 <Button
                     size="sm"
                     variant="outline"

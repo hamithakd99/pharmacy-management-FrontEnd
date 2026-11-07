@@ -4,8 +4,10 @@ import axios from "axios";
 
 import {
     Box,
+    Button,
     Flex,
     Heading,
+    HStack,
     NativeSelect,
     Skeleton,
     Text,
@@ -33,6 +35,13 @@ type MonthlySale = {
     month: string;
     sales: number;
 };
+
+type DailySale = {
+    label: string;
+    sales: number;
+};
+
+type SalesRange = "7D" | "30D" | "ANNUAL";
 
 const MONTHS = [
     "Jan", "Feb", "Mar", "Apr",
@@ -87,6 +96,7 @@ export default function SalesChart() {
     const [selectedYear, setSelectedYear] = useState(
         String(currentYear)
     );
+    const [selectedRange, setSelectedRange] = useState<SalesRange>("ANNUAL");
 
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
@@ -135,11 +145,14 @@ export default function SalesChart() {
         };
     }, []);
 
+    const isCompletedOrder = (order: Order) =>
+        order.status === "CONFIRMED" || order.status === "COMPLETED";
+
     const monthlySales: MonthlySale[] = MONTHS.map(
         (month, index) => {
             const monthSales = orders
                 .filter((order) => {
-                    if (order.status !== "CONFIRMED") {
+                    if (!isCompletedOrder(order)) {
                         return false;
                     }
 
@@ -164,10 +177,62 @@ export default function SalesChart() {
         }
     );
 
-    const annualSales = monthlySales.reduce(
-        (total, month) => total + month.sales,
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const rangeDays = selectedRange === "7D" ? 7 : 30;
+    const dailySales: DailySale[] = Array.from(
+        { length: rangeDays },
+        (_, index) => {
+            const date = new Date(today);
+            date.setDate(today.getDate() - (rangeDays - 1 - index));
+
+            const sales = orders
+                .filter((order) => {
+                    if (!isCompletedOrder(order)) {
+                        return false;
+                    }
+
+                    const orderDate = new Date(order.createdAt);
+                    return (
+                        !Number.isNaN(orderDate.getTime()) &&
+                        orderDate.getFullYear() === date.getFullYear() &&
+                        orderDate.getMonth() === date.getMonth() &&
+                        orderDate.getDate() === date.getDate()
+                    );
+                })
+                .reduce(
+                    (total, order) =>
+                        total + (Number(order.totalAmount) || 0),
+                    0
+                );
+
+            return {
+                label: date.toLocaleDateString("en-LK", {
+                    day: "2-digit",
+                    month: "short",
+                }),
+                sales,
+            };
+        }
+    );
+
+    const chartData =
+        selectedRange === "ANNUAL"
+            ? monthlySales.map((item) => ({
+                label: item.month,
+                sales: item.sales,
+            }))
+            : dailySales;
+    const selectedSales = chartData.reduce(
+        (total, item) => total + item.sales,
         0
     );
+    const rangeLabel =
+        selectedRange === "ANNUAL"
+            ? `Annual Sales ${selectedYear}`
+            : selectedRange === "7D"
+                ? "Sales - Last 7 Days"
+                : "Sales - Last 30 Days";
 
     return (
         <Box
@@ -189,11 +254,11 @@ export default function SalesChart() {
             >
                 <Box minW={0}>
                     <Heading size="md">
-                        Monthly Sales
+                        Sales Overview
                     </Heading>
 
                     <Text color="gray.500" fontSize="sm" mt={1}>
-                        Completed sales revenue by month
+                        View completed sales by selected period
                     </Text>
                 </Box>
 
@@ -216,6 +281,34 @@ export default function SalesChart() {
                 </NativeSelect.Root>
             </Flex>
 
+            <HStack
+                gap={2}
+                mb={4}
+                overflowX="auto"
+                pb={1}
+                width="100%"
+            >
+                {([
+                    ["7D", "7 Days"],
+                    ["30D", "30 Days"],
+                    ["ANNUAL", "Annual"],
+                ] as const).map(([range, label]) => (
+                    <Button
+                        key={range}
+                        size="sm"
+                        flex="1"
+                        minW={{ base: "100px", sm: "120px" }}
+                        variant={
+                            selectedRange === range ? "solid" : "outline"
+                        }
+                        colorPalette="teal"
+                        onClick={() => setSelectedRange(range)}
+                    >
+                        {label}
+                    </Button>
+                ))}
+            </HStack>
+
             <Box
                 bg="teal.50"
                 rounded="lg"
@@ -223,7 +316,7 @@ export default function SalesChart() {
                 mb={4}
             >
                 <Text fontSize="sm" color="gray.600">
-                    Total sales in {selectedYear}
+                    {rangeLabel}
                 </Text>
 
                 <Heading
@@ -235,7 +328,7 @@ export default function SalesChart() {
                     {loading ? (
                         <Skeleton h="32px" w="180px" />
                     ) : (
-                        formatCurrency(annualSales)
+                        formatCurrency(selectedSales)
                     )}
                 </Heading>
             </Box>
@@ -265,11 +358,11 @@ export default function SalesChart() {
                 >
                     <Box
                         h="100%"
-                        minW={{ base: "450px", md: "0" }}
+                        minW="0"
                     >
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
-                                data={monthlySales}
+                                data={chartData}
                                 margin={{
                                     top: 10,
                                     right: 8,
@@ -306,11 +399,15 @@ export default function SalesChart() {
                                 />
 
                                 <XAxis
-                                    dataKey="month"
+                                    dataKey="label"
                                     tick={{ fontSize: 12 }}
                                     tickLine={false}
                                     axisLine={false}
-                                    interval="preserveStartEnd"
+                                    interval={
+                                        selectedRange === "30D"
+                                            ? 4
+                                            : "preserveStartEnd"
+                                    }
                                 />
 
                                 <YAxis
@@ -327,7 +424,9 @@ export default function SalesChart() {
                                         "Sales",
                                     ]}
                                     labelFormatter={(label) =>
-                                        `${label} ${selectedYear}`
+                                        selectedRange === "ANNUAL"
+                                            ? `${label} ${selectedYear}`
+                                            : String(label)
                                     }
                                     contentStyle={{
                                         borderRadius: "10px",
@@ -351,14 +450,14 @@ export default function SalesChart() {
                 </Box>
             )}
 
-            {!loading && !error && annualSales === 0 && (
+            {!loading && !error && selectedSales === 0 && (
                 <Text
                     mt={3}
                     fontSize="sm"
                     color="gray.500"
                     textAlign="center"
                 >
-                    No completed sales were recorded for {selectedYear}.
+                    No completed sales were recorded for {rangeLabel}.
                 </Text>
             )}
         </Box>

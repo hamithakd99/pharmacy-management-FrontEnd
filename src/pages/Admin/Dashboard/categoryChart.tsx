@@ -9,6 +9,7 @@ import {
     VStack,
     HStack,
     Skeleton,
+    SimpleGrid,
 } from "@chakra-ui/react";
 
 import {
@@ -17,7 +18,6 @@ import {
     Pie,
     Cell,
     Tooltip,
-    Legend,
 } from "recharts";
 
 const COLORS = [
@@ -62,6 +62,8 @@ export default function CategoryChart() {
     const [error, setError] = useState("");
 
     useEffect(() => {
+        let cancelled = false;
+
         const fetchCategoryData = async () => {
             try {
                 setLoading(true);
@@ -84,11 +86,16 @@ export default function CategoryChart() {
                             ? responseData.products
                             : [];
 
+                const categoriesResponseData = categoriesResponse.data;
                 const categories: Category[] = Array.isArray(
-                    categoriesResponse.data
+                    categoriesResponseData
                 )
-                    ? categoriesResponse.data
-                    : [];
+                    ? categoriesResponseData
+                    : Array.isArray(categoriesResponseData?.data)
+                        ? categoriesResponseData.data
+                        : Array.isArray(categoriesResponseData?.categories)
+                            ? categoriesResponseData.categories
+                            : [];
 
                 // Map category IDs to their actual names.
                 const categoryNames = new Map<string, string>(
@@ -102,6 +109,8 @@ export default function CategoryChart() {
                 const activeProducts = products.filter(
                     (product) => product.isActive !== false
                 );
+
+                if (cancelled) return;
 
                 setTotalProducts(activeProducts.length);
 
@@ -134,13 +143,22 @@ export default function CategoryChart() {
                 setCategoryData(chartData);
             } catch (err) {
                 console.error("Failed to fetch category data:", err);
-                setError("Unable to load product categories.");
+
+                if (!cancelled) {
+                    setError("Unable to load product categories.");
+                }
             } finally {
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
             }
         };
 
         fetchCategoryData();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     return (
@@ -150,12 +168,16 @@ export default function CategoryChart() {
             border="1px solid"
             borderColor="gray.200"
             boxShadow="sm"
-            p={{ base: "4", md: "6" }}
+            p={{ base: "4", sm: "5", md: "6" }}
             h="100%"
             minW="0"
         >
             {/* Header */}
-            <Flex justify="space-between" align="center" mb="5">
+            <Flex
+                justify="space-between"
+                align="flex-start"
+                mb={{ base: "4", md: "5" }}
+            >
                 <Box>
                     <Heading size="md" color="gray.800">
                         Product Categories
@@ -191,15 +213,19 @@ export default function CategoryChart() {
             ) : (
                 <>
                     {/* Pie Chart */}
-                    <Box h="260px" w="100%" minW="0">
+                    <Box
+                        h={{ base: "220px", sm: "250px", md: "260px" }}
+                        w="100%"
+                        minW="0"
+                    >
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
                                     data={categoryData}
                                     dataKey="value"
                                     nameKey="name"
-                                    innerRadius={55}
-                                    outerRadius={85}
+                                    innerRadius="28%"
+                                    outerRadius="42%"
                                     paddingAngle={3}
                                 >
                                     {categoryData.map((item, index) => (
@@ -218,23 +244,23 @@ export default function CategoryChart() {
                                         "Products",
                                     ]}
                                 />
-
-                                <Legend
-                                    verticalAlign="bottom"
-                                    height={36}
-                                    wrapperStyle={{ fontSize: "12px" }}
-                                />
                             </PieChart>
                         </ResponsiveContainer>
                     </Box>
 
                     {/* Category List */}
-                    <VStack mt="4" gap="3" align="stretch">
+                    <SimpleGrid
+                        mt={{ base: "3", md: "4" }}
+                        columns={{ base: 1, sm: 2 }}
+                        gap={{ base: "2", sm: "3" }}
+                        alignItems="start"
+                    >
                         {categoryData.map((item, index) => (
                             <HStack
                                 key={item.name}
                                 justify="space-between"
                                 gap="3"
+                                minW="0"
                             >
                                 <HStack gap="2" minW="0">
                                     <Box
@@ -261,7 +287,7 @@ export default function CategoryChart() {
                                 </Text>
                             </HStack>
                         ))}
-                    </VStack>
+                    </SimpleGrid>
                 </>
             )}
 

@@ -124,11 +124,12 @@ export default function ProductManagement() {
             <Box
                 backgroundColor="blue.500"
                 color="white"
-                p={4}
+                p={{ base: 3, sm: 4 }}
                 rounded="md"
                 textAlign="center"
                 fontWeight="bold"
-                mb={6}
+                fontSize={{ base: "md", sm: "lg" }}
+                mb={{ base: 4, md: 6 }}
             >
                 Product Management
             </Box>

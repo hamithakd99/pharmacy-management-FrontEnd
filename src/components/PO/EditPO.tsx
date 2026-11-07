@@ -587,11 +587,12 @@ export default function EditPO() {
             <Box
                 bg="blue.500"
                 color="white"
-                p={4}
+                p={{ base: 3, sm: 4 }}
                 rounded="md"
                 textAlign="center"
                 fontWeight="bold"
-                mb={6}
+                fontSize={{ base: "md", sm: "lg" }}
+                mb={{ base: 4, md: 6 }}
             >
 
                 Edit Purchase Order
@@ -605,13 +606,14 @@ export default function EditPO() {
                 bg="white"
                 borderWidth="1px"
                 rounded="lg"
-                p={6}
-                mb={6}
+                p={{ base: 3, sm: 4, md: 6 }}
+                mb={{ base: 4, md: 6 }}
             >
 
                 <Heading
                     size="md"
-                    mb={5}
+                    mb={{ base: 3, md: 5 }}
+                    fontSize={{ base: "md", sm: "lg" }}
                 >
 
                     Purchase Order Information
@@ -620,7 +622,7 @@ export default function EditPO() {
 
 
                 <Flex
-                    gap={6}
+                    gap={{ base: 3, md: 6 }}
                     wrap="wrap"
                 >
 
@@ -628,7 +630,7 @@ export default function EditPO() {
 
                     <Box
                         flex="1"
-                        minW="250px"
+                        minW={{ base: "100%", md: "250px" }}
                     >
 
                         <Field.Root>
@@ -658,7 +660,7 @@ export default function EditPO() {
 
                     <Box
                         flex="1"
-                        minW="250px"
+                        minW={{ base: "100%", md: "250px" }}
                     >
 
                         <Field.Root>
@@ -700,7 +702,7 @@ export default function EditPO() {
 
                     <Box
                         flex="1"
-                        minW="250px"
+                        minW={{ base: "100%", md: "250px" }}
                     >
 
                         <Field.Root>
@@ -752,13 +754,14 @@ export default function EditPO() {
                 bg="white"
                 borderWidth="1px"
                 rounded="lg"
-                p={6}
-                mb={6}
+                p={{ base: 3, sm: 4, md: 6 }}
+                mb={{ base: 4, md: 6 }}
             >
 
                 <Heading
                     size="md"
-                    mb={5}
+                    mb={{ base: 3, md: 5 }}
+                    fontSize={{ base: "md", sm: "lg" }}
                 >
 
                     Add Product
@@ -767,14 +770,14 @@ export default function EditPO() {
 
 
                 <Flex
-                    gap={4}
-                    align="end"
+                    gap={{ base: 3, md: 4 }}
+                    align={{ base: "stretch", md: "end" }}
                     wrap="wrap"
                 >
 
                     <Box
                         flex="1"
-                        minW="300px"
+                        minW={{ base: "100%", md: "300px" }}
                     >
 
                         <Field.Root>
@@ -845,7 +848,7 @@ export default function EditPO() {
 
 
                     <Box
-                        width="180px"
+                        width={{ base: "100%", md: "180px" }}
                     >
 
                         <Field.Root>
@@ -881,7 +884,7 @@ export default function EditPO() {
 
 
                     <Button
-
+                        width={{ base: "100%", md: "auto" }}
                         colorPalette="blue"
 
                         onClick={
@@ -905,12 +908,13 @@ export default function EditPO() {
                 bg="white"
                 borderWidth="1px"
                 rounded="lg"
-                p={6}
+                p={{ base: 3, sm: 4, md: 6 }}
             >
 
                 <Heading
                     size="md"
-                    mb={5}
+                    mb={{ base: 3, md: 5 }}
+                    fontSize={{ base: "md", sm: "lg" }}
                 >
 
                     Ordered Products
@@ -943,6 +947,7 @@ export default function EditPO() {
 
                         <Table.Root
                             variant="outline"
+                            minW="700px"
                         >
 
                             <Table.Header>
@@ -1103,11 +1108,14 @@ export default function EditPO() {
 
             <Flex
                 justify="end"
-                gap={3}
+                gap={{ base: 2, sm: 3 }}
+                direction={{ base: "column-reverse", sm: "row" }}
+                align={{ base: "stretch", sm: "center" }}
                 mt={6}
             >
 
                 <Button
+                    width={{ base: "100%", sm: "auto" }}
 
                     variant="outline"
 
@@ -1129,6 +1137,7 @@ export default function EditPO() {
                 <Button
 
                     colorPalette="blue"
+                    width={{ base: "100%", sm: "auto" }}
 
                     onClick={
                         updatePurchaseOrder

@@ -220,7 +220,10 @@ export default function ProductViewDialog({
 
                     <Dialog.Content
 
-                        maxW="1200px"
+                        w="calc(100% - 1rem)"
+                        maxW={{ base: "calc(100vw - 1rem)", md: "1200px" }}
+                        maxH="calc(100vh - 1rem)"
+                        overflow="hidden"
 
                     >
 
@@ -230,9 +233,13 @@ export default function ProductViewDialog({
 
                         </Dialog.CloseTrigger>
 
-                        <Dialog.Header>
+                        <Dialog.Header
+                            px={{ base: 4, sm: 6 }}
+                            py={{ base: 3, sm: 5 }}
+                            pr={{ base: 12, sm: 14 }}
+                        >
 
-                            <Dialog.Title>
+                            <Dialog.Title fontSize={{ base: "lg", sm: "xl" }}>
 
                                 Product Details
 
@@ -240,7 +247,11 @@ export default function ProductViewDialog({
 
                         </Dialog.Header>
 
-                        <Dialog.Body>
+                        <Dialog.Body
+                            px={{ base: 3, sm: 5, md: 6 }}
+                            py={{ base: 3, sm: 4, md: 5 }}
+                            overflowY="auto"
+                        >
 
                             {
 
@@ -264,24 +275,27 @@ export default function ProductViewDialog({
 
                             }
                             {!loading && product && (
-                                <VStack align="stretch" gap={6}>
+                                <VStack align="stretch" gap={{ base: 3, sm: 5, md: 6 }}>
 
                                     <Box
                                         borderWidth="1px"
                                         borderRadius="lg"
-                                        p={5}
+                                        p={{ base: 3, sm: 4, md: 5 }}
                                         bg="white"
                                     >
 
                                         <Text
-                                            fontSize="xl"
+                                            fontSize={{ base: "md", sm: "xl" }}
                                             fontWeight="bold"
-                                            mb={5}
+                                            mb={{ base: 3, sm: 5 }}
                                         >
                                             Product Information
                                         </Text>
 
-                                        <SimpleGrid columns={{ base: 1, md: 2 }} gap={5}>
+                                        <SimpleGrid
+                                            columns={{ base: 1, sm: 2 }}
+                                            gap={{ base: 3, sm: 5 }}
+                                        >
 
                                             <Box>
                                                 <Text color="gray.500" fontSize="sm">
@@ -369,7 +383,7 @@ export default function ProductViewDialog({
 
                                         </SimpleGrid>
 
-                                        <Box mt={5}>
+                                        <Box mt={{ base: 4, sm: 5 }}>
 
                                             <Text color="gray.500" fontSize="sm">
                                                 Description
@@ -388,21 +402,21 @@ export default function ProductViewDialog({
                             <Box
                                 borderWidth="1px"
                                 borderRadius="lg"
-                                p={5}
+                                p={{ base: 3, sm: 4, md: 5 }}
                                 bg="white"
                             >
 
                                 <Text
-                                    fontSize="xl"
+                                    fontSize={{ base: "md", sm: "xl" }}
                                     fontWeight="bold"
-                                    mb={5}
+                                    mb={{ base: 3, sm: 5 }}
                                 >
                                     Inventory Summary
                                 </Text>
 
                                 <SimpleGrid
                                     columns={{ base: 2, md: 4 }}
-                                    gap={5}
+                                    gap={{ base: 3, sm: 5 }}
                                 >
 
                                     <Box>
@@ -416,7 +430,7 @@ export default function ProductViewDialog({
 
                                         <Text
                                             fontWeight="bold"
-                                            fontSize="2xl"
+                                            fontSize={{ base: "lg", sm: "2xl" }}
                                         >
                                             {currentStock}
                                         </Text>
@@ -434,7 +448,7 @@ export default function ProductViewDialog({
 
                                         <Text
                                             fontWeight="bold"
-                                            fontSize="2xl"
+                                            fontSize={{ base: "lg", sm: "2xl" }}
                                         >
                                             {product?.reorderLevel}
                                         </Text>
@@ -452,7 +466,7 @@ export default function ProductViewDialog({
 
                                         <Text
                                             fontWeight="bold"
-                                            fontSize="2xl"
+                                            fontSize={{ base: "lg", sm: "2xl" }}
                                         >
                                             {product?.stockBatchItems.length}
                                         </Text>
@@ -470,7 +484,7 @@ export default function ProductViewDialog({
 
                                         <Text
                                             fontWeight="bold"
-                                            fontSize="2xl"
+                                            fontSize={{ base: "lg", sm: "2xl" }}
                                         >
                                             Rs.{" "}
                                             {product?.stockBatchItems?.length
@@ -488,22 +502,24 @@ export default function ProductViewDialog({
                             <Box
                                 borderWidth="1px"
                                 borderRadius="lg"
-                                p={5}
+                                p={{ base: 3, sm: 4, md: 5 }}
                                 bg="white"
                             >
 
                                 <Text
-                                    fontSize="xl"
+                                    fontSize={{ base: "md", sm: "xl" }}
                                     fontWeight="bold"
-                                    mb={5}
+                                    mb={{ base: 3, sm: 5 }}
                                 >
                                     Stock Batch History
                                 </Text>
 
-                                <Table.Root
-                                    variant="outline"
-                                    size="sm"
-                                >
+                                <Box w="100%" overflowX="auto">
+                                    <Table.Root
+                                        variant="outline"
+                                        size="sm"
+                                        minW="900px"
+                                    >
 
                                     <Table.Header>
 
@@ -697,15 +713,20 @@ export default function ProductViewDialog({
 
                                     </Table.Body>
 
-                                </Table.Root>
+                                    </Table.Root>
+                                </Box>
 
                             </Box>
 
 
                         </Dialog.Body>
-                        <Dialog.Footer>
+                        <Dialog.Footer
+                            px={{ base: 3, sm: 6 }}
+                            py={{ base: 3, sm: 4 }}
+                        >
 
                             <Button
+                                width={{ base: "100%", sm: "auto" }}
 
                                 onClick={onClose}
 

@@ -135,7 +135,7 @@ export default function LowStockTable() {
   return (
     <Box
       bg="white"
-      p={{ base: "4", md: "6" }}
+      p={{ base: "3", sm: "4", md: "6" }}
       rounded="xl"
       border="1px solid"
       borderColor="gray.200"
@@ -148,11 +148,13 @@ export default function LowStockTable() {
         align={{ base: "start", sm: "center" }}
         direction={{ base: "column", sm: "row" }}
         gap="3"
-        mb="5"
+        mb={{ base: "4", md: "5" }}
       >
         <Box>
           <HStack gap="2" mb="1">
-            <Heading size="md">Low Stock Products</Heading>
+            <Heading size={{ base: "sm", md: "md" }}>
+              Low Stock Products
+            </Heading>
             {!loading && (
               <Badge colorPalette="orange" variant="subtle">
                 {products.length}
@@ -160,7 +162,7 @@ export default function LowStockTable() {
             )}
           </HStack>
 
-          <Text fontSize="sm" color="gray.500">
+          <Text fontSize={{ base: "xs", md: "sm" }} color="gray.500">
             Products that need replenishment
           </Text>
         </Box>
@@ -201,8 +203,67 @@ export default function LowStockTable() {
           </Text>
         </Box>
       ) : (
-        <Box w="100%" overflowX="auto">
-          <Table.Root size="sm" minW="460px">
+        <>
+          <VStack display={{ base: "flex", md: "none" }} align="stretch" gap="2">
+            {products.map((product) => {
+              const status = getStockStatus(product);
+              const stockPercentage =
+                product.reorderLevel > 0
+                  ? Math.min((product.stock / product.reorderLevel) * 100, 100)
+                  : product.stock > 0
+                    ? 100
+                    : 0;
+
+              return (
+                <Box
+                  key={product.id}
+                  borderWidth="1px"
+                  borderColor="gray.100"
+                  rounded="lg"
+                  p="3"
+                >
+                  <Flex justify="space-between" align="start" gap="2">
+                    <Box minW={0}>
+                      <Text fontWeight="600" fontSize="sm" truncate>
+                        {product.name}
+                      </Text>
+                      <Text fontSize="xs" color="gray.500" truncate>
+                        {product.productId}
+                      </Text>
+                    </Box>
+                    <Badge
+                      flexShrink={0}
+                      colorPalette={status.color}
+                      variant="subtle"
+                      rounded="md"
+                    >
+                      {status.label}
+                    </Badge>
+                  </Flex>
+                  <Progress.Root
+                    mt="3"
+                    value={stockPercentage}
+                    size="sm"
+                    colorPalette={status.color}
+                    rounded="full"
+                  >
+                    <Progress.Track bg="gray.100">
+                      <Progress.Range rounded="full" />
+                    </Progress.Track>
+                  </Progress.Root>
+                  <Text fontSize="xs" color="gray.600" mt="1">
+                    <Text as="span" fontWeight="600">
+                      {product.stock.toLocaleString()}
+                    </Text>{" "}
+                    / {product.reorderLevel.toLocaleString()} units
+                  </Text>
+                </Box>
+              );
+            })}
+          </VStack>
+
+          <Box display={{ base: "none", md: "block" }} w="100%" overflowX="auto">
+          <Table.Root size="sm">
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader py="3">
@@ -295,7 +356,8 @@ export default function LowStockTable() {
               })}
             </Table.Body>
           </Table.Root>
-        </Box>
+          </Box>
+        </>
       )}
     </Box>
   );

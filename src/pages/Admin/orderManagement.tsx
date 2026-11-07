@@ -361,7 +361,7 @@ const OrderManagement = () => {
                     md: "row",
                 }}
                 gap={4}
-                mb={6}
+                mb={{ base: 4, md: 6 }}
             >
                 <Box>
                     <Heading
@@ -381,8 +381,14 @@ const OrderManagement = () => {
                     </Text>
                 </Box>
 
-                <HStack gap={3}>
+                <HStack
+                    gap={2}
+                    width={{ base: "100%", md: "auto" }}
+                    flexDirection={{ base: "column", sm: "row" }}
+                >
                     <Button
+                        size={{ base: "sm", sm: "md" }}
+                        width={{ base: "100%", sm: "auto" }}
                         variant="outline"
                         bg="white"
                         borderColor="gray.200"
@@ -395,6 +401,8 @@ const OrderManagement = () => {
                     </Button>
 
                     <Button
+                        size={{ base: "sm", sm: "md" }}
+                        width={{ base: "100%", sm: "auto" }}
                         colorPalette="blue"
                         onClick={() => {
                             const user = JSON.parse(
@@ -428,7 +436,7 @@ const OrderManagement = () => {
 
             {/* SEARCH AND STATUS FILTER */}
 
-            <Box mb={5}>
+            <Box mb={{ base: 4, md: 5 }}>
                 <Flex
                     justify="space-between"
                     align={{
@@ -439,7 +447,7 @@ const OrderManagement = () => {
                         base: "column",
                         md: "row",
                     }}
-                    gap={3}
+                    gap={{ base: 2, sm: 3 }}
                 >
                     <Box
                         position="relative"
@@ -461,6 +469,7 @@ const OrderManagement = () => {
                         </Box>
 
                         <Input
+                            size={{ base: "sm", sm: "md" }}
                             pl="38px"
                             bg="white"
                             borderColor="gray.200"
@@ -475,7 +484,8 @@ const OrderManagement = () => {
                     </Box>
 
                     <HStack
-                        gap={3}
+                        gap={2}
+                        width={{ base: "100%", sm: "auto" }}
                         flexWrap="wrap"
                     >
                         <NativeSelect.Root
@@ -520,6 +530,8 @@ const OrderManagement = () => {
 
                         {(search || statusFilter !== "ALL") && (
                             <Button
+                                size={{ base: "sm", sm: "md" }}
+                                width={{ base: "100%", sm: "auto" }}
                                 variant="outline"
                                 bg="white"
                                 onClick={handleClearFilters}
@@ -533,7 +545,7 @@ const OrderManagement = () => {
                 {/* RESULTS COUNT */}
 
                 <Text
-                    mt={4}
+                    mt={{ base: 3, md: 4 }}
                     fontSize="sm"
                     color="gray.600"
                 >

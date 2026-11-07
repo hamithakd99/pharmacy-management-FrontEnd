@@ -52,9 +52,9 @@ export default function ProductStatsCards({
 
   return (
     <SimpleGrid
-      columns={{ base: 1, md: 2, xl: 4 }}
-      gap={5}
-      mb={6}
+      columns={{ base: 2, md: 2, xl: 4 }}
+      gap={{ base: 2, sm: 3, md: 5 }}
+      mb={{ base: 4, md: 6 }}
     >
       {cards.map((card) => (
         <Card.Root
@@ -63,20 +63,24 @@ export default function ProductStatsCards({
           borderTopColor={`${card.color}.500`}
           shadow="sm"
         >
-          <Card.Body>
+          <Card.Body p={{ base: 3, sm: 4, md: 5 }}>
             <Stat.Root>
               <Stat.Label>
-                <Text fontWeight="medium">
+                <Text fontWeight="medium" fontSize={{ base: "xs", sm: "sm" }}>
                   {card.title}
                 </Text>
               </Stat.Label>
 
-              <Stat.ValueText mt={2}>
+              <Stat.ValueText
+                mt={{ base: 1, sm: 2 }}
+                fontSize={{ base: "md", sm: "xl" }}
+                overflowWrap="anywhere"
+              >
                 {card.value}
               </Stat.ValueText>
 
-              <Stat.HelpText mt={4}>
-                <card.icon size={22} />
+              <Stat.HelpText mt={{ base: 2, sm: 4 }}>
+                <card.icon size={18} />
               </Stat.HelpText>
             </Stat.Root>
           </Card.Body>

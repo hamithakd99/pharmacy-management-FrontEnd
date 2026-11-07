@@ -32,7 +32,12 @@ export default function GRNStatsCards({ stats }: Props) {
   ];
 
   return (
-    <SimpleGrid minChildWidth="180px" gap={4} mt={5} mb={5}>
+    <SimpleGrid
+      columns={{ base: 2, sm: 2, md: 4 }}
+      gap={{ base: 2, sm: 3, md: 4 }}
+      mt={{ base: 4, md: 5 }}
+      mb={{ base: 4, md: 5 }}
+    >
       {cards.map((card) => (
         <Box
           key={card.title}
@@ -41,17 +46,18 @@ export default function GRNStatsCards({ stats }: Props) {
           borderWidth="1px"
           borderColor="gray.200"
           boxShadow="sm"
-          p={5}
+          p={{ base: 3, sm: 5 }}
         >
           <Text
-            fontSize="sm"
+            fontSize={{ base: "xs", sm: "sm" }}
+            lineHeight="short"
             color="gray.500"
             fontWeight="medium"
           >
             {card.title}
           </Text>
 
-          <Text mt={3} fontSize="3xl" fontWeight="bold">
+          <Text mt={{ base: 1, sm: 3 }} fontSize={{ base: "xl", sm: "3xl" }} fontWeight="bold">
             {card.value.toLocaleString()}
           </Text>
         </Box>

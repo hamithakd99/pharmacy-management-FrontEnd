@@ -34,22 +34,19 @@ export default function GRNSearchBar({
     return (
 
         <HStack
-
             justify="space-between"
-
-            align="center"
-
-            mt={5}
-
-            mb={5}
-
-            gap={4}
-
+            align={{ base: "stretch", sm: "center" }}
+            mt={{ base: 4, md: 5 }}
+            mb={{ base: 4, md: 5 }}
+            gap={{ base: 2, sm: 4 }}
             flexWrap="wrap"
-
         >
 
-            <HStack gap={4}>
+            <HStack
+                gap={{ base: 2, sm: 4 }}
+                width="100%"
+                flexDirection={{ base: "column", sm: "row" }}
+            >
 
                 <InputGroup
 
@@ -59,10 +56,11 @@ export default function GRNSearchBar({
 
                     <Input
 
-                        width="350px"
+                        width={{ base: "100%", sm: "350px" }}
 
                         placeholder="Search Batch / Invoice / Supplier..."
 
+                        size={{ base: "sm", sm: "md" }}
                         value={search}
 
                         onChange={(e) =>
@@ -75,7 +73,7 @@ export default function GRNSearchBar({
 
                 </InputGroup>
 
-                <NativeSelect.Root width="220px">
+                <NativeSelect.Root width={{ base: "100%", sm: "220px" }}>
 
                     <NativeSelect.Field
                         value={paymentStatus}

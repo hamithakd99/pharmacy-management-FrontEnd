@@ -122,10 +122,6 @@ export default function CategoryManagement() {
                 setCategories(
                     response.data
                 );
-                console.log(
-                    "Categories:",
-                    response.data
-                );
             })
             .catch((error) => {
                 console.log(

@@ -133,11 +133,12 @@ export default function GRNManagement() {
             <Box
                 bg="blue.500"
                 color="white"
-                p={4}
+                p={{ base: 3, sm: 4 }}
                 rounded="md"
                 fontWeight="bold"
                 textAlign="center"
-                mb={5}
+                fontSize={{ base: "md", sm: "lg" }}
+                mb={{ base: 4, md: 5 }}
             >
                 Goods Received Notes
             </Box>

@@ -92,7 +92,7 @@ const OrderDetailsStep = ({
                 </Text>
             </Box>
 
-            <SimpleGrid columns={{ base: 1, lg: 2 }} gap={5}>
+            <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 3, md: 5 }}>
                 <Box
                     border="1px solid"
                     borderColor="gray.200"
@@ -135,7 +135,7 @@ const OrderDetailsStep = ({
                         </Box>
                     </Flex>
 
-                    <Box p={5}>
+                    <Box p={{ base: 3, sm: 5 }}>
                         <Flex
                             justify="space-between"
                             align="center"
@@ -248,7 +248,7 @@ const OrderDetailsStep = ({
                         </Box>
                     </Flex>
 
-                    <Box p={5}>
+                    <Box p={{ base: 3, sm: 5 }}>
                         <Flex align="center" gap={3}>
                             <Flex
                                 w="42px"
@@ -471,7 +471,7 @@ const OrderDetailsStep = ({
 
             <SimpleGrid
                 columns={{ base: 1, md: 2 }}
-                gap={5}
+                gap={{ base: 3, md: 5 }}
                 mt={5}
             >
                 <Box
@@ -516,7 +516,7 @@ const OrderDetailsStep = ({
                         </Box>
                     </Flex>
 
-                    <Box p={5}>
+                    <Box p={{ base: 3, sm: 5 }}>
                         <Text
                             fontSize="sm"
                             fontWeight="600"

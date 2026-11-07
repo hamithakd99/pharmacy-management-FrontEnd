@@ -72,7 +72,12 @@ export default function GRNViewDialog({
 
                 <Dialog.Positioner>
 
-                    <Dialog.Content maxW="1000px">
+                    <Dialog.Content
+                        w="calc(100% - 1rem)"
+                        maxW={{ base: "calc(100vw - 1rem)", md: "1000px" }}
+                        maxH="calc(100vh - 1rem)"
+                        overflow="hidden"
+                    >
 
                         <Dialog.CloseTrigger asChild>
 
@@ -80,9 +85,13 @@ export default function GRNViewDialog({
 
                         </Dialog.CloseTrigger>
 
-                        <Dialog.Header>
+                        <Dialog.Header
+                            px={{ base: 4, sm: 6 }}
+                            py={{ base: 3, sm: 4 }}
+                            pr={{ base: 12, sm: 14 }}
+                        >
 
-                            <Dialog.Title>
+                            <Dialog.Title fontSize={{ base: "lg", sm: "xl" }}>
 
                                 Goods Received Note
 
@@ -90,7 +99,11 @@ export default function GRNViewDialog({
 
                         </Dialog.Header>
 
-                        <Dialog.Body>
+                        <Dialog.Body
+                            px={{ base: 3, sm: 6 }}
+                            py={{ base: 3, sm: 5 }}
+                            overflowY="auto"
+                        >
 
                             {
 
@@ -99,13 +112,14 @@ export default function GRNViewDialog({
                                     <>
 
                                         <Flex
-                                            gap={10}
+                                            gap={{ base: 4, sm: 10 }}
                                             wrap="wrap"
-                                            mb={8}
+                                            mb={{ base: 5, sm: 8 }}
                                         >
 
                                             <VStack
                                                 align="start"
+                                                minW={{ base: "100%", sm: "180px" }}
                                             >
 
                                                 <Text>
@@ -165,6 +179,7 @@ export default function GRNViewDialog({
 
                                             <VStack
                                                 align="start"
+                                                minW={{ base: "100%", sm: "180px" }}
                                             >
 
                                                 <Text>
@@ -248,6 +263,7 @@ export default function GRNViewDialog({
 
                                             <VStack
                                                 align="start"
+                                                minW={{ base: "100%", sm: "180px" }}
                                             >
 
                                                 <Text>
@@ -282,6 +298,7 @@ export default function GRNViewDialog({
 
                                             <Table.Root
                                                 variant="outline"
+                                                minW="700px"
                                             >
 
                                                 <Table.Header>

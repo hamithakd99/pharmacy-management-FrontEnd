@@ -144,9 +144,9 @@ const CreateOrder = () => {
                 })),
             };
 
-            console.log("CREATE ORDER PAYLOAD:", payload);
+            // console.log("CREATE ORDER PAYLOAD:", payload);
 
-            const response = await api.post(
+            await api.post(
                 "/order",
                 payload,
                 {
@@ -156,7 +156,7 @@ const CreateOrder = () => {
                 }
             );
 
-            console.log("ORDER CREATED:", response.data);
+            // console.log("ORDER CREATED:", response.data);
 
             toast.success("Order created successfully!");
 
@@ -188,7 +188,7 @@ const CreateOrder = () => {
             minH="100vh"
             bg="gray.50"
             px={{ base: 4, md: 6, lg: 8 }}
-            py={6}
+            py={{ base: 4, sm: 6 }}
         >
             <Box maxW="1200px" mx="auto">
                 {/* Header */}
@@ -202,8 +202,8 @@ const CreateOrder = () => {
                         base: "column",
                         md: "row",
                     }}
-                    gap={4}
-                    mb={6}
+                    gap={{ base: 3, md: 4 }}
+                    mb={{ base: 4, md: 6 }}
                 >
                     <Box>
                         <Button
@@ -223,7 +223,7 @@ const CreateOrder = () => {
                         </Button>
 
                         <Heading
-                            size="lg"
+                            size={{ base: "md", sm: "lg" }}
                             color="gray.800"
                         >
                             Create New Order
@@ -231,7 +231,7 @@ const CreateOrder = () => {
 
                         <Text
                             mt={1}
-                            fontSize="sm"
+                            fontSize={{ base: "xs", sm: "sm" }}
                             color="gray.500"
                         >
                             Create a customer order
@@ -247,7 +247,7 @@ const CreateOrder = () => {
                     borderColor="gray.200"
                     borderRadius="xl"
                     p={{
-                        base: 4,
+                        base: 3,
                         md: 6,
                     }}
                     mb={5}
@@ -255,6 +255,7 @@ const CreateOrder = () => {
                     <Flex
                         align="center"
                         justify="space-between"
+                        width="100%"
                     >
                         {steps.map((step, index) => {
                             const Icon = step.icon;
@@ -277,17 +278,17 @@ const CreateOrder = () => {
                                         direction="column"
                                         align="center"
                                         minW={{
-                                            base: "60px",
+                                            base: "52px",
                                             md: "110px",
                                         }}
                                     >
                                         <Flex
                                             w={{
-                                                base: "36px",
+                                                base: "32px",
                                                 md: "42px",
                                             }}
                                             h={{
-                                                base: "36px",
+                                                base: "32px",
                                                 md: "42px",
                                             }}
                                             borderRadius="full"
@@ -369,7 +370,7 @@ const CreateOrder = () => {
                                                         : "gray.200"
                                                 }
                                                 mx={{
-                                                    base: 1,
+                                                    base: 0,
                                                     md: 3,
                                                 }}
                                             />
@@ -386,9 +387,9 @@ const CreateOrder = () => {
                     border="1px solid"
                     borderColor="gray.200"
                     borderRadius="xl"
-                    minH="420px"
+                    minH={{ base: "360px", md: "420px" }}
                     p={{
-                        base: 5,
+                        base: 3,
                         md: 7,
                     }}
                 >
@@ -444,10 +445,13 @@ const CreateOrder = () => {
                 {/* Navigation */}
                 <Flex
                     justify="space-between"
-                    align="center"
-                    mt={5}
+                    align={{ base: "stretch", sm: "center" }}
+                    gap={2}
+                    mt={{ base: 3, md: 5 }}
+                    direction={{ base: "column", sm: "row" }}
                 >
                     <Button
+                        width={{ base: "100%", sm: "auto" }}
                         variant="outline"
                         bg="white"
                         disabled={currentStep === 1}
@@ -459,6 +463,7 @@ const CreateOrder = () => {
 
                     {currentStep < 4 ? (
                         <Button
+                            width={{ base: "100%", sm: "auto" }}
                             colorPalette="blue"
                             onClick={handleNext}
                         >
@@ -469,6 +474,7 @@ const CreateOrder = () => {
                         <Button
                             colorPalette="blue"
                             size="lg"
+                            width={{ base: "100%", sm: "auto" }}
                             onClick={handleCreateOrder}
                             loading={creatingOrder}
                             loadingText="Creating Order..."

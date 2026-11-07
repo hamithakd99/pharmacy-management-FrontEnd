@@ -84,13 +84,9 @@ const OrderStats = ({
 
     return (
         <SimpleGrid
-            columns={{
-                base: 1,
-                sm: 2,
-                lg: 3,
-            }}
-            gap={4}
-            mb={6}
+            columns={{ base: 2, sm: 2, lg: 3 }}
+            gap={{ base: 2, sm: 3, lg: 4 }}
+            mb={{ base: 4, md: 6 }}
         >
             {stats.map((stat) => {
                 const Icon = stat.icon;
@@ -103,8 +99,8 @@ const OrderStats = ({
                         border="1px solid"
                         borderColor="gray.200"
                         borderRadius="xl"
-                        px={5}
-                        py={5}
+                        px={{ base: 3, sm: 5 }}
+                        py={{ base: 3, sm: 5 }}
                         overflow="hidden"
                         boxShadow="sm"
                         _hover={{
@@ -128,16 +124,17 @@ const OrderStats = ({
                         >
                             <Box>
                                 <Text
-                                    fontSize="sm"
+                                    fontSize={{ base: "xs", sm: "sm" }}
                                     fontWeight="500"
                                     color="gray.600"
-                                    mb={2}
+                                    mb={{ base: 1, sm: 2 }}
+                                    lineHeight="short"
                                 >
                                     {stat.title}
                                 </Text>
 
                                 <Text
-                                    fontSize="2xl"
+                                    fontSize={{ base: "md", sm: "2xl" }}
                                     fontWeight="700"
                                     color="gray.900"
                                     lineHeight="1.2"
@@ -148,15 +145,15 @@ const OrderStats = ({
                                 <Text
                                     fontSize="xs"
                                     color="gray.500"
-                                    mt={2}
+                                    mt={{ base: 1, sm: 2 }}
                                 >
                                     {stat.description}
                                 </Text>
                             </Box>
 
                             <Flex
-                                w="44px"
-                                h="44px"
+                                w={{ base: "30px", sm: "44px" }}
+                                h={{ base: "30px", sm: "44px" }}
                                 align="center"
                                 justify="center"
                                 borderRadius="lg"
@@ -164,7 +161,7 @@ const OrderStats = ({
                                 color={stat.iconColor}
                                 flexShrink={0}
                             >
-                                <Icon size={21} />
+                                <Icon size={18} />
                             </Flex>
                         </Flex>
                     </Box>

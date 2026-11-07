@@ -415,14 +415,14 @@ const ProductStep = ({
                 align={{ base: "flex-start", md: "center" }}
                 direction={{ base: "column", md: "row" }}
                 gap={3}
-                mb={6}
+                mb={{ base: 4, md: 6 }}
             >
                 <Box>
                     <Heading size="md" color="gray.800">
                         Add Products
                     </Heading>
-                    <Flex gap={3} mt={4} mb={5} align="center" wrap="wrap">
-                        <Text fontSize="sm" fontWeight="600">
+                    <Flex gap={2} mt={3} mb={4} align="center" wrap="wrap">
+                        <Text fontSize={{ base: "xs", sm: "sm" }} fontWeight="600">
                             Sale Type:
                         </Text>
 
@@ -484,7 +484,7 @@ const ProductStep = ({
                         onChange={(event) => setSearch(event.target.value)}
                         placeholder="Search by product name, ID or brand..."
                         pl="42px"
-                        h="46px"
+                        h={{ base: "42px", sm: "46px" }}
                         bg="white"
                         borderColor="gray.200"
                         _focus={{
@@ -537,7 +537,7 @@ const ProductStep = ({
                 </Flex>
             ) : error ? (
                 <Box
-                    p={6}
+                    p={{ base: 4, sm: 6 }}
                     textAlign="center"
                     border="1px solid"
                     borderColor="red.200"

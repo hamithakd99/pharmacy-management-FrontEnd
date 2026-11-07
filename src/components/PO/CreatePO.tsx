@@ -511,11 +511,12 @@ export default function CreatePO() {
             <Box
                 bg="blue.500"
                 color="white"
-                p={4}
+                p={{ base: 3, sm: 4 }}
                 rounded="md"
                 textAlign="center"
                 fontWeight="bold"
-                mb={6}
+                fontSize={{ base: "md", sm: "lg" }}
+                mb={{ base: 4, md: 6 }}
             >
 
                 Create Purchase Order
@@ -529,13 +530,14 @@ export default function CreatePO() {
                 bg="white"
                 borderWidth="1px"
                 rounded="lg"
-                p={6}
-                mb={6}
+                p={{ base: 3, sm: 4, md: 6 }}
+                mb={{ base: 4, md: 6 }}
             >
 
                 <Heading
                     size="md"
-                    mb={5}
+                    mb={{ base: 3, md: 5 }}
+                    fontSize={{ base: "md", sm: "lg" }}
                 >
 
                     Purchase Order Information
@@ -614,13 +616,14 @@ export default function CreatePO() {
                 bg="white"
                 borderWidth="1px"
                 rounded="lg"
-                p={6}
-                mb={6}
+                p={{ base: 3, sm: 4, md: 6 }}
+                mb={{ base: 4, md: 6 }}
             >
 
                 <Heading
                     size="md"
-                    mb={5}
+                    mb={{ base: 3, md: 5 }}
+                    fontSize={{ base: "md", sm: "lg" }}
                 >
 
                     Add Products
@@ -629,14 +632,14 @@ export default function CreatePO() {
 
 
                 <Flex
-                    gap={4}
-                    align="end"
+                    gap={{ base: 3, md: 4 }}
+                    align={{ base: "stretch", md: "end" }}
                     wrap="wrap"
                 >
 
                     <Box
                         flex="1"
-                        minW="300px"
+                        minW={{ base: "100%", md: "300px" }}
                     >
 
                         <Field.Root>
@@ -707,7 +710,7 @@ export default function CreatePO() {
 
 
                     <Box
-                        width="180px"
+                        width={{ base: "100%", md: "180px" }}
                     >
 
                         <Field.Root>
@@ -743,6 +746,7 @@ export default function CreatePO() {
 
 
                     <Button
+                        width={{ base: "100%", md: "auto" }}
                         colorPalette="blue"
                         onClick={addProduct}
                     >
@@ -762,12 +766,13 @@ export default function CreatePO() {
                 bg="white"
                 borderWidth="1px"
                 rounded="lg"
-                p={6}
+                p={{ base: 3, sm: 4, md: 6 }}
             >
 
                 <Heading
                     size="md"
-                    mb={5}
+                    mb={{ base: 3, md: 5 }}
+                    fontSize={{ base: "md", sm: "lg" }}
                 >
 
                     Products
@@ -800,6 +805,7 @@ export default function CreatePO() {
 
                         <Table.Root
                             variant="outline"
+                            minW="700px"
                         >
 
                             <Table.Header>
@@ -955,11 +961,14 @@ export default function CreatePO() {
 
             <Flex
                 justify="end"
-                gap={3}
+                gap={{ base: 2, sm: 3 }}
+                direction={{ base: "column-reverse", sm: "row" }}
+                align={{ base: "stretch", sm: "center" }}
                 mt={6}
             >
 
                 <Button
+                    width={{ base: "100%", sm: "auto" }}
 
                     variant="outline"
 
@@ -981,6 +990,7 @@ export default function CreatePO() {
                 <Button
 
                     colorPalette="blue"
+                    width={{ base: "100%", sm: "auto" }}
 
                     onClick={
                         createPurchaseOrder

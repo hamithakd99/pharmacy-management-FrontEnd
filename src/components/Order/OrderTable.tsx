@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Dialog,
+  Flex,
   HStack,
   NativeSelect,
   Table,
@@ -189,7 +190,11 @@ const OrderTable = ({
   };
 
   const renderActions = (order: Order) => (
-    <HStack gap={1.5} justify="flex-start" flexWrap="nowrap">
+    <HStack
+      gap={1}
+      justify={{ base: "flex-end", md: "flex-start" }}
+      flexWrap={{ base: "wrap", md: "nowrap" }}
+    >
       <Button
         size="xs"
         variant="outline"
@@ -197,7 +202,7 @@ const OrderTable = ({
         onClick={() => onViewOrder?.(order)}
         title="View order"
         aria-label={`View ${order.orderNumber}`}
-        minW="58px"
+        minW={{ base: "0", md: "58px" }}
         height="29px"
         px={2}
       >
@@ -214,7 +219,7 @@ const OrderTable = ({
           onClick={() => setCancelOrder(order)}
           title="Cancel order"
           aria-label={`Cancel ${order.orderNumber}`}
-          minW="65px"
+          minW={{ base: "0", md: "65px" }}
           height="29px"
           px={2}
         >
@@ -230,7 +235,7 @@ const OrderTable = ({
         onClick={() => onPrintOrder?.(order)}
         title="Print invoice"
         aria-label={`Print ${order.orderNumber}`}
-        minW="58px"
+        minW={{ base: "0", md: "58px" }}
         height="29px"
         px={2}
       >
@@ -242,7 +247,79 @@ const OrderTable = ({
 
   return (
     <>
+      <VStack display={{ base: "flex", md: "none" }} align="stretch" gap={2}>
+        {orders.length === 0 ? (
+          <Box
+            border="1px solid"
+            borderColor="gray.200"
+            borderRadius="lg"
+            p={8}
+            textAlign="center"
+          >
+            <Text fontSize="sm" fontWeight="600" color="gray.600">
+              No orders found
+            </Text>
+            <Text fontSize="xs" color="gray.500" mt={1}>
+              Try changing your search or filters.
+            </Text>
+          </Box>
+        ) : (
+          orders.map((order) => {
+            const payment = paymentStyles[order.paymentStatus];
+
+            return (
+              <Box
+                key={order.id}
+                bg="white"
+                border="1px solid"
+                borderColor="gray.200"
+                borderRadius="lg"
+                p={3}
+                boxShadow="sm"
+              >
+                <Box display="flex" justifyContent="space-between" gap={2}>
+                  <Box minW={0}>
+                    <Text fontSize="sm" fontWeight="700" truncate>
+                      {order.orderNumber}
+                    </Text>
+                    <Text fontSize="xs" color="gray.500" truncate>
+                      {getCustomerName(order)}
+                    </Text>
+                  </Box>
+                  {renderStatus(order)}
+                </Box>
+
+                <HStack
+                  justify="space-between"
+                  mt={3}
+                  fontSize="xs"
+                  color="gray.600"
+                >
+                  <Text>{formatDate(order.createdAt)}</Text>
+                  <Text>{order.items?.length ?? 0} items</Text>
+                  <Badge
+                    colorPalette={payment.colorPalette}
+                    variant="subtle"
+                    fontSize="xs"
+                  >
+                    {payment.label}
+                  </Badge>
+                </HStack>
+
+                <Flex justify="space-between" align="center" mt={3} gap={2}>
+                  <Text fontSize="sm" fontWeight="700">
+                    {formatCurrency(order.totalAmount)}
+                  </Text>
+                  <Box>{renderActions(order)}</Box>
+                </Flex>
+              </Box>
+            );
+          })
+        )}
+      </VStack>
+
       <Box
+        display={{ base: "none", md: "block" }}
         bg="white"
         border="1px solid"
         borderColor="gray.200"

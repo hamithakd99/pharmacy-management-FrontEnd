@@ -1,9 +1,12 @@
 import {
     Badge,
+    Box,
     Button,
+    Flex,
     HStack,
     Table,
     Text,
+    VStack,
 } from "@chakra-ui/react";
 
 export type GRNItem = {
@@ -156,11 +159,125 @@ export default function POTable({
 
 
     return (
+        <>
+            <VStack
+                display={{ base: "flex", md: "none" }}
+                align="stretch"
+                gap={2}
+            >
+                {purchaseOrders.length === 0 ? (
+                    <Box borderWidth="1px" rounded="lg" p={8} textAlign="center">
+                        <Text color="gray.500">No purchase orders found.</Text>
+                    </Box>
+                ) : (
+                    purchaseOrders.map((purchaseOrder) => {
+                        const isLocked =
+                            purchaseOrder.status === "PARTIALLY_RECEIVED" ||
+                            purchaseOrder.status === "COMPLETED" ||
+                            purchaseOrder.status === "CANCELLED";
+                        const canCreateGRN =
+                            purchaseOrder.status === "PENDING" ||
+                            purchaseOrder.status === "PARTIALLY_RECEIVED";
 
-        <Table.ScrollArea
-            borderWidth="1px"
-            rounded="lg"
-        >
+                        return (
+                            <Box
+                                key={purchaseOrder.id}
+                                borderWidth="1px"
+                                borderColor="gray.200"
+                                rounded="lg"
+                                p={3}
+                            >
+                                <Flex justify="space-between" align="start" gap={3}>
+                                    <Box minW={0}>
+                                        <Text fontWeight="bold" fontSize="sm">
+                                            {purchaseOrder.orderNumber}
+                                        </Text>
+                                        <Text fontSize="xs" color="gray.500" truncate>
+                                            {purchaseOrder.supplier
+                                                ? `${purchaseOrder.supplier.firstName} ${purchaseOrder.supplier.lastName}`
+                                                : "No supplier"}
+                                        </Text>
+                                    </Box>
+                                    <Badge
+                                        colorPalette={getStatusColor(purchaseOrder.status)}
+                                        flexShrink={0}
+                                    >
+                                        {getStatusLabel(purchaseOrder.status)}
+                                    </Badge>
+                                </Flex>
+
+                                <Flex
+                                    justify="space-between"
+                                    mt={3}
+                                    fontSize="xs"
+                                    color="gray.600"
+                                >
+                                    <Text>
+                                        {new Date(purchaseOrder.createdAt).toLocaleDateString("en-GB")}
+                                    </Text>
+                                    <Text>
+                                        {purchaseOrder.items?.length ?? 0} items
+                                    </Text>
+                                </Flex>
+
+                                <Flex gap={1} mt={3} flexWrap="wrap">
+                                    <Button
+                                        size="xs"
+                                        variant="outline"
+                                        colorPalette="blue"
+                                        onClick={() => onView(purchaseOrder)}
+                                    >
+                                        View
+                                    </Button>
+                                    <Button
+                                        size="xs"
+                                        colorPalette="green"
+                                        disabled={!canCreateGRN}
+                                        onClick={() => onCreateGRN(purchaseOrder)}
+                                    >
+                                        GRN
+                                    </Button>
+                                    {purchaseOrder.status === "PENDING" && (
+                                        <>
+                                            <Button
+                                                size="xs"
+                                                variant="outline"
+                                                colorPalette="orange"
+                                                disabled={isLocked}
+                                                onClick={() => onEdit(purchaseOrder)}
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                size="xs"
+                                                variant="outline"
+                                                colorPalette="red"
+                                                disabled={isLocked}
+                                                onClick={() => onDelete(purchaseOrder)}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </>
+                                    )}
+                                    <Button
+                                        size="xs"
+                                        colorPalette="gray"
+                                        onClick={() => onPrint(purchaseOrder)}
+                                    >
+                                        Print
+                                    </Button>
+                                </Flex>
+                            </Box>
+                        );
+                    })
+                )}
+            </VStack>
+
+            <Table.ScrollArea
+                display={{ base: "none", md: "block" }}
+                borderWidth="1px"
+                rounded="lg"
+            >
 
             <Table.Root
                 variant="outline"
@@ -459,7 +576,8 @@ export default function POTable({
 
             </Table.Root>
 
-        </Table.ScrollArea>
+            </Table.ScrollArea>
+        </>
 
     );
 

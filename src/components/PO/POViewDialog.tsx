@@ -44,10 +44,7 @@ export default function POViewDialog({
                 return status;
         }
     }
-    console.log(
-    "PO Receiving History:",
     purchaseOrder?.receivingHistory
-);
 
     return (
         <Dialog.Root
@@ -63,16 +60,18 @@ export default function POViewDialog({
 
                 <Dialog.Positioner>
                     <Dialog.Content
-                        maxW="1050px"
-                        maxH="90vh"
+                        w="calc(100% - 1rem)"
+                        maxW={{ base: "calc(100vw - 1rem)", md: "1050px" }}
+                        maxH="calc(100vh - 1rem)"
                         rounded="xl"
                         overflow="hidden"
                     >
                         {/* ================= HEADER ================= */}
 
                         <Dialog.Header
-                            px={6}
-                            py={4}
+                            px={{ base: 4, sm: 6 }}
+                            py={{ base: 3, sm: 4 }}
+                            pr={{ base: 12, sm: 14 }}
                             borderBottomWidth="1px"
                             borderColor="gray.200"
                         >
@@ -84,7 +83,7 @@ export default function POViewDialog({
                             >
                                 <Box>
                                     <Dialog.Title
-                                        fontSize="xl"
+                                        fontSize={{ base: "lg", sm: "xl" }}
                                         fontWeight="700"
                                     >
                                         Purchase Order Details
@@ -106,8 +105,8 @@ export default function POViewDialog({
                                         colorPalette={getStatusColor(
                                             purchaseOrder.status
                                         )}
-                                        px={3}
-                                        py={1.5}
+                                        px={{ base: 2, sm: 3 }}
+                                        py={{ base: 1, sm: 1.5 }}
                                         rounded="full"
                                         fontSize="xs"
                                     >
@@ -122,8 +121,8 @@ export default function POViewDialog({
                         {/* ================= BODY ================= */}
 
                         <Dialog.Body
-                            px={6}
-                            py={5}
+                            px={{ base: 3, sm: 5, md: 6 }}
+                            py={{ base: 3, sm: 5 }}
                             overflowY="auto"
                         >
                             {!purchaseOrder ? (
@@ -133,21 +132,21 @@ export default function POViewDialog({
                             ) : (
                                 <VStack
                                     align="stretch"
-                                    gap={5}
+                                    gap={{ base: 3, sm: 5 }}
                                 >
                                     {/* ================= PO INFORMATION ================= */}
 
                                     <Box>
                                         <Heading
                                             size="sm"
-                                            mb={3}
+                                            mb={{ base: 2, sm: 3 }}
                                             color="gray.700"
                                         >
                                             Purchase Order Information
                                         </Heading>
 
                                         <Flex
-                                            gap={3}
+                                            gap={{ base: 2, sm: 3 }}
                                             wrap="wrap"
                                         >
                                             {/* PO NUMBER */}
@@ -157,10 +156,10 @@ export default function POViewDialog({
                                                 borderWidth="1px"
                                                 borderColor="gray.200"
                                                 rounded="lg"
-                                                px={4}
-                                                py={3}
+                                                px={{ base: 3, sm: 4 }}
+                                                py={{ base: 2, sm: 3 }}
                                                 flex="1"
-                                                minW="190px"
+                                                minW={{ base: "100%", sm: "190px" }}
                                             >
                                                 <Text
                                                     fontSize="xs"
@@ -187,10 +186,10 @@ export default function POViewDialog({
                                                 borderWidth="1px"
                                                 borderColor="gray.200"
                                                 rounded="lg"
-                                                px={4}
-                                                py={3}
+                                                px={{ base: 3, sm: 4 }}
+                                                py={{ base: 2, sm: 3 }}
                                                 flex="1"
-                                                minW="190px"
+                                                minW={{ base: "100%", sm: "190px" }}
                                             >
                                                 <Text
                                                     fontSize="xs"
@@ -217,10 +216,10 @@ export default function POViewDialog({
                                                 borderWidth="1px"
                                                 borderColor="gray.200"
                                                 rounded="lg"
-                                                px={4}
-                                                py={3}
+                                                px={{ base: 3, sm: 4 }}
+                                                py={{ base: 2, sm: 3 }}
                                                 flex="1"
-                                                minW="190px"
+                                                minW={{ base: "100%", sm: "190px" }}
                                             >
                                                 <Text
                                                     fontSize="xs"
@@ -249,10 +248,10 @@ export default function POViewDialog({
                                                 borderWidth="1px"
                                                 borderColor="gray.200"
                                                 rounded="lg"
-                                                px={4}
-                                                py={3}
+                                                px={{ base: 3, sm: 4 }}
+                                                py={{ base: 2, sm: 3 }}
                                                 flex="1"
-                                                minW="190px"
+                                                minW={{ base: "100%", sm: "190px" }}
                                             >
                                                 <Text
                                                     fontSize="xs"
@@ -285,7 +284,7 @@ export default function POViewDialog({
                                         <Flex
                                             justify="space-between"
                                             align="center"
-                                            mb={3}
+                                            mb={{ base: 2, sm: 3 }}
                                         >
                                             <Heading
                                                 size="sm"
@@ -439,10 +438,10 @@ export default function POViewDialog({
                                             bg="blue.50"
                                             borderWidth="1px"
                                             borderColor="blue.100"
-                                            px={6}
-                                            py={3}
+                                            px={{ base: 4, sm: 6 }}
+                                            py={{ base: 2, sm: 3 }}
                                             rounded="lg"
-                                            minW="150px"
+                                            minW={{ base: "100%", sm: "150px" }}
                                             textAlign="center"
                                         >
                                             <Text
@@ -472,12 +471,13 @@ export default function POViewDialog({
                         {/* ================= FOOTER ================= */}
 
                         <Dialog.Footer
-                            px={6}
-                            py={3}
+                            px={{ base: 3, sm: 6 }}
+                            py={{ base: 3, sm: 4 }}
                             borderTopWidth="1px"
                             borderColor="gray.200"
                         >
                             <Button
+                                width={{ base: "100%", sm: "auto" }}
                                 colorPalette="blue"
                                 onClick={onClose}
                             >

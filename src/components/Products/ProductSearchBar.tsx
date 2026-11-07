@@ -20,16 +20,18 @@ export default function ProductSearchBar({
   return (
     <HStack
       justify="space-between"
-      align="center"
-      mb={5}
+      align={{ base: "stretch", sm: "center" }}
+      mb={{ base: 4, md: 5 }}
       flexWrap="wrap"
-      gap={4}
+      gap={{ base: 2, sm: 4 }}
     >
       <InputGroup
         startElement={<LuSearch />}
-        maxW="400px"
+        maxW={{ base: "100%", sm: "400px" }}
+        flex="1"
       >
         <Input
+          size={{ base: "sm", sm: "md" }}
           placeholder="Search by Product ID, Name or Brand..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -37,6 +39,8 @@ export default function ProductSearchBar({
       </InputGroup>
 
       <Button
+        size={{ base: "sm", sm: "md" }}
+        width={{ base: "100%", sm: "auto" }}
         colorPalette="blue"
         onClick={onAddProduct}
       >

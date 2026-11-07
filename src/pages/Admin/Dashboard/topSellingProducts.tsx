@@ -156,7 +156,7 @@ export default function TopSellingProducts() {
   return (
     <Box
       bg="white"
-      p={{ base: "4", md: "6" }}
+      p={{ base: "3", sm: "4", md: "6" }}
       rounded="xl"
       border="1px solid"
       borderColor="gray.200"
@@ -169,11 +169,13 @@ export default function TopSellingProducts() {
         align={{ base: "start", sm: "center" }}
         direction={{ base: "column", sm: "row" }}
         gap="2"
-        mb="5"
+        mb={{ base: "4", md: "5" }}
       >
         <Box>
-          <Heading size="md">Top Selling Products</Heading>
-          <Text fontSize="sm" color="gray.500" mt="1">
+          <Heading size={{ base: "sm", md: "md" }}>
+            Top Selling Products
+          </Heading>
+          <Text fontSize={{ base: "xs", md: "sm" }} color="gray.500" mt="1">
             Best-performing products by confirmed sales
           </Text>
         </Box>
@@ -203,8 +205,50 @@ export default function TopSellingProducts() {
           </Text>
         </Box>
       ) : (
-        <Box w="100%" overflowX="auto">
-          <Table.Root size="sm" minW="520px">
+        <>
+          <VStack display={{ base: "flex", md: "none" }} align="stretch" gap="2">
+            {products.map((product, index) => (
+              <Box
+                key={product.id}
+                borderWidth="1px"
+                borderColor="gray.100"
+                rounded="lg"
+                p="3"
+              >
+                <Flex justify="space-between" align="start" gap="3">
+                  <Flex minW={0} align="start" gap="2">
+                    <Badge flexShrink={0} colorPalette={index === 0 ? "yellow" : "gray"}>
+                      #{index + 1}
+                    </Badge>
+                    <Box minW={0}>
+                      <Text fontWeight="600" fontSize="sm" truncate>
+                        {product.name}
+                      </Text>
+                      <Progress.Root
+                        mt="2"
+                        value={(product.sold / highestSold) * 100}
+                        size="xs"
+                        colorPalette="teal"
+                      >
+                        <Progress.Track>
+                          <Progress.Range />
+                        </Progress.Track>
+                      </Progress.Root>
+                    </Box>
+                  </Flex>
+                  <Text fontWeight="bold" fontSize="sm" flexShrink={0}>
+                    {product.sold.toLocaleString()}
+                  </Text>
+                </Flex>
+                <Text textAlign="end" mt="2" fontSize="xs" color="gray.600">
+                  {formatCurrency(product.revenue)}
+                </Text>
+              </Box>
+            ))}
+          </VStack>
+
+          <Box display={{ base: "none", md: "block" }} w="100%" overflowX="auto">
+          <Table.Root size="sm">
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader>Rank</Table.ColumnHeader>
@@ -268,7 +312,8 @@ export default function TopSellingProducts() {
               ))}
             </Table.Body>
           </Table.Root>
-        </Box>
+          </Box>
+        </>
       )}
     </Box>
   );

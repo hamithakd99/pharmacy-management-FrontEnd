@@ -46,13 +46,13 @@ export default function POStatusCards({
 
         <SimpleGrid
             columns={{
-                base: 1,
+                base: 2,
                 sm: 2,
                 md: 3,
                 xl: 6,
             }}
-            gap={4}
-            mb={6}
+            gap={{ base: 2, sm: 3, md: 4 }}
+            mb={{ base: 4, md: 6 }}
             width="100%"
         >
 
@@ -65,7 +65,7 @@ export default function POStatusCards({
                 borderWidth="1px"
                 borderColor="gray.200"
                 rounded="lg"
-                p={5}
+                p={{ base: 3, sm: 5 }}
                 boxShadow="sm"
                 minW={0}
             >
@@ -78,16 +78,17 @@ export default function POStatusCards({
                     <Box>
 
                         <Text
-                            fontSize="sm"
+                            fontSize={{ base: "xs", sm: "sm" }}
                             color="gray.500"
                             mb={1}
-                            whiteSpace="nowrap"
+                            whiteSpace={{ base: "normal", sm: "nowrap" }}
+                            lineHeight="short"
                         >
                             Total Orders
                         </Text>
 
                         <Text
-                            fontSize="3xl"
+                            fontSize={{ base: "xl", sm: "3xl" }}
                             fontWeight="bold"
                             color="gray.800"
                             lineHeight="1"
@@ -98,12 +99,12 @@ export default function POStatusCards({
                     </Box>
 
                     <Box
-                        p={3}
+                        p={{ base: 2, sm: 3 }}
                         rounded="full"
                         bg="blue.50"
                         color="blue.500"
                     >
-                        <LuClipboardList size={22} />
+                        <LuClipboardList size={18} />
                     </Box>
 
                 </Flex>
@@ -120,7 +121,7 @@ export default function POStatusCards({
                 borderWidth="1px"
                 borderColor="gray.200"
                 rounded="lg"
-                p={5}
+                p={{ base: 3, sm: 5 }}
                 boxShadow="sm"
                 minW={0}
             >
@@ -133,16 +134,17 @@ export default function POStatusCards({
                     <Box>
 
                         <Text
-                            fontSize="sm"
+                            fontSize={{ base: "xs", sm: "sm" }}
                             color="gray.500"
                             mb={1}
-                            whiteSpace="nowrap"
+                            whiteSpace={{ base: "normal", sm: "nowrap" }}
+                            lineHeight="short"
                         >
                             Pending
                         </Text>
 
                         <Text
-                            fontSize="3xl"
+                            fontSize={{ base: "xl", sm: "3xl" }}
                             fontWeight="bold"
                             color="orange.500"
                             lineHeight="1"
@@ -153,12 +155,12 @@ export default function POStatusCards({
                     </Box>
 
                     <Box
-                        p={3}
+                        p={{ base: 2, sm: 3 }}
                         rounded="full"
                         bg="orange.50"
                         color="orange.500"
                     >
-                        <LuClock size={22} />
+                        <LuClock size={18} />
                     </Box>
 
                 </Flex>
@@ -176,7 +178,7 @@ export default function POStatusCards({
                 borderWidth="1px"
                 borderColor="gray.200"
                 rounded="lg"
-                p={5}
+                p={{ base: 3, sm: 5 }}
                 boxShadow="sm"
                 minW={0}
             >
@@ -189,16 +191,17 @@ export default function POStatusCards({
                     <Box>
 
                         <Text
-                            fontSize="sm"
+                            fontSize={{ base: "xs", sm: "sm" }}
                             color="gray.500"
                             mb={1}
-                            whiteSpace="nowrap"
+                            whiteSpace={{ base: "normal", sm: "nowrap" }}
+                            lineHeight="short"
                         >
                             Partially Received
                         </Text>
 
                         <Text
-                            fontSize="3xl"
+                            fontSize={{ base: "xl", sm: "3xl" }}
                             fontWeight="bold"
                             color="purple.500"
                             lineHeight="1"
@@ -209,12 +212,12 @@ export default function POStatusCards({
                     </Box>
 
                     <Box
-                        p={3}
+                        p={{ base: 2, sm: 3 }}
                         rounded="full"
                         bg="purple.50"
                         color="purple.500"
                     >
-                        <LuCircleCheck size={22} />
+                        <LuCircleCheck size={18} />
                     </Box>
 
                 </Flex>
@@ -231,7 +234,7 @@ export default function POStatusCards({
                 borderWidth="1px"
                 borderColor="gray.200"
                 rounded="lg"
-                p={5}
+                p={{ base: 3, sm: 5 }}
                 boxShadow="sm"
                 minW={0}
             >
@@ -244,16 +247,17 @@ export default function POStatusCards({
                     <Box>
 
                         <Text
-                            fontSize="sm"
+                            fontSize={{ base: "xs", sm: "sm" }}
                             color="gray.500"
                             mb={1}
-                            whiteSpace="nowrap"
+                            whiteSpace={{ base: "normal", sm: "nowrap" }}
+                            lineHeight="short"
                         >
                             Completed
                         </Text>
 
                         <Text
-                            fontSize="3xl"
+                            fontSize={{ base: "xl", sm: "3xl" }}
                             fontWeight="bold"
                             color="green.500"
                             lineHeight="1"
@@ -264,12 +268,12 @@ export default function POStatusCards({
                     </Box>
 
                     <Box
-                        p={3}
+                        p={{ base: 2, sm: 3 }}
                         rounded="full"
                         bg="green.50"
                         color="green.500"
                     >
-                        <LuCircleCheck size={22} />
+                        <LuCircleCheck size={18} />
                     </Box>
 
                 </Flex>
@@ -286,7 +290,7 @@ export default function POStatusCards({
                 borderWidth="1px"
                 borderColor="gray.200"
                 rounded="lg"
-                p={5}
+                p={{ base: 3, sm: 5 }}
                 boxShadow="sm"
                 minW={0}
             >
@@ -299,16 +303,17 @@ export default function POStatusCards({
                     <Box>
 
                         <Text
-                            fontSize="sm"
+                            fontSize={{ base: "xs", sm: "sm" }}
                             color="gray.500"
                             mb={1}
-                            whiteSpace="nowrap"
+                            whiteSpace={{ base: "normal", sm: "nowrap" }}
+                            lineHeight="short"
                         >
                             Cancelled
                         </Text>
 
                         <Text
-                            fontSize="3xl"
+                            fontSize={{ base: "xl", sm: "3xl" }}
                             fontWeight="bold"
                             color="red.500"
                             lineHeight="1"
@@ -319,12 +324,12 @@ export default function POStatusCards({
                     </Box>
 
                     <Box
-                        p={3}
+                        p={{ base: 2, sm: 3 }}
                         rounded="full"
                         bg="red.50"
                         color="red.500"
                     >
-                        <LuCircleX size={22} />
+                        <LuCircleX size={18} />
                     </Box>
 
                 </Flex>

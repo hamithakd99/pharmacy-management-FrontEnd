@@ -2,10 +2,13 @@
 import type { StockBatch } from "@/types/stockBatch";
 import {
     Badge,
+    Box,
     Button,
+    Flex,
     HStack,
     Table,
     Text,
+    VStack,
 } from "@chakra-ui/react";
 
 type Props = {
@@ -22,7 +25,44 @@ export default function GRNTable({
     onPrint,
 }: Props) {
     return (
+        <>
+        <VStack display={{ base: "flex", md: "none" }} align="stretch" gap={2} mt={4}>
+            {stockBatches.length === 0 ? (
+                <Box borderWidth="1px" rounded="lg" p={8} textAlign="center">
+                    <Text color="gray.500" fontSize="sm">No GRNs found</Text>
+                </Box>
+            ) : stockBatches.map((batch) => (
+                <Box key={batch.id} borderWidth="1px" borderColor="gray.200" rounded="lg" p={3}>
+                    <Flex justify="space-between" align="start" gap={2}>
+                        <Box minW={0}>
+                            <Text fontWeight="bold" fontSize="sm" color="blue.700">
+                                {batch.batchNumber}
+                            </Text>
+                            <Text fontSize="xs" color="gray.500" truncate>
+                                {batch.supplier
+                                    ? `${batch.supplier.firstName} ${batch.supplier.lastName}`
+                                    : "N/A"}
+                            </Text>
+                        </Box>
+                        <Badge colorPalette={batch.paymentStatus === "PAID" ? "green" : batch.paymentStatus === "PENDING" ? "orange" : "blue"} fontSize="xs">
+                            {batch.paymentStatus}
+                        </Badge>
+                    </Flex>
+                    <Flex justify="space-between" mt={2} fontSize="xs" color="gray.600">
+                        <Text>{batch.purchaseOrder?.orderNumber ?? "-"}</Text>
+                        <Text>{batch.items.length} items</Text>
+                        <Text>{new Date(batch.receivedDate).toLocaleDateString("en-GB")}</Text>
+                    </Flex>
+                    <Flex gap={1} mt={3} flexWrap="wrap">
+                        <Button size="xs" colorPalette="blue" onClick={() => onView(batch)}>View</Button>
+                        <Button size="xs" colorPalette="orange" onClick={() => onEdit(batch)}>Edit</Button>
+                        <Button size="xs" colorPalette="gray" onClick={() => onPrint(batch)}>Print</Button>
+                    </Flex>
+                </Box>
+            ))}
+        </VStack>
         <Table.ScrollArea
+            display={{ base: "none", md: "block" }}
             borderWidth="1px"
             borderColor="gray.200"
             rounded="lg"
@@ -246,5 +286,6 @@ export default function GRNTable({
                 </Table.Body>
             </Table.Root>
         </Table.ScrollArea>
+        </>
     );
 }

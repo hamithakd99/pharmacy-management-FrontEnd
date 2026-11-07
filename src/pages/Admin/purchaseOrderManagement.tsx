@@ -244,11 +244,12 @@ export default function PurchaseOrderManagement() {
             <Box
                 bg="blue.500"
                 color="white"
-                p={4}
+                p={{ base: 3, sm: 4 }}
                 rounded="md"
                 textAlign="center"
                 fontWeight="bold"
-                mb={6}
+                fontSize={{ base: "md", sm: "lg" }}
+                mb={{ base: 4, md: 6 }}
             >
                 Purchase Order Management
             </Box>
@@ -267,16 +268,18 @@ export default function PurchaseOrderManagement() {
 
             <Flex
                 justify="space-between"
-                align="center"
-                gap={4}
-                mb={5}
+                align={{ base: "stretch", sm: "center" }}
+                gap={{ base: 2, sm: 4 }}
+                mb={{ base: 4, md: 5 }}
                 wrap="wrap"
             >
                 <InputGroup
                     startElement={<LuSearch />}
-                    maxW="450px"
+                    maxW={{ base: "100%", sm: "450px" }}
+                    flex="1"
                 >
                     <Input
+                        size={{ base: "sm", sm: "md" }}
                         placeholder="Search by PO number or supplier..."
                         value={search}
                         onChange={(e) =>
@@ -286,6 +289,8 @@ export default function PurchaseOrderManagement() {
                 </InputGroup>
 
                 <Button
+                    size={{ base: "sm", sm: "md" }}
+                    width={{ base: "100%", sm: "auto" }}
                     colorPalette="blue"
                     onClick={() =>
                         navigate("/admin/po/create")
