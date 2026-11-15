@@ -37,6 +37,7 @@ import {
 } from "react-router-dom";
 
 import LogoutDialog from "@/components/LogoutDialog";
+import CopyrightFooter from "@/components/CopyrightFooter";
 
 const COLORS = {
     navy: "#073B4C",
@@ -819,6 +820,9 @@ export default function AdminLayout() {
                 >
                     <Outlet />
                 </Box>
+
+                <CopyrightFooter />
+                
             </Flex>
         </Flex>
     );
