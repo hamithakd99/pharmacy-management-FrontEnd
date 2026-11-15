@@ -424,10 +424,10 @@ const OrderPreview = ({
                             transition="background-color 0.2s"
                         >
                             <SimpleGrid
-                                columns={{ base: 2, md: 4 }}
+                                columns={{ base: 2, md: 5 }}
                                 templateColumns={{
                                     base: "minmax(0, 1fr) minmax(0, 1fr)",
-                                    md: "minmax(0, 1fr) 85px 125px 125px",
+                                    md: "minmax(0, 1fr) 75px 90px 115px 115px",
                                 }}
                                 alignItems="center"
                                 gap={{ base: 3, md: 4 }}
@@ -501,6 +501,30 @@ const OrderPreview = ({
                                         color="gray.700"
                                     >
                                         {item.quantity}
+                                    </Text>
+                                </Box>
+
+                                <Box
+                                    textAlign={{ base: "left", md: "right" }}
+                                >
+                                    <Text
+                                        fontSize="xs"
+                                        color="gray.500"
+                                    >
+                                        Free Issue
+                                    </Text>
+
+                                    <Text
+                                        mt={0.5}
+                                        fontSize="md"
+                                        fontWeight="700"
+                                        color={
+                                            Number(item.freeIssueQuantity || 0) > 0
+                                                ? "green.600"
+                                                : "gray.500"
+                                        }
+                                    >
+                                        {Number(item.freeIssueQuantity || 0)}
                                     </Text>
                                 </Box>
 

@@ -1,5 +1,17 @@
+
 import { useEffect, useMemo, useState } from "react";
-import { Box, Button, Flex, Heading, HStack, Input, SimpleGrid, Spinner, Text } from "@chakra-ui/react";
+import {
+    Box,
+    Button,
+    Flex,
+    Heading,
+    HStack,
+    Input,
+    SimpleGrid,
+    Spinner,
+    Text,
+} from "@chakra-ui/react";
+
 import {
     FiCheck,
     FiMinus,
@@ -9,6 +21,7 @@ import {
     FiShoppingCart,
     FiTrash2,
 } from "react-icons/fi";
+
 import api from "@/api/axios";
 
 interface StockBatch {
@@ -18,8 +31,8 @@ interface StockBatch {
 interface StockBatchItem {
     id: number;
     availableQuantity: number;
-    sellingPrice: number; // Wholesale price
-    retailPrice?: number | null; // Retail price
+    sellingPrice: number;
+    retailPrice?: number | null;
     expiryDate: string;
     stockBatch?: StockBatch;
 }
@@ -44,6 +57,7 @@ export interface SelectedProduct {
     batchNumber?: string;
     expiryDate: string;
     quantity: number;
+    freeIssueQuantity: number;
     sellingPrice: number;
     lineTotal: number;
 }
@@ -65,8 +79,14 @@ const ProductStep = ({
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [quantityDrafts, setQuantityDrafts] = useState<Record<number, string>>({});
 
+    const [quantityDrafts, setQuantityDrafts] = useState<
+        Record<number, string>
+    >({});
+
+    // --------------------------------------------------
+    // FETCH PRODUCTS
+    // --------------------------------------------------
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -86,13 +106,13 @@ const ProductStep = ({
                             : [];
 
                 setProducts(data);
-
-                if (!Array.isArray(data)) {
-                    setError("Unable to load products.");
-                }
             } catch (err) {
                 console.error("Failed to fetch products:", err);
-                setError("Unable to load products. Please try again.");
+
+                setError(
+                    "Unable to load products. Please try again."
+                );
+
                 setProducts([]);
             } finally {
                 setLoading(false);
@@ -102,31 +122,91 @@ const ProductStep = ({
         fetchProducts();
     }, []);
 
+    // --------------------------------------------------
+    // STOCK HELPERS
+    // --------------------------------------------------
+
+    const getAvailableBatches = (product: Product) => {
+        return (product.stockBatchItems || [])
+            .filter(
+                (batch) =>
+                    Number(batch.availableQuantity || 0) > 0 &&
+                    new Date(batch.expiryDate).getTime() > Date.now()
+            )
+            .sort(
+                (a, b) =>
+                    new Date(a.expiryDate).getTime() -
+                    new Date(b.expiryDate).getTime()
+            );
+    };
 
     const getAvailableStock = (product: Product) => {
-        if (product.stockBatchItems?.length) {
-            return product.stockBatchItems.reduce(
+        if (product.stockBatchItems) {
+            return getAvailableBatches(product).reduce(
                 (total, batch) =>
                     total + Number(batch.availableQuantity || 0),
                 0
             );
         }
 
-        if (typeof product.totalStock === "number") {
-            return Math.max(0, product.totalStock);
-        }
-
-        return 0;
+        return Math.max(0, Number(product.totalStock || 0));
     };
 
+    const getSelectedQuantity = (productId: number) => {
+        return selectedProducts
+            .filter((item) => item.productId === productId)
+            .reduce(
+                (total, item) => total + Number(item.quantity || 0),
+                0
+            );
+    };
+
+    const getSelectedFreeIssueQuantity = (productId: number) => {
+        return selectedProducts
+            .filter((item) => item.productId === productId)
+            .reduce(
+                (total, item) =>
+                    total + Number(item.freeIssueQuantity || 0),
+                0
+            );
+    };
 
     const getRemainingStock = (product: Product) => {
         const availableStock = getAvailableStock(product);
-        const selectedQuantity = getSelectedQuantity(product.id);
 
-        return Math.max(0, availableStock - selectedQuantity);
+        const paidQuantity = getSelectedQuantity(product.id);
+
+        const freeIssueQuantity =
+            getSelectedFreeIssueQuantity(product.id);
+
+        return Math.max(
+            0,
+            availableStock - paidQuantity - freeIssueQuantity
+        );
     };
 
+    // --------------------------------------------------
+    // PRICE HELPERS
+    // --------------------------------------------------
+
+    const getBatchPrice = (batch: StockBatchItem) => {
+        if (saleType === "RETAIL") {
+            return Number(batch.retailPrice ?? 0);
+        }
+
+        return Number(batch.sellingPrice ?? 0);
+    };
+
+    const formatCurrency = (amount: number) => {
+        return `Rs. ${Number(amount || 0).toLocaleString("en-LK", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
+    };
+
+    // --------------------------------------------------
+    // FILTER PRODUCTS
+    // --------------------------------------------------
 
     const filteredProducts = useMemo(() => {
         const keyword = search.trim().toLowerCase();
@@ -144,91 +224,20 @@ const ProductStep = ({
         });
     }, [products, search]);
 
-    const getSelectedQuantity = (productId: number) => {
-        return selectedProducts
-            .filter((item) => item.productId === productId)
-            .reduce(
-                (total, item) => total + item.quantity,
-                0
-            );
-    };
+    // --------------------------------------------------
+    // BUILD FEFO ALLOCATIONS
+    // --------------------------------------------------
 
-    // StockBatchItem.sellingPrice is the wholesale price.
-    // retailPrice must be returned by the backend for retail sales.
-    const getBatchPrice = (batch: StockBatchItem) => {
-        if (saleType === "RETAIL") {
-            return Number(batch.retailPrice ?? 0);
-        }
-
-        return Number(batch.sellingPrice ?? 0);
-    };
-
-    const getAvailableBatches = (product: Product) =>
-        (product.stockBatchItems || [])
-            .filter(
-                (batch) =>
-                    Number(batch.availableQuantity || 0) > 0 &&
-                    new Date(batch.expiryDate) > new Date()
-            )
-            .sort(
-                (a, b) =>
-                    new Date(a.expiryDate).getTime() -
-                    new Date(b.expiryDate).getTime()
-            );
-
-    const handleSaleTypeChange = (nextSaleType: "WHOLESALE" | "RETAIL") => {
-        onSaleTypeChange(nextSaleType);
-
-        // Recalculate the prices of products that have already been selected.
-        const updatedProducts = selectedProducts.map((item) => {
-            const product = products.find((p) => p.id === item.productId);
-            const batch = product?.stockBatchItems?.find(
-                (b) => b.id === item.batchId
-            );
-
-            if (!batch) return item;
-
-            const nextPrice =
-                nextSaleType === "RETAIL"
-                    ? Number(batch.retailPrice ?? 0)
-                    : Number(batch.sellingPrice ?? 0);
-
-            return {
-                ...item,
-                sellingPrice: nextPrice,
-                lineTotal: item.quantity * nextPrice,
-            };
-        });
-
-        onProductsChange(updatedProducts);
-    };
-
-    const addProduct = (product: Product) => {
+    const buildAllocations = (
+        product: Product,
+        requestedQuantity: number,
+        freeIssueQuantity: number
+    ): SelectedProduct[] => {
         const availableBatches = getAvailableBatches(product);
-
-        const availableStock = availableBatches.reduce(
-            (total, batch) =>
-                total + Number(batch.availableQuantity || 0),
-            0
-        );
-
-        if (availableStock <= 0) {
-            return;
-        }
-
-        const existingQuantity = getSelectedQuantity(product.id);
-
-        if (existingQuantity >= availableStock) {
-            return;
-        }
-
-        const requestedQuantity = existingQuantity + 1;
-
-        const remainingToAllocate = requestedQuantity;
 
         const allocations: SelectedProduct[] = [];
 
-        let remaining = remainingToAllocate;
+        let remaining = requestedQuantity;
 
         for (const batch of availableBatches) {
             if (remaining <= 0) {
@@ -248,47 +257,120 @@ const ProductStep = ({
                 continue;
             }
 
+            const batchPrice = getBatchPrice(batch);
+
             allocations.push({
-                allocationId:
-                    `${product.id}-${batch.id}`,
+                allocationId: `${product.id}-${batch.id}`,
                 productId: product.id,
                 productCode: product.productId,
                 name: product.name,
                 brand: product.brand || "",
                 batchId: batch.id,
-                batchNumber:
-                    batch.stockBatch?.batchNumber,
+                batchNumber: batch.stockBatch?.batchNumber,
                 expiryDate: batch.expiryDate,
                 quantity: allocatedQuantity,
-                sellingPrice: getBatchPrice(batch),
-                lineTotal: allocatedQuantity * getBatchPrice(batch)
+                freeIssueQuantity: 0,
+                sellingPrice: batchPrice,
+                lineTotal: allocatedQuantity * batchPrice,
             });
 
             remaining -= allocatedQuantity;
         }
 
         if (remaining > 0) {
+            return [];
+        }
+
+        // Free issue quantity belongs to the product,
+        // so store it only in the first batch allocation.
+        if (allocations.length > 0) {
+            allocations[0].freeIssueQuantity =
+                freeIssueQuantity;
+        }
+
+        return allocations;
+    };
+
+    // --------------------------------------------------
+    // REPLACE PRODUCT ALLOCATIONS
+    // --------------------------------------------------
+
+    const replaceProductAllocations = (
+        productId: number,
+        allocations: SelectedProduct[]
+    ) => {
+        const firstIndex = selectedProducts.findIndex(
+            (item) => item.productId === productId
+        );
+
+        const remainingItems = selectedProducts.filter(
+            (item) => item.productId !== productId
+        );
+
+        const itemsBefore = selectedProducts
+            .slice(
+                0,
+                firstIndex === -1
+                    ? selectedProducts.length
+                    : firstIndex
+            )
+            .filter((item) => item.productId !== productId);
+
+        const insertIndex =
+            firstIndex === -1
+                ? remainingItems.length
+                : itemsBefore.length;
+
+        remainingItems.splice(
+            insertIndex,
+            0,
+            ...allocations
+        );
+
+        onProductsChange(remainingItems);
+    };
+
+    // --------------------------------------------------
+    // ADD PRODUCT
+    // --------------------------------------------------
+
+    const addProduct = (product: Product) => {
+        const availableStock = getAvailableStock(product);
+
+        const existingQuantity =
+            getSelectedQuantity(product.id);
+
+        const existingFreeIssue =
+            getSelectedFreeIssueQuantity(product.id);
+
+        if (
+            existingQuantity + existingFreeIssue >=
+            availableStock
+        ) {
             return;
         }
 
-        // Keep this product in its original position when its allocations change.
-        const existingItems = [...selectedProducts];
-        const firstIndex = existingItems.findIndex(
-            (item) => item.productId === product.id
-        );
-        const itemsBefore = existingItems
-            .slice(0, firstIndex === -1 ? existingItems.length : firstIndex)
-            .filter((item) => item.productId !== product.id);
-        const remainingItems = existingItems.filter(
-            (item) => item.productId !== product.id
-        );
-        const insertIndex = firstIndex === -1
-            ? remainingItems.length
-            : itemsBefore.length;
+        const requestedQuantity = existingQuantity + 1;
 
-        remainingItems.splice(insertIndex, 0, ...allocations);
-        onProductsChange(remainingItems);
+        const allocations = buildAllocations(
+            product,
+            requestedQuantity,
+            existingFreeIssue
+        );
+
+        if (allocations.length === 0) {
+            return;
+        }
+
+        replaceProductAllocations(
+            product.id,
+            allocations
+        );
     };
+
+    // --------------------------------------------------
+    // UPDATE PAID QUANTITY
+    // --------------------------------------------------
 
     const updateQuantity = (
         productId: number,
@@ -307,81 +389,140 @@ const ProductStep = ({
             return;
         }
 
-        const availableBatches = getAvailableBatches(product);
+        const totalAvailable = getAvailableStock(product);
 
-        const totalAvailable = availableBatches.reduce(
-            (total, batch) =>
-                total + Number(batch.availableQuantity || 0),
-            0
+        const freeIssueQuantity =
+            getSelectedFreeIssueQuantity(productId);
+
+        const maxPaidQuantity = Math.max(
+            0,
+            totalAvailable - freeIssueQuantity
         );
 
         const requestedQuantity = Math.min(
-            quantity,
-            totalAvailable
+            Math.floor(quantity),
+            maxPaidQuantity
         );
 
-        let remaining = requestedQuantity;
-
-        const allocations: SelectedProduct[] = [];
-
-        for (const batch of availableBatches) {
-            if (remaining <= 0) {
-                break;
-            }
-
-            const batchAvailable = Number(
-                batch.availableQuantity || 0
-            );
-
-            const allocatedQuantity = Math.min(
-                remaining,
-                batchAvailable
-            );
-
-            if (allocatedQuantity <= 0) {
-                continue;
-            }
-
-            allocations.push({
-                allocationId:
-                    `${product.id}-${batch.id}`,
-                productId: product.id,
-                productCode: product.productId,
-                name: product.name,
-                brand: product.brand || "",
-                batchId: batch.id,
-                batchNumber:
-                    batch.stockBatch?.batchNumber,
-                expiryDate: batch.expiryDate,
-                quantity: allocatedQuantity,
-                sellingPrice: getBatchPrice(batch),
-                lineTotal: allocatedQuantity * getBatchPrice(batch)
-            });
-
-            remaining -= allocatedQuantity;
+        if (requestedQuantity <= 0) {
+            return;
         }
 
-        // Replace the product's batch allocations in place so its rows
-        // don't jump to the bottom when quantity changes.
-        const firstIndex = selectedProducts.findIndex(
+        const allocations = buildAllocations(
+            product,
+            requestedQuantity,
+            freeIssueQuantity
+        );
+
+        if (allocations.length === 0) {
+            return;
+        }
+
+        replaceProductAllocations(
+            productId,
+            allocations
+        );
+    };
+
+    // --------------------------------------------------
+    // UPDATE FREE ISSUE QUANTITY
+    // --------------------------------------------------
+
+    const updateFreeIssueQuantity = (
+        productId: number,
+        freeIssueQuantity: number
+    ) => {
+        const product = products.find(
+            (item) => item.id === productId
+        );
+
+        if (!product) {
+            return;
+        }
+
+        const paidQuantity = getSelectedQuantity(productId);
+
+        const totalAvailable = getAvailableStock(product);
+
+        const maxFreeIssueQuantity = Math.max(
+            0,
+            totalAvailable - paidQuantity
+        );
+
+        const safeQuantity = Math.min(
+            Math.max(0, Math.floor(freeIssueQuantity)),
+            maxFreeIssueQuantity
+        );
+
+        const updatedProducts = selectedProducts.map(
+            (item) => {
+                if (item.productId !== productId) {
+                    return item;
+                }
+
+                return {
+                    ...item,
+                    freeIssueQuantity: 0,
+                };
+            }
+        );
+
+        const firstIndex = updatedProducts.findIndex(
             (item) => item.productId === productId
         );
 
-        const itemsBefore = selectedProducts
-            .slice(0, firstIndex === -1 ? selectedProducts.length : firstIndex)
-            .filter((item) => item.productId !== productId);
+        if (firstIndex !== -1) {
+            updatedProducts[firstIndex] = {
+                ...updatedProducts[firstIndex],
+                freeIssueQuantity: safeQuantity,
+            };
+        }
 
-        const remainingItems = selectedProducts.filter(
-            (item) => item.productId !== productId
+        onProductsChange(updatedProducts);
+    };
+
+    // --------------------------------------------------
+    // CHANGE SALE TYPE
+    // --------------------------------------------------
+
+    const handleSaleTypeChange = (
+        nextSaleType: "WHOLESALE" | "RETAIL"
+    ) => {
+        onSaleTypeChange(nextSaleType);
+
+        const updatedProducts = selectedProducts.map(
+            (item) => {
+                const product = products.find(
+                    (p) => p.id === item.productId
+                );
+
+                const batch = product?.stockBatchItems?.find(
+                    (b) => b.id === item.batchId
+                );
+
+                if (!batch) {
+                    return item;
+                }
+
+                const nextPrice =
+                    nextSaleType === "RETAIL"
+                        ? Number(batch.retailPrice ?? 0)
+                        : Number(batch.sellingPrice ?? 0);
+
+                return {
+                    ...item,
+                    sellingPrice: nextPrice,
+                    lineTotal: item.quantity * nextPrice,
+                };
+            }
         );
 
-        const insertIndex = firstIndex === -1
-            ? remainingItems.length
-            : itemsBefore.length;
-
-        remainingItems.splice(insertIndex, 0, ...allocations);
-        onProductsChange(remainingItems);
+        onProductsChange(updatedProducts);
     };
+
+    // --------------------------------------------------
+    // REMOVE PRODUCT
+    // --------------------------------------------------
 
     const removeProduct = (productId: number) => {
         onProductsChange(
@@ -389,10 +530,34 @@ const ProductStep = ({
                 (item) => item.productId !== productId
             )
         );
+
+        setQuantityDrafts((previous) => {
+            const next = { ...previous };
+            delete next[productId];
+            return next;
+        });
     };
 
+    // --------------------------------------------------
+    // TOTALS
+    // --------------------------------------------------
+
     const totalItems = selectedProducts.reduce(
+        (total, item) =>
+            total +
+            item.quantity +
+            (item.freeIssueQuantity || 0),
+        0
+    );
+
+    const totalPaidItems = selectedProducts.reduce(
         (total, item) => total + item.quantity,
+        0
+    );
+
+    const totalFreeIssueItems = selectedProducts.reduce(
+        (total, item) =>
+            total + (item.freeIssueQuantity || 0),
         0
     );
 
@@ -401,15 +566,14 @@ const ProductStep = ({
         0
     );
 
-    const formatCurrency = (amount: number) => {
-        return `Rs. ${Number(amount || 0).toLocaleString("en-LK", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        })}`;
-    };
+    // --------------------------------------------------
+    // RENDER
+    // --------------------------------------------------
 
     return (
         <Box>
+            {/* HEADER */}
+
             <Flex
                 justify="space-between"
                 align={{ base: "flex-start", md: "center" }}
@@ -421,29 +585,60 @@ const ProductStep = ({
                     <Heading size="md" color="gray.800">
                         Add Products
                     </Heading>
-                    <Flex gap={2} mt={3} mb={4} align="center" wrap="wrap">
-                        <Text fontSize={{ base: "xs", sm: "sm" }} fontWeight="600">
+
+                    <Flex
+                        gap={2}
+                        mt={3}
+                        mb={4}
+                        align="center"
+                        wrap="wrap"
+                    >
+                        <Text
+                            fontSize={{ base: "xs", sm: "sm" }}
+                            fontWeight="600"
+                        >
                             Sale Type:
                         </Text>
 
                         <Button
                             size="sm"
-                            colorPalette={saleType === "WHOLESALE" ? "blue" : "gray"}
-                            variant={saleType === "WHOLESALE" ? "solid" : "outline"}
-                            onClick={() => handleSaleTypeChange("WHOLESALE")}
+                            colorPalette={
+                                saleType === "WHOLESALE"
+                                    ? "blue"
+                                    : "gray"
+                            }
+                            variant={
+                                saleType === "WHOLESALE"
+                                    ? "solid"
+                                    : "outline"
+                            }
+                            onClick={() =>
+                                handleSaleTypeChange("WHOLESALE")
+                            }
                         >
                             Wholesale
                         </Button>
 
                         <Button
                             size="sm"
-                            colorPalette={saleType === "RETAIL" ? "blue" : "gray"}
-                            variant={saleType === "RETAIL" ? "solid" : "outline"}
-                            onClick={() => handleSaleTypeChange("RETAIL")}
+                            colorPalette={
+                                saleType === "RETAIL"
+                                    ? "blue"
+                                    : "gray"
+                            }
+                            variant={
+                                saleType === "RETAIL"
+                                    ? "solid"
+                                    : "outline"
+                            }
+                            onClick={() =>
+                                handleSaleTypeChange("RETAIL")
+                            }
                         >
                             Retail
                         </Button>
                     </Flex>
+
                     <Text mt={1} fontSize="sm" color="gray.500">
                         Search and add products to this customer order.
                     </Text>
@@ -460,11 +655,19 @@ const ProductStep = ({
                     borderRadius="lg"
                 >
                     <FiShoppingCart color="#2563EB" />
-                    <Text fontSize="sm" fontWeight="600" color="blue.700">
-                        {totalItems} {totalItems === 1 ? "Item" : "Items"}
+
+                    <Text
+                        fontSize="sm"
+                        fontWeight="600"
+                        color="blue.700"
+                    >
+                        {totalItems}{" "}
+                        {totalItems === 1 ? "Item" : "Items"}
                     </Text>
                 </Flex>
             </Flex>
+
+            {/* SEARCH */}
 
             <Box mb={6}>
                 <Box position="relative">
@@ -481,7 +684,9 @@ const ProductStep = ({
 
                     <Input
                         value={search}
-                        onChange={(event) => setSearch(event.target.value)}
+                        onChange={(event) =>
+                            setSearch(event.target.value)
+                        }
                         placeholder="Search by product name, ID or brand..."
                         pl="42px"
                         h={{ base: "42px", sm: "46px" }}
@@ -489,7 +694,8 @@ const ProductStep = ({
                         borderColor="gray.200"
                         _focus={{
                             borderColor: "blue.500",
-                            boxShadow: "0 0 0 1px var(--chakra-colors-blue-500)",
+                            boxShadow:
+                                "0 0 0 1px var(--chakra-colors-blue-500)",
                         }}
                     />
                 </Box>
@@ -522,6 +728,8 @@ const ProductStep = ({
                 </Flex>
             </Box>
 
+            {/* PRODUCT LIST */}
+
             {loading ? (
                 <Flex
                     minH="220px"
@@ -531,6 +739,7 @@ const ProductStep = ({
                     gap={3}
                 >
                     <Spinner size="lg" color="blue.500" />
+
                     <Text fontSize="sm" color="gray.500">
                         Loading products...
                     </Text>
@@ -564,9 +773,11 @@ const ProductStep = ({
                             color: "#9CA3AF",
                         }}
                     />
+
                     <Text fontWeight="600" color="gray.600">
                         No products found
                     </Text>
+
                     <Text mt={1} fontSize="sm" color="gray.400">
                         Try searching with another product name or ID.
                     </Text>
@@ -587,12 +798,20 @@ const ProductStep = ({
                         gap={4}
                     >
                         {filteredProducts.map((product) => {
-                            const availableStock = getAvailableStock(product);
-                            const selectedQuantity = getSelectedQuantity(product.id);
-                            const remainingStock = getRemainingStock(product);
+                            const availableStock =
+                                getAvailableStock(product);
 
-                            const isSelected = selectedQuantity > 0;
-                            const isOutOfStock = remainingStock <= 0;
+                            const selectedQuantity =
+                                getSelectedQuantity(product.id);
+
+                            const remainingStock =
+                                getRemainingStock(product);
+
+                            const isSelected =
+                                selectedQuantity > 0;
+
+                            const isOutOfStock =
+                                remainingStock <= 0;
 
                             return (
                                 <Box
@@ -687,6 +906,7 @@ const ProductStep = ({
                                                     ? "Retail Price"
                                                     : "Wholesale Price"}
                                             </Text>
+
                                             <Text
                                                 fontSize="md"
                                                 fontWeight="700"
@@ -694,18 +914,29 @@ const ProductStep = ({
                                             >
                                                 {(() => {
                                                     const firstAvailableBatch =
-                                                        getAvailableBatches(product)[0];
+                                                        getAvailableBatches(
+                                                            product
+                                                        )[0];
 
-                                                    if (!firstAvailableBatch) {
+                                                    if (
+                                                        !firstAvailableBatch
+                                                    ) {
                                                         return "N/A";
                                                     }
 
-                                                    const price = getBatchPrice(firstAvailableBatch);
+                                                    if (
+                                                        saleType === "RETAIL" &&
+                                                        firstAvailableBatch.retailPrice ==
+                                                            null
+                                                    ) {
+                                                        return "Retail price not set";
+                                                    }
 
-                                                    return saleType === "RETAIL" &&
-                                                        firstAvailableBatch.retailPrice == null
-                                                        ? "Retail price not set"
-                                                        : formatCurrency(price);
+                                                    return formatCurrency(
+                                                        getBatchPrice(
+                                                            firstAvailableBatch
+                                                        )
+                                                    );
                                                 })()}
                                             </Text>
                                         </Box>
@@ -717,6 +948,7 @@ const ProductStep = ({
                                             >
                                                 Available
                                             </Text>
+
                                             <Text
                                                 fontSize="sm"
                                                 fontWeight="700"
@@ -775,10 +1007,7 @@ const ProductStep = ({
                                                 <Button
                                                     size="xs"
                                                     variant="ghost"
-                                                    disabled={
-                                                        selectedQuantity >=
-                                                        availableStock
-                                                    }
+                                                    disabled={isOutOfStock}
                                                     onClick={() =>
                                                         updateQuantity(
                                                             product.id,
@@ -813,6 +1042,7 @@ const ProductStep = ({
                                             }
                                         >
                                             <FiPlus />
+
                                             {isOutOfStock
                                                 ? "Out of Stock"
                                                 : "Add Product"}
@@ -825,7 +1055,8 @@ const ProductStep = ({
                 </Box>
             )}
 
-            
+            {/* SELECTED PRODUCTS */}
+
             <Box
                 mt={6}
                 border="1px solid"
@@ -834,7 +1065,8 @@ const ProductStep = ({
                 overflow="hidden"
                 bg="white"
             >
-                {/* Header */}
+                {/* HEADER */}
+
                 <Flex
                     px={4}
                     py={3}
@@ -849,7 +1081,12 @@ const ProductStep = ({
                         <Heading size="sm" color="gray.800">
                             Selected Products
                         </Heading>
-                        <Text fontSize="xs" color="gray.500" mt={1}>
+
+                        <Text
+                            fontSize="xs"
+                            color="gray.500"
+                            mt={1}
+                        >
                             {selectedProducts.length} batch allocation(s)
                         </Text>
                     </Box>
@@ -864,6 +1101,8 @@ const ProductStep = ({
                     </Text>
                 </Flex>
 
+                {/* EMPTY STATE */}
+
                 {selectedProducts.length === 0 ? (
                     <Flex
                         minH="110px"
@@ -877,6 +1116,7 @@ const ProductStep = ({
                             size={24}
                             style={{ color: "#9CA3AF" }}
                         />
+
                         <Text fontSize="sm" color="gray.500">
                             No products selected
                         </Text>
@@ -888,30 +1128,45 @@ const ProductStep = ({
                                 (p) => p.id === item.productId
                             );
 
-                            const batch = product?.stockBatchItems?.find(
-                                (b) => b.id === item.batchId
-                            );
+                            const batch =
+                                product?.stockBatchItems?.find(
+                                    (b) => b.id === item.batchId
+                                );
 
                             const maxBatchStock = Number(
-                                batch?.availableQuantity ?? item.quantity
+                                batch?.availableQuantity ??
+                                item.quantity
                             );
 
                             const firstProductRow =
                                 selectedProducts.findIndex(
-                                    (p) => p.productId === item.productId
+                                    (p) =>
+                                        p.productId === item.productId
                                 ) === index;
 
                             const totalProductStock = product
-                                ? getAvailableBatches(product).reduce(
-                                      (total, b) =>
-                                          total +
-                                          Number(b.availableQuantity || 0),
-                                      0
-                                  )
+                                ? getAvailableStock(product)
                                 : item.quantity;
 
                             const currentProductQuantity =
                                 getSelectedQuantity(item.productId);
+
+                            const currentFreeIssueQuantity =
+                                getSelectedFreeIssueQuantity(
+                                    item.productId
+                                );
+
+                            const maxPaidQuantity = Math.max(
+                                1,
+                                totalProductStock -
+                                    currentFreeIssueQuantity
+                            );
+
+                            const maxFreeIssueQuantity = Math.max(
+                                0,
+                                totalProductStock -
+                                    currentProductQuantity
+                            );
 
                             return (
                                 <Box
@@ -919,7 +1174,8 @@ const ProductStep = ({
                                     px={3}
                                     py={3}
                                     borderBottom={
-                                        index < selectedProducts.length - 1
+                                        index <
+                                        selectedProducts.length - 1
                                             ? "1px solid"
                                             : "none"
                                     }
@@ -933,8 +1189,13 @@ const ProductStep = ({
                                             md: "row",
                                         }}
                                     >
-                                        {/* Product details */}
-                                        <Box flex="1" minW={0} w="100%">
+                                        {/* PRODUCT DETAILS */}
+
+                                        <Box
+                                            flex="1"
+                                            minW={0}
+                                            w="100%"
+                                        >
                                             <Text
                                                 fontSize="xs"
                                                 color="gray.500"
@@ -942,7 +1203,9 @@ const ProductStep = ({
                                                 Expiry:{" "}
                                                 {new Date(
                                                     item.expiryDate
-                                                ).toLocaleDateString("en-GB")}
+                                                ).toLocaleDateString(
+                                                    "en-GB"
+                                                )}
                                             </Text>
 
                                             <Text
@@ -971,15 +1234,20 @@ const ProductStep = ({
                                                 color="purple.600"
                                                 mt={1}
                                             >
-                                                Batch: {item.batchNumber || "-"}
+                                                Batch:{" "}
+                                                {item.batchNumber || "-"}
                                                 {" · "}
                                                 Batch max: {maxBatchStock}
                                             </Text>
                                         </Box>
 
-                                        {/* Price */}
+                                        {/* PRICE */}
+
                                         <Box
-                                            minW={{ base: "100%", md: "115px" }}
+                                            minW={{
+                                                base: "100%",
+                                                md: "115px",
+                                            }}
                                             textAlign={{
                                                 base: "left",
                                                 md: "right",
@@ -1005,9 +1273,13 @@ const ProductStep = ({
                                             </Text>
                                         </Box>
 
-                                        {/* Quantity */}
+                                        {/* QUANTITY + FREE ISSUE */}
+
                                         <Box
-                                            minW={{ base: "100%", md: "100px" }}
+                                            minW={{
+                                                base: "100%",
+                                                md: "110px",
+                                            }}
                                             textAlign={{
                                                 base: "left",
                                                 md: "center",
@@ -1019,103 +1291,177 @@ const ProductStep = ({
                                                 mb={1}
                                             >
                                                 {firstProductRow
-                                                    ? "Total Quantity"
+                                                    ? "Paid Quantity"
                                                     : "Batch Quantity"}
                                             </Text>
 
                                             {firstProductRow ? (
-                                                <Input
-                                                    type="number"
-                                                    size="sm"
-                                                    min={1}
-                                                    max={totalProductStock}
-                                                    width={{
-                                                        base: "100%",
-                                                        md: "100px",
-                                                    }}
-                                                    value={
-                                                        quantityDrafts[
-                                                            item.productId
-                                                        ] ??
-                                                        String(
-                                                            currentProductQuantity
-                                                        )
-                                                    }
-                                                    onChange={(event) => {
-                                                        const raw =
-                                                            event.target.value;
-
-                                                        setQuantityDrafts(
-                                                            (previous) => ({
-                                                                ...previous,
-                                                                [item.productId]:
-                                                                    raw,
-                                                            })
-                                                        );
-
-                                                        if (raw === "") return;
-
-                                                        const parsed =
-                                                            Number.parseInt(
-                                                                raw,
-                                                                10
-                                                            );
-
-                                                        if (
-                                                            !Number.isFinite(
-                                                                parsed
-                                                            ) ||
-                                                            parsed < 1
-                                                        ) {
-                                                            return;
+                                                <>
+                                                    <Input
+                                                        type="number"
+                                                        size="sm"
+                                                        min={1}
+                                                        max={maxPaidQuantity}
+                                                        width={{
+                                                            base: "100%",
+                                                            md: "100px",
+                                                        }}
+                                                        value={
+                                                            quantityDrafts[
+                                                                item.productId
+                                                            ] ??
+                                                            String(
+                                                                currentProductQuantity
+                                                            )
                                                         }
-
-                                                        const safeQuantity =
-                                                            Math.min(
-                                                                parsed,
-                                                                totalProductStock
-                                                            );
-
-                                                        updateQuantity(
-                                                            item.productId,
-                                                            safeQuantity
-                                                        );
-                                                    }}
-                                                    onBlur={(event) => {
-                                                        const parsed =
-                                                            Number.parseInt(
+                                                        onChange={(event) => {
+                                                            const raw =
                                                                 event.target
-                                                                    .value,
-                                                                10
+                                                                    .value;
+
+                                                            setQuantityDrafts(
+                                                                (previous) => ({
+                                                                    ...previous,
+                                                                    [item.productId]:
+                                                                        raw,
+                                                                })
                                                             );
 
-                                                        const safeQuantity =
-                                                            !Number.isFinite(
-                                                                parsed
-                                                            ) ||
-                                                            parsed < 1
-                                                                ? 1
-                                                                : Math.min(
-                                                                      parsed,
-                                                                      totalProductStock
-                                                                  );
+                                                            if (raw === "") {
+                                                                return;
+                                                            }
 
-                                                        setQuantityDrafts(
-                                                            (previous) => ({
-                                                                ...previous,
-                                                                [item.productId]:
-                                                                    String(
-                                                                        safeQuantity
-                                                                    ),
-                                                            })
-                                                        );
+                                                            const parsed =
+                                                                Number(raw);
 
-                                                        updateQuantity(
-                                                            item.productId,
-                                                            safeQuantity
-                                                        );
-                                                    }}
-                                                />
+                                                            if (
+                                                                !Number.isInteger(
+                                                                    parsed
+                                                                ) ||
+                                                                parsed < 1
+                                                            ) {
+                                                                return;
+                                                            }
+
+                                                            const safeQuantity =
+                                                                Math.min(
+                                                                    parsed,
+                                                                    maxPaidQuantity
+                                                                );
+
+                                                            updateQuantity(
+                                                                item.productId,
+                                                                safeQuantity
+                                                            );
+                                                        }}
+                                                        onBlur={(event) => {
+                                                            const parsed =
+                                                                Number(
+                                                                    event.target
+                                                                        .value
+                                                                );
+
+                                                            const safeQuantity =
+                                                                !Number.isInteger(
+                                                                    parsed
+                                                                ) ||
+                                                                parsed < 1
+                                                                    ? 1
+                                                                    : Math.min(
+                                                                          parsed,
+                                                                          maxPaidQuantity
+                                                                      );
+
+                                                            setQuantityDrafts(
+                                                                (previous) => ({
+                                                                    ...previous,
+                                                                    [item.productId]:
+                                                                        String(
+                                                                            safeQuantity
+                                                                        ),
+                                                                })
+                                                            );
+
+                                                            updateQuantity(
+                                                                item.productId,
+                                                                safeQuantity
+                                                            );
+                                                        }}
+                                                    />
+
+                                                    {/* FREE ISSUE INPUT */}
+
+                                                    <Box mt={3}>
+                                                        <Text
+                                                            fontSize="xs"
+                                                            fontWeight="600"
+                                                            color="purple.600"
+                                                            mb={1}
+                                                        >
+                                                            Free Issue Qty
+                                                        </Text>
+
+                                                        <Input
+                                                            type="number"
+                                                            size="sm"
+                                                            min={0}
+                                                            max={
+                                                                maxFreeIssueQuantity
+                                                            }
+                                                            width={{
+                                                                base: "100%",
+                                                                md: "100px",
+                                                            }}
+                                                            value={
+                                                                currentFreeIssueQuantity
+                                                            }
+                                                            onChange={(
+                                                                event
+                                                            ) => {
+                                                                const raw =
+                                                                    event.target
+                                                                        .value;
+
+                                                                if (
+                                                                    raw === ""
+                                                                ) {
+                                                                    updateFreeIssueQuantity(
+                                                                        item.productId,
+                                                                        0
+                                                                    );
+
+                                                                    return;
+                                                                }
+
+                                                                const parsed =
+                                                                    Number(raw);
+
+                                                                if (
+                                                                    !Number.isInteger(
+                                                                        parsed
+                                                                    ) ||
+                                                                    parsed < 0
+                                                                ) {
+                                                                    return;
+                                                                }
+
+                                                                updateFreeIssueQuantity(
+                                                                    item.productId,
+                                                                    parsed
+                                                                );
+                                                            }}
+                                                        />
+
+                                                        <Text
+                                                            fontSize="xs"
+                                                            color="gray.400"
+                                                            mt={1}
+                                                        >
+                                                            Free items are not
+                                                            charged.
+                                                        </Text>
+                                                    </Box>
+                                                </>
                                             ) : (
                                                 <Text
                                                     fontSize="sm"
@@ -1127,9 +1473,13 @@ const ProductStep = ({
                                             )}
                                         </Box>
 
-                                        {/* Line total */}
+                                        {/* BATCH TOTAL */}
+
                                         <Box
-                                            minW={{ base: "100%", md: "100px" }}
+                                            minW={{
+                                                base: "100%",
+                                                md: "100px",
+                                            }}
                                             textAlign={{
                                                 base: "left",
                                                 md: "right",
@@ -1147,11 +1497,14 @@ const ProductStep = ({
                                                 fontWeight="700"
                                                 color="gray.800"
                                             >
-                                                {formatCurrency(item.lineTotal)}
+                                                {formatCurrency(
+                                                    item.lineTotal
+                                                )}
                                             </Text>
                                         </Box>
 
-                                        {/* Remove product */}
+                                        {/* REMOVE */}
+
                                         <Button
                                             size="sm"
                                             variant="ghost"
@@ -1160,20 +1513,11 @@ const ProductStep = ({
                                                 base: "flex-end",
                                                 md: "center",
                                             }}
-                                            onClick={() => {
-                                                removeProduct(item.productId);
-                                                setQuantityDrafts(
-                                                    (previous) => {
-                                                        const next = {
-                                                            ...previous,
-                                                        };
-                                                        delete next[
-                                                            item.productId
-                                                        ];
-                                                        return next;
-                                                    }
-                                                );
-                                            }}
+                                            onClick={() =>
+                                                removeProduct(
+                                                    item.productId
+                                                )
+                                            }
                                             aria-label={`Remove ${item.name}`}
                                         >
                                             <FiTrash2 />
@@ -1185,32 +1529,102 @@ const ProductStep = ({
                     </Box>
                 )}
 
-                {/* Subtotal */}
+                {/* SUBTOTAL */}
+
                 {selectedProducts.length > 0 && (
-                    <Flex
+                    <Box
                         px={4}
                         py={3}
                         bg="gray.50"
                         borderTop="1px solid"
                         borderColor="gray.200"
-                        justify="flex-end"
                     >
-                        <Box textAlign="right">
-                            <Text fontSize="xs" color="gray.500">
-                                Order Subtotal
-                            </Text>
+                        <Flex
+                            justify="space-between"
+                            align="center"
+                            mb={2}
+                        >
                             <Text
-                                fontSize="xl"
-                                fontWeight="800"
-                                color="gray.900"
+                                fontSize="xs"
+                                color="gray.500"
                             >
-                                {formatCurrency(subtotal)}
+                                Paid Quantity
                             </Text>
-                        </Box>
-                    </Flex>
+
+                            <Text
+                                fontSize="sm"
+                                fontWeight="600"
+                            >
+                                {totalPaidItems}
+                            </Text>
+                        </Flex>
+
+                        <Flex
+                            justify="space-between"
+                            align="center"
+                            mb={2}
+                        >
+                            <Text
+                                fontSize="xs"
+                                color="purple.600"
+                            >
+                                Free Issue Quantity
+                            </Text>
+
+                            <Text
+                                fontSize="sm"
+                                fontWeight="600"
+                                color="purple.600"
+                            >
+                                {totalFreeIssueItems}
+                            </Text>
+                        </Flex>
+
+                        <Flex
+                            justify="space-between"
+                            align="center"
+                            mb={3}
+                        >
+                            <Text
+                                fontSize="xs"
+                                color="gray.500"
+                            >
+                                Total Stock Quantity
+                            </Text>
+
+                            <Text
+                                fontSize="sm"
+                                fontWeight="700"
+                                color="gray.800"
+                            >
+                                {totalItems}
+                            </Text>
+                        </Flex>
+
+                        <Flex
+                            justify="flex-end"
+                            align="center"
+                        >
+                            <Box textAlign="right">
+                                <Text
+                                    fontSize="xs"
+                                    color="gray.500"
+                                >
+                                    Order Subtotal
+                                </Text>
+
+                                <Text
+                                    fontSize="xl"
+                                    fontWeight="800"
+                                    color="gray.900"
+                                >
+                                    {formatCurrency(subtotal)}
+                                </Text>
+                            </Box>
+                        </Flex>
+                    </Box>
                 )}
             </Box>
-
         </Box>
     );
 };

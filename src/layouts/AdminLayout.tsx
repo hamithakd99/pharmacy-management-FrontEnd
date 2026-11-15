@@ -16,6 +16,7 @@ import {
     FiPackage,
     FiShoppingCart,
     FiBarChart2,
+    FiDollarSign,
     FiChevronDown,
     FiChevronRight,
     FiChevronLeft,
@@ -91,11 +92,18 @@ const inventoryItems = [
     },
 ];
 
-const reportItem = {
-    title: "Reports",
-    path: "/admin/reports",
-    icon: FiBarChart2,
-};
+const reportItems = [
+    {
+        title: "Profit",
+        path: "/admin/reports/profit",
+        icon: FiBarChart2,
+    },
+    {
+        title: "Payments",
+        path: "/admin/reports/payments",
+        icon: FiDollarSign,
+    },
+];
 
 interface StoredUser {
     firstName?: string;
@@ -107,8 +115,8 @@ export default function AdminLayout() {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [inventoryOpen, setInventoryOpen] = useState(false);
-    const [isLogoutDialogOpen, setIsLogoutDialogOpen] =
-        useState(false);
+    const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+    const [reportsOpen, setReportsOpen] = useState(false);
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -136,6 +144,12 @@ export default function AdminLayout() {
             location.pathname.startsWith(`${item.path}/`)
     );
 
+    const isReportsActive = reportItems.some(
+        (item) =>
+            location.pathname === item.path ||
+            location.pathname.startsWith(`${item.path}/`)
+    );
+
     useEffect(() => {
         if (isInventoryActive) {
             setInventoryOpen(true);
@@ -145,6 +159,12 @@ export default function AdminLayout() {
     useEffect(() => {
         setMobileOpen(false);
     }, [location.pathname]);
+
+    useEffect(() => {
+        if (isReportsActive) {
+            setReportsOpen(true);
+        }
+    }, [isReportsActive]);
 
     function handleLogout() {
         localStorage.removeItem("token");
@@ -484,7 +504,88 @@ export default function AdminLayout() {
                             )}
                     </Box>
 
-                    {renderNavItem(reportItem)}
+                    {/* Reports group */}
+                    <Box>
+                        <HStack
+                            minH="42px"
+                            px={compact ? "0" : "3"}
+                            justify={
+                                compact ? "center" : "flex-start"
+                            }
+                            gap="3"
+                            rounded="lg"
+                            cursor="pointer"
+                            bg={
+                                isReportsActive
+                                    ? COLORS.mint
+                                    : "transparent"
+                            }
+                            color={
+                                isReportsActive
+                                    ? COLORS.navy
+                                    : COLORS.muted
+                            }
+                            fontWeight={
+                                isReportsActive
+                                    ? "semibold"
+                                    : "medium"
+                            }
+                            title={compact ? "Reports" : undefined}
+                            onClick={() => {
+                                if (compact) {
+                                    setCollapsed(false);
+                                    setReportsOpen(true);
+                                } else {
+                                    setReportsOpen((value) => !value);
+                                }
+                            }}
+                            _hover={{
+                                bg: COLORS.mint,
+                                color: COLORS.navy,
+                            }}
+                        >
+                            <Box
+                                minW="20px"
+                                display="flex"
+                                justifyContent="center"
+                                fontSize="17px"
+                                color={
+                                    isReportsActive
+                                        ? COLORS.green
+                                        : "inherit"
+                                }
+                            >
+                                <FiBarChart2 />
+                            </Box>
+
+                            {(!compact || isMobile) && (
+                                <>
+                                    <Text fontSize="sm" flex="1">
+                                        Reports
+                                    </Text>
+
+                                    {reportsOpen ? (
+                                        <FiChevronDown size={14} />
+                                    ) : (
+                                        <FiChevronRight size={14} />
+                                    )}
+                                </>
+                            )}
+                        </HStack>
+
+                        {reportsOpen && (!compact || isMobile) && (
+                            <VStack
+                                align="stretch"
+                                gap="1"
+                                mt="1"
+                                pl="2"
+                            >
+                                {reportItems.map((item) =>
+                                    renderNavItem(item, true)
+                                )}
+                            </VStack>
+                        )}
+                    </Box>
                 </VStack>
 
                 {/* User profile and logout */}

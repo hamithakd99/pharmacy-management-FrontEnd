@@ -26,6 +26,7 @@ import EditProduct from './pages/Admin/Product Management/editProduct'
 import ProductManagement from './pages/Admin/productManagement'
 import UserManagement from './pages/Admin/userManagement'
 import Dashboard from './pages/Admin/dashBoard'
+import ProfitReport from './pages/Admin/reports/ProfitReport'
 
 
 function App() {
@@ -71,6 +72,8 @@ function App() {
             <Route path="orders/create" element={<CreateOrder />} />
 
             <Route path="opening-stock" element={<OpeningStock />} />
+            <Route path="reports/profit" element={<ProfitReport  />} />
+            
           </Route>
         </Route>
 

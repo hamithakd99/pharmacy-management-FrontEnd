@@ -1,13 +1,31 @@
+
 import { useState, type ComponentProps } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Flex, Heading, Text, } from "@chakra-ui/react";
-import { FiArrowLeft, FiArrowRight, FiCheck, FiUser, FiPackage, FiFileText, FiEye, } from "react-icons/fi";
+import {
+    Box,
+    Button,
+    Flex,
+    Heading,
+    Text,
+} from "@chakra-ui/react";
+
+import {
+    FiArrowLeft,
+    FiArrowRight,
+    FiCheck,
+    FiUser,
+    FiPackage,
+    FiFileText,
+    FiEye,
+} from "react-icons/fi";
+
 import CustomerStep from "./CustomerStep";
 import type { SelectedProduct } from "./ProductStep";
 import ProductStep from "./ProductStep";
 import OrderPreview from "./OrderPreview";
 import type { OrderDetails } from "./OrderDetailsStep";
 import OrderDetailsStep from "./OrderDetailsStep";
+
 import toast from "react-hot-toast";
 import api from "@/api/axios";
 
@@ -47,26 +65,35 @@ const CreateOrder = () => {
 
     const [currentStep, setCurrentStep] = useState(1);
 
-    const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+    const [selectedCustomer, setSelectedCustomer] =
+        useState<Customer | null>(null);
 
-    const [isWalkInCustomer, setIsWalkInCustomer] = useState(true);
+    const [isWalkInCustomer, setIsWalkInCustomer] =
+        useState(true);
 
     const [selectedProducts, setSelectedProducts] =
         useState<SelectedProduct[]>([]);
 
-    const [orderDetails, setOrderDetails] = useState<OrderDetails>({
-        discountAmount: 0,
-        paymentStatus: "PENDING",
-        paymentMethod: null,
-    });
+    const [orderDetails, setOrderDetails] =
+        useState<OrderDetails>({
+            discountAmount: 0,
+            paymentStatus: "PENDING",
+            paymentMethod: null,
+        });
 
-    const [saleType, setSaleType] = useState<"WHOLESALE" | "RETAIL">("WHOLESALE");
+    const [saleType, setSaleType] =
+        useState<"WHOLESALE" | "RETAIL">("WHOLESALE");
 
-    const [creatingOrder, setCreatingOrder] = useState(false);
-    // const [createdOrder, setCreatedOrder] = useState<any>(null);
+    const [creatingOrder, setCreatingOrder] =
+        useState(false);
 
+    // Navigation
     const handleNext = () => {
-        if (currentStep === 2 && selectedProducts.length === 0) {
+        if (
+            currentStep === 2 &&
+            selectedProducts.length === 0
+        ) {
+            toast.error("Please add at least one product");
             return;
         }
 
@@ -81,6 +108,7 @@ const CreateOrder = () => {
         }
     };
 
+    // Create Order
     const handleCreateOrder = async () => {
         if (selectedProducts.length === 0) {
             toast.error("Please add at least one product");
@@ -90,6 +118,35 @@ const CreateOrder = () => {
         if (!isWalkInCustomer && !selectedCustomer) {
             toast.error("Please select a customer");
             return;
+        }
+
+        // Validate product quantities
+        for (const product of selectedProducts) {
+            const quantity = Number(product.quantity || 0);
+
+            const freeIssueQuantity = Number(
+                product.freeIssueQuantity || 0
+            );
+
+            if (
+                !Number.isInteger(quantity) ||
+                quantity <= 0
+            ) {
+                toast.error(
+                    `Invalid quantity for ${product.name}`
+                );
+                return;
+            }
+
+            if (
+                !Number.isInteger(freeIssueQuantity) ||
+                freeIssueQuantity < 0
+            ) {
+                toast.error(
+                    `Invalid free issue quantity for ${product.name}`
+                );
+                return;
+            }
         }
 
         try {
@@ -102,13 +159,19 @@ const CreateOrder = () => {
                 return;
             }
 
+            // Subtotal includes paid quantities only
             const subtotal = selectedProducts.reduce(
-                (sum, product) => sum + Number(product.lineTotal || 0),
+                (sum, product) =>
+                    sum + Number(product.lineTotal || 0),
                 0
             );
 
-            const discountAmount = Number(
-                orderDetails.discountAmount || 0
+            const discountAmount = Math.min(
+                Math.max(
+                    0,
+                    Number(orderDetails.discountAmount || 0)
+                ),
+                subtotal
             );
 
             const totalAmount = Math.max(
@@ -116,6 +179,20 @@ const CreateOrder = () => {
                 0
             );
 
+            // Total quantities for display/debugging
+            const totalPaidQuantity = selectedProducts.reduce(
+                (sum, product) =>
+                    sum + Number(product.quantity || 0),
+                0
+            );
+
+            const totalFreeIssueQuantity = selectedProducts.reduce(
+                (sum, product) =>
+                    sum + Number(product.freeIssueQuantity || 0),
+                0
+            );
+
+            // API Payload
             const payload = {
                 customerId: isWalkInCustomer
                     ? null
@@ -125,11 +202,9 @@ const CreateOrder = () => {
 
                 saleType,
 
-                paymentStatus:
-                    orderDetails.paymentStatus,
+                paymentStatus: orderDetails.paymentStatus,
 
-                paymentMethod:
-                    orderDetails.paymentMethod,
+                paymentMethod: orderDetails.paymentMethod,
 
                 subtotal,
 
@@ -139,13 +214,31 @@ const CreateOrder = () => {
 
                 items: selectedProducts.map((product) => ({
                     productId: product.productId,
-                    quantity: product.quantity,
-                    sellingPrice: product.sellingPrice,
+
+                    // Paid quantity
+                    quantity: Number(product.quantity || 0),
+
+                    // Free issue quantity
+                    freeIssueQuantity: Number(
+                        product.freeIssueQuantity || 0
+                    ),
+
+                    sellingPrice: Number(
+                        product.sellingPrice || 0
+                    ),
                 })),
             };
 
-            // console.log("CREATE ORDER PAYLOAD:", payload);
+            console.log("CREATE ORDER PAYLOAD:", payload);
 
+            console.log("Total Paid Quantity:", totalPaidQuantity);
+
+            console.log(
+                "Total Free Issue Quantity:",
+                totalFreeIssueQuantity
+            );
+
+            // API Request
             await api.post(
                 "/order",
                 payload,
@@ -155,8 +248,6 @@ const CreateOrder = () => {
                     },
                 }
             );
-
-            // console.log("ORDER CREATED:", response.data);
 
             toast.success("Order created successfully!");
 
@@ -178,6 +269,7 @@ const CreateOrder = () => {
                 error.response?.data?.message ??
                 "Failed to create order"
             );
+
         } finally {
             setCreatingOrder(false);
         }
@@ -191,6 +283,7 @@ const CreateOrder = () => {
             py={{ base: 4, sm: 6 }}
         >
             <Box maxW="1200px" mx="auto">
+
                 {/* Header */}
                 <Flex
                     justify="space-between"
@@ -213,9 +306,7 @@ const CreateOrder = () => {
                             mb={2}
                             color="gray.600"
                             onClick={() =>
-                                navigate(
-                                    "/admin/orders"
-                                )
+                                navigate("/admin/orders")
                             }
                         >
                             <FiArrowLeft />
@@ -261,12 +352,10 @@ const CreateOrder = () => {
                             const Icon = step.icon;
 
                             const isActive =
-                                currentStep ===
-                                step.number;
+                                currentStep === step.number;
 
                             const isCompleted =
-                                currentStep >
-                                step.number;
+                                currentStep > step.number;
 
                             return (
                                 <Flex
@@ -295,21 +384,18 @@ const CreateOrder = () => {
                                             align="center"
                                             justify="center"
                                             bg={
-                                                isActive ||
-                                                    isCompleted
+                                                isActive || isCompleted
                                                     ? "blue.600"
                                                     : "gray.100"
                                             }
                                             color={
-                                                isActive ||
-                                                    isCompleted
+                                                isActive || isCompleted
                                                     ? "white"
                                                     : "gray.500"
                                             }
                                             border="2px solid"
                                             borderColor={
-                                                isActive ||
-                                                    isCompleted
+                                                isActive || isCompleted
                                                     ? "blue.600"
                                                     : "gray.200"
                                             }
@@ -328,9 +414,7 @@ const CreateOrder = () => {
                                                 md: "sm",
                                             }}
                                             fontWeight={
-                                                isActive
-                                                    ? "700"
-                                                    : "500"
+                                                isActive ? "700" : "500"
                                             }
                                             color={
                                                 isActive
@@ -351,30 +435,25 @@ const CreateOrder = () => {
                                             color="gray.400"
                                             textAlign="center"
                                         >
-                                            {
-                                                step.description
-                                            }
+                                            {step.description}
                                         </Text>
                                     </Flex>
 
-                                    {index <
-                                        steps.length -
-                                        1 && (
-                                            <Box
-                                                flex={1}
-                                                h="2px"
-                                                bg={
-                                                    currentStep >
-                                                        step.number
-                                                        ? "blue.600"
-                                                        : "gray.200"
-                                                }
-                                                mx={{
-                                                    base: 0,
-                                                    md: 3,
-                                                }}
-                                            />
-                                        )}
+                                    {index < steps.length - 1 && (
+                                        <Box
+                                            flex={1}
+                                            h="2px"
+                                            bg={
+                                                currentStep > step.number
+                                                    ? "blue.600"
+                                                    : "gray.200"
+                                            }
+                                            mx={{
+                                                base: 0,
+                                                md: 3,
+                                            }}
+                                        />
+                                    )}
                                 </Flex>
                             );
                         })}
@@ -387,14 +466,17 @@ const CreateOrder = () => {
                     border="1px solid"
                     borderColor="gray.200"
                     borderRadius="xl"
-                    minH={{ base: "360px", md: "420px" }}
+                    minH={{
+                        base: "360px",
+                        md: "420px",
+                    }}
                     p={{
                         base: 3,
                         md: 7,
                     }}
                 >
+                    {/* Step 1: Customer */}
                     {currentStep === 1 && (
-
                         <CustomerStep
                             selectedCustomer={selectedCustomer}
                             isWalkInCustomer={isWalkInCustomer}
@@ -409,17 +491,17 @@ const CreateOrder = () => {
                         />
                     )}
 
+                    {/* Step 2: Products */}
                     {currentStep === 2 && (
                         <ProductStep
                             selectedProducts={selectedProducts}
                             onProductsChange={setSelectedProducts}
                             saleType={saleType}
                             onSaleTypeChange={setSaleType}
-
                         />
                     )}
 
-
+                    {/* Step 3: Order Details */}
                     {currentStep === 3 && (
                         <OrderDetailsStep
                             customer={selectedCustomer}
@@ -430,6 +512,7 @@ const CreateOrder = () => {
                         />
                     )}
 
+                    {/* Step 4: Preview */}
                     {currentStep === 4 && (
                         <OrderPreview
                             customer={selectedCustomer}
@@ -445,13 +528,25 @@ const CreateOrder = () => {
                 {/* Navigation */}
                 <Flex
                     justify="space-between"
-                    align={{ base: "stretch", sm: "center" }}
+                    align={{
+                        base: "stretch",
+                        sm: "center",
+                    }}
                     gap={2}
-                    mt={{ base: 3, md: 5 }}
-                    direction={{ base: "column", sm: "row" }}
+                    mt={{
+                        base: 3,
+                        md: 5,
+                    }}
+                    direction={{
+                        base: "column",
+                        sm: "row",
+                    }}
                 >
                     <Button
-                        width={{ base: "100%", sm: "auto" }}
+                        width={{
+                            base: "100%",
+                            sm: "auto",
+                        }}
                         variant="outline"
                         bg="white"
                         disabled={currentStep === 1}
@@ -463,7 +558,10 @@ const CreateOrder = () => {
 
                     {currentStep < 4 ? (
                         <Button
-                            width={{ base: "100%", sm: "auto" }}
+                            width={{
+                                base: "100%",
+                                sm: "auto",
+                            }}
                             colorPalette="blue"
                             onClick={handleNext}
                         >
@@ -474,7 +572,10 @@ const CreateOrder = () => {
                         <Button
                             colorPalette="blue"
                             size="lg"
-                            width={{ base: "100%", sm: "auto" }}
+                            width={{
+                                base: "100%",
+                                sm: "auto",
+                            }}
                             onClick={handleCreateOrder}
                             loading={creatingOrder}
                             loadingText="Creating Order..."
