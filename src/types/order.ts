@@ -25,6 +25,11 @@ export interface OrderCustomer {
   lastName?: string;
   email?: string;
   contactNumber?: string;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  province?: string | null;
+  postalCode?: string | null;
 }
 
 export interface OrderCashier {

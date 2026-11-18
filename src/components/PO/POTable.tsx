@@ -64,6 +64,11 @@ export type PurchaseOrder = {
     lastName: string;
     email?: string | null;
     contactNumber?: string | null;
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    city?: string | null;
+    province?: string | null;
+    postalCode?: string | null;
 } | null;
 
     items: PurchaseOrderItem[];

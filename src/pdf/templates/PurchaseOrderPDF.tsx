@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
         marginBottom: 3,
     },
     subtitle: {
-        fontSize: 7,
+        fontSize: 9,
         color: "#64748B",
     },
     invoiceMeta: {
@@ -47,12 +47,12 @@ const styles = StyleSheet.create({
     },
     metaLabel: {
         width: "34%",
-        fontSize: 7,
+        fontSize: 9,
         color: "#475569",
     },
     metaValue: {
         flex: 1,
-        fontSize: 8,
+        fontSize: 9,
         fontWeight: "bold",
         color: "#111827",
     },
@@ -66,12 +66,12 @@ const styles = StyleSheet.create({
         marginBottom: 3,
     },
     supplierName: {
-        fontSize: 8,
+        fontSize: 10,
         color: "#111827",
         marginBottom: 2,
     },
     supplierDetail: {
-        fontSize: 7,
+        fontSize: 10,
         color: "#374151",
         marginBottom: 2,
     },
@@ -99,11 +99,11 @@ const styles = StyleSheet.create({
     },
     cell: {
         paddingHorizontal: 4,
-        fontSize: 7,
+        fontSize: 9,
         color: "#111827",
     },
     headerCell: {
-        fontSize: 7,
+        fontSize: 9,
         fontWeight: "bold",
         color: "#111827",
     },
@@ -195,6 +195,15 @@ export default function PurchaseOrderPDF({
     const supplierName = purchaseOrder.supplier
         ? `${purchaseOrder.supplier.firstName ?? ""} ${purchaseOrder.supplier.lastName ?? ""}`.trim()
         : "-";
+    const inlineSupplierAddress = [
+        purchaseOrder.supplier?.addressLine1,
+        purchaseOrder.supplier?.addressLine2,
+        purchaseOrder.supplier?.city,
+        purchaseOrder.supplier?.province,
+        purchaseOrder.supplier?.postalCode,
+    ]
+        .filter((value): value is string => Boolean(value))
+        .join(", ");
 
     const createdDate = new Date(purchaseOrder.createdAt);
     const formattedDate = Number.isNaN(createdDate.getTime())
@@ -233,6 +242,11 @@ export default function PurchaseOrderPDF({
                 <View style={styles.partySection}>
                     <Text style={styles.sectionLabel}>SUPPLIER</Text>
                     <Text style={styles.supplierName}>{supplierName}</Text>
+                    {inlineSupplierAddress ? (
+                        <Text style={styles.supplierDetail}>
+                            {inlineSupplierAddress}
+                        </Text>
+                    ) : null}
                     {purchaseOrder.supplier?.email ? (
                         <Text style={styles.supplierDetail}>
                             Email: {purchaseOrder.supplier.email}

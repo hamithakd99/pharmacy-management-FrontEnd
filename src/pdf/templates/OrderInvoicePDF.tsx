@@ -19,9 +19,13 @@ interface OrderInvoice {
   customer?: {
     firstName?: string;
     lastName?: string;
-    phone?: string;
+    contactNumber?: string;
     email?: string;
-    address?: string;
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    city?: string | null;
+    province?: string | null;
+    postalCode?: string | null;
   } | null;
 
   cashier?: {
@@ -281,7 +285,7 @@ const styles = StyleSheet.create({
   },
 
   smallMuted: {
-    fontSize: 7,
+    fontSize: 9,
     color: "#555555",
   },
 
@@ -296,7 +300,7 @@ const styles = StyleSheet.create({
 
   metaLabel: {
     width: "45%",
-    fontSize: 7,
+    fontSize: 9,
     color: "#444444",
   },
 
@@ -323,7 +327,7 @@ const styles = StyleSheet.create({
   },
 
   billText: {
-    fontSize: 7.5,
+    fontSize: 10,
     marginBottom: 2,
   },
 
@@ -341,7 +345,7 @@ const styles = StyleSheet.create({
     borderColor: "#555555",
     paddingVertical: 5,
     paddingHorizontal: 3,
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: "bold",
   },
 
@@ -394,12 +398,12 @@ const styles = StyleSheet.create({
   },
 
   cell: {
-    fontSize: 7.2,
+    fontSize: 8,
     lineHeight: 1.15,
   },
 
   productName: {
-    fontSize: 7.2,
+    fontSize: 9,
     lineHeight: 1.15,
   },
 
@@ -475,6 +479,15 @@ export default function OrderInvoicePDF({
         order.customer.lastName ?? ""
       }`.trim()
     : "Walk-in Customer";
+  const inlineAddress = [
+    order.customer?.addressLine1,
+    order.customer?.addressLine2,
+    order.customer?.city,
+    order.customer?.province,
+    order.customer?.postalCode,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(", ");
 
   // Combine paid and free issue records
   const groupedItems = groupInvoiceItems(
@@ -540,21 +553,21 @@ export default function OrderInvoicePDF({
               {customerName || "Walk-in Customer"}
             </Text>
 
-            {order.customer?.address ? (
+            {inlineAddress ? (
               <Text style={styles.billText}>
-                {order.customer.address}
+                {inlineAddress}
               </Text>
             ) : null}
 
-            {order.customer?.phone ? (
+            {order.customer?.contactNumber ? (
               <Text style={styles.billText}>
-                Phone: {order.customer.phone}
+                {order.customer.contactNumber}
               </Text>
             ) : null}
 
             {order.customer?.email ? (
               <Text style={styles.billText}>
-                Email: {order.customer.email}
+                {order.customer.email}
               </Text>
             ) : null}
           </View>
