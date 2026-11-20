@@ -261,10 +261,10 @@ const groupInvoiceItems = (
 const styles = StyleSheet.create({
   page: {
     paddingTop: 20,
-    paddingHorizontal: 25,
+    paddingHorizontal: 15,
     paddingBottom: 24,
     fontFamily: "Helvetica",
-    fontSize: 8,
+    fontSize: 10,
     color: "#222222",
     backgroundColor: "#FFFFFF",
   },
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
 
   metaValue: {
     flex: 1,
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: "bold",
   },
 
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     borderColor: "#555555",
     paddingVertical: 5,
     paddingHorizontal: 3,
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: "bold",
   },
 
@@ -398,12 +398,12 @@ const styles = StyleSheet.create({
   },
 
   cell: {
-    fontSize: 8,
+    fontSize: 9,
     lineHeight: 1.15,
   },
 
   productName: {
-    fontSize: 9,
+    fontSize: 10,
     lineHeight: 1.15,
   },
 
