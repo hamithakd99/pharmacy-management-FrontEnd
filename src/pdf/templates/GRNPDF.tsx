@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingHorizontal: 28,
     paddingBottom: 28,
-    fontSize: 8,
+    fontSize: 10,
     fontFamily: "Helvetica",
     color: "#1F2937",
     backgroundColor: "#FFFFFF",
@@ -63,8 +63,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginTop: 10,
-    marginBottom: 18,
     paddingBottom: 10,
     borderBottomWidth: 0.7,
     borderBottomColor: "#D1D5DB",
@@ -76,7 +74,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 8,
+    fontSize: 11,
     color: "#64748B",
   },
   documentMeta: {
@@ -90,20 +88,19 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     width: "38%",
-    fontSize: 8,
+    fontSize: 9,
     color: "#475569",
     paddingRight: 6,
   },
   metaValue: {
     flex: 1,
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: "bold",
     color: "#111827",
   },
   infoSection: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
     paddingVertical: 2,
   },
   infoBox: {
@@ -117,29 +114,27 @@ const styles = StyleSheet.create({
   },
   label: {
     width: "42%",
-    fontSize: 8,
+    fontSize: 9,
     color: "#475569",
     paddingRight: 8,
   },
   value: {
     flex: 1,
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: "bold",
     color: "#111827",
   },
   sectionTitle: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "bold",
     color: "#111827",
     marginBottom: 7,
-    marginTop: 2,
-    paddingTop: 8,
     borderTopWidth: 0.7,
     borderTopColor: "#D1D5DB",
   },
   table: {
     width: "100%",
-    marginTop: 2,
+    marginTop: 1,
   },
   tableRow: {
     flexDirection: "row",
@@ -159,13 +154,13 @@ const styles = StyleSheet.create({
   cell: {
     paddingHorizontal: 4,
     paddingVertical: 5,
-    fontSize: 7,
+    fontSize: 10,
     color: "#111827",
   },
   headerCell: {
     color: "#111827",
     fontWeight: "bold",
-    fontSize: 7,
+    fontSize: 9,
   },
   /* Keep the existing GRN table columns and widths unchanged. */
   productId: {
@@ -215,11 +210,11 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   summaryLabel: {
-    fontSize: 8,
+    fontSize: 9,
     color: "#374151",
   },
   summaryValue: {
-    fontSize: 8,
+    fontSize: 9,
     color: "#111827",
     textAlign: "right",
   },
@@ -247,7 +242,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   paymentText: {
-    fontSize: 7,
+    fontSize: 9,
     fontWeight: "bold",
   },
   signatureSection: {
@@ -321,7 +316,7 @@ export default function GRNPDF({ stockBatch, settings }: Props) {
 
         <View style={styles.titleSection}>
           <View>
-            <Text style={styles.title}>GOODS RECEIVED NOTE</Text>
+            <Text style={styles.title}>Goods Received Note</Text>
             <Text style={styles.subtitle}>Stock receiving document</Text>
           </View>
 
@@ -342,12 +337,12 @@ export default function GRNPDF({ stockBatch, settings }: Props) {
         <View style={styles.infoSection}>
           <View style={styles.infoBox}>
             <View style={styles.infoRow}>
-              <Text style={styles.label}>SUPPLIER</Text>
+              <Text style={styles.label}>Supplier</Text>
               <Text style={styles.value}>{supplierName}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Text style={styles.label}>PURCHASE ORDER</Text>
+              <Text style={styles.label}>Purchase Order</Text>
               <Text style={styles.value}>
                 {stockBatch.purchaseOrder?.orderNumber ?? "-"}
               </Text>
@@ -356,12 +351,12 @@ export default function GRNPDF({ stockBatch, settings }: Props) {
 
           <View style={styles.infoBox}>
             <View style={styles.infoRow}>
-              <Text style={styles.label}>SUPPLIER INVOICE NUMBER</Text>
+              <Text style={styles.label}>Supplier Invoice Number</Text>
               <Text style={styles.value}>{stockBatch.invoiceNumber || "-"}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Text style={styles.label}>PAYMENT STATUS</Text>
+              <Text style={styles.label}>Payment Status</Text>
               <View
                 style={[
                   styles.paymentBadge,
